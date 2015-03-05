@@ -17,7 +17,7 @@
            (fn [[_ state-snapshot]]
                (reset! app state-snapshot))))
 
-(defn wrap-component
+(defn init-component
       "Creates Reagent component with wired up channels."
       [view-fn state-pub cmd-chan id]
       (let [init-partial (partial mount-component view-fn id)
