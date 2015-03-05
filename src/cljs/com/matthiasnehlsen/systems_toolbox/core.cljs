@@ -11,8 +11,7 @@
         out-chan (chan out-buffer)
         put-fn #(put! out-chan %)
         msg-fn (fn put-fn)]
-    (go-loop []
-             (let [msg (<! in-chan)]
-               (msg-fn msg)
-               (recur)))
+    (go-loop [] 
+             (msg-fn (<! in-chan))
+             (recur))
     {:in-chan in-chan :out-chan out-chan}))
