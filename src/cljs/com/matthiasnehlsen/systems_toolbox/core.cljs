@@ -1,4 +1,4 @@
-(ns com.matthiasnehlsen.systems-toolbox.component
+(ns com.matthiasnehlsen.systems-toolbox.core
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require [cljs.core.async :refer [<! >! chan put!]]))
 

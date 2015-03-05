@@ -1,6 +1,6 @@
 (ns com.matthiasnehlsen.systems-toolbox.reagent
   (:require [reagent.core :as r :refer [atom]]
-            [com.matthiasnehlsen.systems-toolbox.component :as comp]
+            [com.matthiasnehlsen.systems-toolbox.core :as comp]
             [cljs.core.async :refer [chan pub sub buffer sliding-buffer pipe]]))
 
 (defn by-id
