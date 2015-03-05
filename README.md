@@ -28,13 +28,8 @@ Combine this with a built-in visualizer of the information flow. Since the struc
 
 These observation tools should put us in an excellent place for understanding a running system by observing its behavior. Then, we can learn more about our systems, both under real load and under simulated load, and determine where, exactly, additional effort is well spent.
 
-## Usage
+Components could, for example, as already suggested, take care of database lookups. Also, they could provide a bi-directional connection between client and server over a WebSockets connection. Yet another kind of component could facilitate communication between two JVMs, e.g. using **[Kafka](http://kafka.apache.org)**, **[RabbitMQ](http://www.rabbitmq.com)**, **[Redis](http://redis.io)**, or **[HornetQ](http://hornetq.jboss.org)**.
 
-So far, there's nothing to use. But there will be.
+Other components encapsulate application state and surrounding business logic. The only way to interact with the application state is via messages, where it is entirely up to the state handling logic how to deal with those messages. Inside, the state is kept in an atom but this atom is not freely passed around. Only the dereferenced application state is sent back to the connected switchboard when a change occurs.
 
-## License
-
-Copyright © 2015 Matthias Nehlsen
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Other components can render the received data as HTML using ReactJS and Reagent and emit messages back to the Switchboard when the user clicks a button, or when any other kind of interaction with the UI occurs. The state handling components can then react to the event, or the switchboard forwards a query to the server; this totally depends on how we wire up the switchboard for the particular message type.
