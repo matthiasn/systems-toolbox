@@ -19,8 +19,14 @@
 
 (defn init-component
       "Creates Reagent component with wired up channels."
-      [view-fn state-pub cmd-chan id]
+      [view-fn state-pub state-in-chan id]
       (let [init-partial (partial mount-component view-fn id)
             cmpnt (comp/component-with-channels init-partial (sliding-buffer 1) (buffer 1))]
            (sub state-pub :app-state (:in-chan cmpnt))
-           (pipe (:out-chan cmpnt) cmd-chan)))
+           (pipe (:out-chan cmpnt) state-in-chan)))
+
+(defn init-components
+      "Creates Reagent components with wired up channels."
+      [state-pub state-in-chan views]
+      (doseq [[view id] views]
+             (init-component view state-pub state-in-chan id)))
