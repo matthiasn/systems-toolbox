@@ -31,5 +31,4 @@
 
 (defn component
   []
-  (comp/component-single-in-single-out init-component
-                                       {:in-chan [:buffer 1] :out-chan [:buffer 1]}))
+  (comp/single-in-single-out init-component))

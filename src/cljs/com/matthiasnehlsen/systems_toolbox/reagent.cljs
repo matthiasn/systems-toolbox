@@ -21,7 +21,7 @@
   "Creates Reagent component with wired up channels."
   [view-fn state-pub state-in-chan dom-id]
   (let [init-partial (partial mount-component view-fn dom-id)
-        cmpnt (comp/component-with-channels init-partial (sliding-buffer 1) (buffer 1))]
+        cmpnt (comp/single-in-single-out init-partial)]
     (sub state-pub :app-state (:in-chan cmpnt))
     (pipe (:out-chan cmpnt) state-in-chan)))
 
