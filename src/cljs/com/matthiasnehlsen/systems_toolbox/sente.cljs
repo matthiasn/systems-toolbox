@@ -30,5 +30,6 @@
       (send-fn [cmd-type (assoc payload :uid (:uid @state))]))))
 
 (defn component
-  [in-buffer out-buffer]
-  (comp/component-with-channels init-component in-buffer out-buffer))
+  []
+  (comp/component-single-in-single-out init-component
+                                       {:in-chan [:buffer 1] :out-chan [:buffer 1]}))
