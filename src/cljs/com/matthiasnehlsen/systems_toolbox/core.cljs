@@ -1,7 +1,7 @@
 (ns com.matthiasnehlsen.systems-toolbox.core
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require [cljs.core.match :refer-macros [match]]
-            [cljs.core.async :refer [<! >! chan put! buffer sliding-buffer dropping-buffer timeout]]))
+            [cljs.core.async :refer [<! >! chan put! pub buffer sliding-buffer dropping-buffer timeout]]))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -59,7 +59,7 @@
                          :out-chan [:buffer 1]
                          :sliding-in-chan [:sliding 1]
                          :sliding-out-chan [:sliding 1]
-                         :sliding-in-timeout 20})
+                         :sliding-in-timeout 5})
 
 (defn make-component
   "Creates a component with attached in-chan, out-chan, sliding-in-chan
@@ -84,7 +84,8 @@
      (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
      (merge
        {:out-chan out-chan
-        :sliding-out-chan sliding-out-chan}
+        :sliding-out-chan sliding-out-chan
+        :state-pub (pub sliding-out-chan first)}
        (when handler
          (let [in-chan (make-chan-w-buf (:in-chan cfg))]
            (go-loop []
