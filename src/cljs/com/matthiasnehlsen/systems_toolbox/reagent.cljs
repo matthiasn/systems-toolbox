@@ -8,25 +8,19 @@
   [id]
   (.getElementById js/document id))
 
-(defn mount-component
-  "Mounts view-fn component. Takes put-fn as the function that can be called when some message
-   needs to be sent back to the switchboard. Returns a function that handles incoming messages."
+(defn init
+  "Return clean initial component state atom."
   [view-fn dom-id put-fn]
   (let [app (atom {})]
     (r/render-component [view-fn app put-fn] (by-id dom-id))
-    (fn [[_ state-snapshot]]
-      (reset! app state-snapshot))))
+    app))
 
-(defn init-component
-  "Creates Reagent component with wired up channels."
-  [view-fn state-pub state-in-chan dom-id]
-  (let [init-partial (partial mount-component view-fn dom-id)
-        cmpnt (comp/single-in-single-out init-partial)]
-    (sub state-pub :app-state (:in-chan cmpnt))
-    (pipe (:out-chan cmpnt) state-in-chan)))
+(defn state-pub-handler
+  "Handle incoming messages: process / add to application state."
+  [app _ [_ state-snapshot]]
+  (reset! app state-snapshot))
 
-(defn init-components
-  "Creates Reagent components with wired up channels."
-  [state-pub state-in-chan views]
-  (doseq [[view dom-id] views]
-    (init-component view state-pub state-in-chan dom-id)))
+(defn component
+  [view-fn dom-id]
+  (let [make-state (partial init view-fn dom-id)]
+    (comp/make-component make-state nil state-pub-handler)))
