@@ -1,7 +1,7 @@
 (ns com.matthiasnehlsen.systems-toolbox.core
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require [cljs.core.match :refer-macros [match]]
-            [cljs.core.async :refer [<! >! chan put! pub buffer sliding-buffer dropping-buffer timeout]]))
+            [cljs.core.async :refer [<! >! chan put! sub pipe pub buffer sliding-buffer dropping-buffer timeout]]))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -82,3 +82,14 @@
                     (sliding-handler state put-fn (<! sliding-in-chan))
                     (recur))
            {:sliding-in-chan sliding-in-chan}))))))
+
+(defn state-snapshot-subscribe
+  [pub-comp key sub-comps]
+  (doseq [c sub-comps]
+    (sub (:state-pub pub-comp) key (:sliding-in-chan c))))
+
+(defn pipe-multiple
+  [comps]
+  (doseq [[out in] comps]
+    (pipe (:out-chan out) (:in-chan in))))
+
