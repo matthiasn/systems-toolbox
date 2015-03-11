@@ -1,6 +1,6 @@
-(ns com.matthiasnehlsen.systems-toolbox.sente
+(ns matthiasn.systems-toolbox.sente
   (:require [cljs.core.match :refer-macros [match]]
-            [com.matthiasnehlsen.systems-toolbox.core :as comp]
+            [matthiasn.systems-toolbox.core :as comp]
             [taoensso.sente :as sente :refer (cb-success?)]
             [taoensso.sente.packers.transit :as sente-transit]))
 
