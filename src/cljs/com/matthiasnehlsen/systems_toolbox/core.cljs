@@ -73,8 +73,9 @@
        (when handler
          (let [in-chan (make-chan-w-buf (:in-chan cfg))]
            (go-loop []
-                    (handler state put-fn (<! in-chan))
-                    (recur))
+                    (let [msg (<! in-chan)]
+                      (handler state put-fn msg)
+                      (recur)))
            {:in-chan in-chan}))
        (when sliding-handler
          (let [sliding-in-chan (make-chan-w-buf (:sliding-in-chan cfg))]
@@ -90,6 +91,6 @@
 
 (defn pipe-multiple
   [comps]
-  (doseq [[out in] comps]
-    (pipe (:out-chan out) (:in-chan in))))
+  (doseq [[from to] comps]
+    (pipe (:out-chan from) (:in-chan to))))
 
