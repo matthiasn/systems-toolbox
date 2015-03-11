@@ -17,24 +17,6 @@
   [channels]
   (into {} (map (fn [[k v]] [k (make-chan-w-buf v)]) channels)))
 
-(defn single-in-multiple-out
-  "Creates a component with attached in-chan and out-chan.
-   It takes a function fn and both an in- and an out-buffer.
-   The function fn is called with the internal put-fn that puts
-   messages onto the out-chan. Fn is expected to return another
-   function that can then be called for each message on the
-   in-chan. Component state can thus be kept inside the initial
-   call to fn."
-  [fn channel-config out-chan-selector]
-  (let [in-chan (make-chan-w-buf (:in-chan channel-config))
-        out-chans (make-chans-w-buf (:out-chans channel-config))
-        put-fn #(put! ((out-chan-selector %) out-chans) %)
-        msg-fn (fn put-fn)]
-    (go-loop []
-             (msg-fn (<! in-chan))
-             (recur))
-    {:in-chan in-chan :out-chans out-chans}))
-
 (defn single-in-single-out
   "Creates a component with attached in-chan and out-chan.
    It takes a function fn and both an in- and an out-buffer.
@@ -76,8 +58,9 @@
   other components."
   ([mk-state handler sliding-handler]
    (make-component mk-state handler sliding-handler component-defaults))
-  ([mk-state handler sliding-handler cfg]
-   (let [out-chan (make-chan-w-buf (:out-chan cfg))
+  ([mk-state handler sliding-handler opts]
+   (let [cfg (merge component-defaults opts)
+         out-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
          put-fn #(put! out-chan %)
          state (mk-state put-fn)]
