@@ -84,7 +84,6 @@
      (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
      (merge
        {:out-chan out-chan
-        :sliding-out-chan sliding-out-chan
         :state-pub (pub sliding-out-chan first)}
        (when handler
          (let [in-chan (make-chan-w-buf (:in-chan cfg))]
