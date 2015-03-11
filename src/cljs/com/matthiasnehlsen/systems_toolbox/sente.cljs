@@ -18,17 +18,19 @@
            [:chsk/recv payload] (put-fn payload)
            :else (print "Unmatched event: %s" event))))
 
-(defn init-component
-  "Initializes Sente / WebSockets component. Takes put-fn as the function that can be called
-   when some message needs to be sent back to the switchboard. Returns a function that handles
-   incoming messages."
+(defn make-state
+  "Return clean initial component state atom."
   [put-fn]
-  (let [ws (sente/make-channel-socket! "/chsk" {:packer packer :type :auto})
-        {:keys [ch-recv send-fn state]} ws]
-    (sente/start-chsk-router! ch-recv (make-handler put-fn))
-    (fn [[cmd-type payload]]
-      (send-fn [cmd-type (assoc payload :uid (:uid @state))]))))
+  (let [ws (sente/make-channel-socket! "/chsk" {:packer packer :type :auto})]
+    (sente/start-chsk-router! (:ch-recv ws) (make-handler put-fn))
+    ws))
+
+(defn in-handler
+  "Handle incoming messages: process / add to application state."
+  [ws _ [cmd-type payload]]
+  (let [state (:state ws)]
+    ((:send-fn ws) [cmd-type (assoc payload :uid (:uid @state))])))
 
 (defn component
   []
-  (comp/single-in-single-out init-component))
+  (comp/make-component make-state in-handler nil {:atom false}))

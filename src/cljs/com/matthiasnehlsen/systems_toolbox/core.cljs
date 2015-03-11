@@ -41,7 +41,8 @@
                          :out-chan [:buffer 1]
                          :sliding-in-chan [:sliding 1]
                          :sliding-out-chan [:sliding 1]
-                         :sliding-in-timeout 5})
+                         :sliding-in-timeout 5
+                         :atom true})
 
 (defn make-component
   "Creates a component with attached in-chan, out-chan, sliding-in-chan
@@ -64,7 +65,8 @@
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
          put-fn #(put! out-chan %)
          state (mk-state put-fn)]
-     (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
+     (when (:atom cfg)  ; not the case in sente / ws component
+       (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state]))))
      (merge
        {:out-chan out-chan
         :state-pub (pub sliding-out-chan first)}
