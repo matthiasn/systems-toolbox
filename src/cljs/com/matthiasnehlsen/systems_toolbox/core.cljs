@@ -1,7 +1,7 @@
 (ns com.matthiasnehlsen.systems-toolbox.core
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require [cljs.core.match :refer-macros [match]]
-            [cljs.core.async :refer [<! >! chan put! sub pipe pub buffer sliding-buffer dropping-buffer timeout]]))
+            [cljs.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer timeout]]))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -64,11 +64,12 @@
          out-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
          put-fn #(put! out-chan %)
+         out-mult (mult out-chan)
          state (mk-state put-fn)]
-     (when (:atom cfg)  ; not the case in sente / ws component
+     (when (:atom cfg)  ; not the case in sente / ws component - ws map has an atom inside
        (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state]))))
      (merge
-       {:out-chan out-chan
+       {:out-mult out-mult
         :state-pub (pub sliding-out-chan first)}
        (when handler
          (let [in-chan (make-chan-w-buf (:in-chan cfg))]
