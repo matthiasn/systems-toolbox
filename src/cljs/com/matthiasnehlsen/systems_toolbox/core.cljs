@@ -74,27 +74,26 @@
   version is of interest, such as mouse moves or published state
   snapshots in the case of UI components rendering state snapshots from
   other components."
-  ([state handler sliding-handler]
-   (make-component state handler sliding-handler component-defaults))
-  ([state handler sliding-handler cfg]
+  ([mk-state handler sliding-handler]
+   (make-component mk-state handler sliding-handler component-defaults))
+  ([mk-state handler sliding-handler cfg]
    (let [out-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
-         put-fn #(put! out-chan %)]
-     (add-watch state :watcher (fn [_ _ _ new-state] (>! sliding-out-chan [:state new-state])))
+         put-fn #(put! out-chan %)
+         state (mk-state put-fn)]
+     (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
      (merge
        {:out-chan out-chan
         :sliding-out-chan sliding-out-chan}
-       )
-     (when handler
-       (let [in-chan (make-chan-w-buf (:in-chan cfg))]
-         (go-loop []
-                  (handler state put-fn (<! in-chan))
-                  (recur))
-         {:in-chan in-chan}))
-     (when sliding-handler
-       (let [sliding-in-chan (make-chan-w-buf (:sliding-in-chan cfg))]
-         (go-loop []
-                  (sliding-handler state put-fn (<! sliding-in-chan))
-                  (recur))
-         {:sliding-in-chan sliding-in-chan})))))
-
+       (when handler
+         (let [in-chan (make-chan-w-buf (:in-chan cfg))]
+           (go-loop []
+                    (handler state put-fn (<! in-chan))
+                    (recur))
+           {:in-chan in-chan}))
+       (when sliding-handler
+         (let [sliding-in-chan (make-chan-w-buf (:sliding-in-chan cfg))]
+           (go-loop []
+                    (sliding-handler state put-fn (<! sliding-in-chan))
+                    (recur))
+           {:sliding-in-chan sliding-in-chan}))))))
