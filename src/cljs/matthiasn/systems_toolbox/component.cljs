@@ -1,4 +1,4 @@
-(ns matthiasn.systems-toolbox.core
+(ns matthiasn.systems-toolbox.component
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require [cljs.core.match :refer-macros [match]]
             [cljs.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer timeout]]))
