@@ -9,8 +9,7 @@
   [app cfg]
   (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} cfg
         cmp (comp/make-component mk-state-fn handler-fn state-pub-handler-fn opts)]
-    (swap! app assoc-in [:components cmp-id] cmp)
-    (prn (:components @app))))
+    (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn subscribe-component
   "Subscribe component to a specified publisher."
@@ -18,8 +17,7 @@
   (let [pub-comp ((:pub-comp params) (:components @app))
         sub-comp ((:sub-comp params) (:components @app))]
     (sub (:state-pub pub-comp) :app-state (:sliding-in-chan sub-comp))
-    (swap! app update-in [:subs] conj params)
-    (prn (:subs @app))))
+    (swap! app update-in [:subs] conj params)))
 
 (defn tap-comp
   "Tap component channel to a specified mult."
@@ -27,8 +25,7 @@
   (let [mult-comp ((:mult-comp params) (:components @app))
         tap-comp  ((:tap-comp params)  (:components @app))]
     (tap (:out-mult mult-comp) (:in-chan tap-comp))
-    (swap! app update-in [:taps] conj params)
-    (prn (:taps @app))))
+    (swap! app update-in [:taps] conj params)))
 
 (defn make-ws-comp
   "Initializes Sente / WS component and makes is accessible under [:components :ws]
@@ -55,7 +52,6 @@
 (defn in-handler
   "Handle incoming messages: process / add to application state."
   [app _ msg]
-
   (match msg
          [:cmd/make-comp      cmp] (make-comp app cmp)
          [:cmd/make-ws-comp      ] (make-ws-comp app)

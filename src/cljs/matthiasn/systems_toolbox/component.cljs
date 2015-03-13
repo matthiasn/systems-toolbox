@@ -13,7 +13,7 @@
          :else          (prn "invalid: " config)))
 
 (def component-defaults
-  {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :sliding-in-timeout 5
+  {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :throttle-ms 5
    :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]  :atom true})
 
 (defn msg-handler-loop
@@ -27,6 +27,7 @@
     (let [chan (make-chan-w-buf (chan-key cfg))]
       (go-loop []
                (handler-fn state put-fn (<! chan))
+               (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
                (recur))
       {chan-key chan})))
 
