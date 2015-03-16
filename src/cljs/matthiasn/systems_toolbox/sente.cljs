@@ -15,7 +15,8 @@
   (fn [{:keys [event]}]
     (match event
            [:chsk/state {:first-open? true}] (put-fn [:first-open true])
-           [:chsk/recv payload] (put-fn payload)
+           [:chsk/recv payload]              (put-fn payload)
+           [:chsk/handshake _]               ()
            :else (print "Unmatched event: %s" event))))
 
 (defn make-state
