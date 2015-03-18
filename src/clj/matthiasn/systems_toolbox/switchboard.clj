@@ -1,8 +1,8 @@
 (ns matthiasn.systems-toolbox.switchboard
-  (:require [cljs.core.match :refer-macros [match]]
-            [cljs.core.async :refer [put! sub tap]]
+  (:gen-class)
+  (:require [clojure.core.match :refer [match]]
+            [clojure.core.async :refer [put! sub tap]]
             [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.reagent :as r]
             [matthiasn.systems-toolbox.log :as l]
             [matthiasn.systems-toolbox.sente :as ws]))
 
@@ -40,14 +40,6 @@
     (put-fn [:log/switchboard-init :ws])
     ws))
 
-(defn make-reagent-comp
-  "Creates a Reagent component."
-  [app put-fn params]
-  (let [{:keys [cmp-id view-fn dom-id init-state]} params
-        cmp (r/component view-fn dom-id init-state)]
-    (put-fn [:log/switchboard-init-reagent cmp-id])
-    (swap! app assoc-in [:components cmp-id] cmp)))
-
 (defn make-log-comp
   "Creates a log component."
   [app put-fn]
@@ -77,7 +69,6 @@
          [:cmd/make-comp      cmp] (make-comp app put-fn cmp)
          [:cmd/make-ws-comp      ] (make-ws-comp app put-fn)
          [:cmd/make-log-comp     ] (make-log-comp app put-fn)
-         [:cmd/make-r-comp params] (make-reagent-comp app put-fn params)
          [:cmd/sub-comp    params] (subscribe-component app put-fn params)
          [:cmd/tap-comp    params] (tap-comp app put-fn params)
          :else (prn "unknown msg in switchboard-in-loop" msg)))

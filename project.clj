@@ -10,11 +10,11 @@
                  [com.taoensso/sente "1.4.1"]
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [http-kit "2.1.19"]]
-  :source-paths ["src/cljs"]
+  :source-paths ["src/clj" "src/cljs"]
   :plugins [[lein-cljsbuild "1.0.5"]]
   :cljsbuild {:builds {:test
                        {:source-paths ["test"]
-                        :dependencies [[org.clojure/clojurescript "0.0-3119"]]
+                        ;:dependencies [[org.clojure/clojurescript "0.0-3119"]]
                         :compiler {:output-to "resources/test.js"
                                    :optimizations :advanced}
                         :jar false}}})

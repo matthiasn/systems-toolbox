@@ -1,7 +1,6 @@
 (ns matthiasn.systems-toolbox.log
+  (:gen-class)
   (:require [matthiasn.systems-toolbox.component :as comp]))
-
-(enable-console-print!)
 
 (defn make-state
   "Return clean initial component state atom."

@@ -1,7 +1,8 @@
 (ns matthiasn.systems-toolbox.sente
-  (:require [cljs.core.match :refer-macros [match]]
+  (:gen-class)
+  (:require [clojure.core.match :refer [match]]
             [matthiasn.systems-toolbox.component :as comp]
-            [taoensso.sente :as sente :refer (cb-success?)]))
+            [taoensso.sente :as sente]))
 
 (defn make-handler
   "Create handler function for messages from WebSocket connection. Calls put-fn with received
