@@ -9,6 +9,7 @@
   [app cfg]
   (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} cfg
         cmp (comp/make-component mk-state-fn handler-fn state-pub-handler-fn opts)]
+    (prn "Creating new component: " cmp-id)
     (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn subscribe-component
@@ -31,14 +32,16 @@
   "Initializes Sente / WS component and makes is accessible under [:components :ws]
   inside the switchboard state atom."
   [app]
+  (prn "Creating WS component.")
   (let [ws (ws/component)]
     (swap! app assoc-in [:components :ws] ws)))
 
 (defn make-reagent-comp
-  "Creates a Reagent component"
+  "Creates a Reagent component."
   [app params]
   (let [{:keys [cmp-id view-fn dom-id]} params
         cmp (r/component view-fn dom-id)]
+    (prn "Creating new Reagent component: " cmp-id)
     (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn make-state
@@ -64,5 +67,5 @@
   "Creates a switchboard component that wires individual components together into
   a communicating system."
   []
-  (let []
-    (comp/make-component make-state in-handler nil)))
+  (prn "Switchboard starting.")
+  (comp/make-component make-state in-handler nil))
