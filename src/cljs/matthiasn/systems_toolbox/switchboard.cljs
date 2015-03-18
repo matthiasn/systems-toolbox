@@ -3,6 +3,7 @@
             [cljs.core.async :refer [put! sub tap]]
             [matthiasn.systems-toolbox.component :as comp]
             [matthiasn.systems-toolbox.reagent :as r]
+            [matthiasn.systems-toolbox.log :as l]
             [matthiasn.systems-toolbox.sente :as ws]))
 
 (defn make-comp
@@ -44,6 +45,13 @@
     (prn "Creating new Reagent component: " cmp-id)
     (swap! app assoc-in [:components cmp-id] cmp)))
 
+(defn make-log-comp
+  "Creates a log component."
+  [app]
+  (let [log-comp (l/component)]
+    (swap! app assoc-in [:components :log] log-comp)
+    log-comp))
+
 (defn make-state
   "Return clean initial component state atom."
   [put-fn]
@@ -58,6 +66,7 @@
   (match msg
          [:cmd/make-comp      cmp] (make-comp app cmp)
          [:cmd/make-ws-comp      ] (make-ws-comp app)
+         [:cmd/make-log-comp     ] (make-log-comp app)
          [:cmd/make-r-comp params] (make-reagent-comp app params)
          [:cmd/sub-comp    params] (subscribe-component app params)
          [:cmd/tap-comp    params] (tap-comp app params)
