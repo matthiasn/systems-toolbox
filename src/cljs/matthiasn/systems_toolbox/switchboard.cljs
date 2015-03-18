@@ -93,3 +93,8 @@
     (put! sw-in-chan [:cmd/make-log-comp])
     (put! sw-in-chan [:cmd/tap-comp {:mult-comp :switchboard :tap-comp :log}])
     switchboard))
+
+(defn send
+  "Send message to the specified switchboard component."
+  [switchboard msg]
+  (put! (:in-chan switchboard) msg))
