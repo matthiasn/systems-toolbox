@@ -10,7 +10,7 @@
   [app cfg]
   (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} cfg
         cmp (comp/make-component mk-state-fn handler-fn state-pub-handler-fn opts)]
-    (prn "Creating new component: " cmp-id)
+    (prn "Creating component:" cmp-id)
     (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn subscribe-component
@@ -19,6 +19,7 @@
   (let [pub-comp ((:pub-comp params) (:components @app))
         sub-comp ((:sub-comp params) (:components @app))]
     (sub (:state-pub pub-comp) :app-state (:sliding-in-chan sub-comp))
+    (prn "Sub:" (:pub-comp params) "->" (:sub-comp params))
     (swap! app update-in [:subs] conj params)))
 
 (defn tap-comp
@@ -27,22 +28,24 @@
   (let [mult-comp ((:mult-comp params) (:components @app))
         tap-comp  ((:tap-comp params)  (:components @app))]
     (tap (:out-mult mult-comp) (:in-chan tap-comp))
+    (prn "Tap:" (:mult-comp params) "->" (:tap-comp params))
     (swap! app update-in [:taps] conj params)))
 
 (defn make-ws-comp
   "Initializes Sente / WS component and makes is accessible under [:components :ws]
   inside the switchboard state atom."
   [app]
-  (prn "Creating WS component.")
   (let [ws (ws/component)]
-    (swap! app assoc-in [:components :ws] ws)))
+    (swap! app assoc-in [:components :ws] ws)
+    (prn "Creating component:" :ws)
+    ws))
 
 (defn make-reagent-comp
   "Creates a Reagent component."
   [app params]
   (let [{:keys [cmp-id view-fn dom-id init-state]} params
         cmp (r/component view-fn dom-id init-state)]
-    (prn "Creating new Reagent component: " cmp-id)
+    (prn "Creating Reagent component: " cmp-id)
     (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn make-log-comp
@@ -50,6 +53,7 @@
   [app]
   (let [log-comp (l/component)]
     (swap! app assoc-in [:components :log] log-comp)
+    (prn "Creating component:" :log)
     log-comp))
 
 (defn make-state
