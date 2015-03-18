@@ -10,8 +10,10 @@
 
 (defn init
   "Return clean initial component state atom."
-  [view-fn dom-id put-fn]
-  (let [app (atom {})]
+  [view-fn dom-id init-state put-fn]
+  (let [app (if init-state
+              (atom init-state)
+              (atom {}))]
     (r/render-component [view-fn app put-fn] (by-id dom-id))
     app))
 
@@ -21,6 +23,6 @@
   (reset! app state-snapshot))
 
 (defn component
-  [view-fn dom-id]
-  (let [make-state (partial init view-fn dom-id)]
+  [view-fn dom-id init-state]
+  (let [make-state (partial init view-fn dom-id init-state)]
     (comp/make-component make-state nil state-pub-handler)))

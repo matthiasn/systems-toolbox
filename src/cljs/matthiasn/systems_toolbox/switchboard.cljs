@@ -39,8 +39,8 @@
 (defn make-reagent-comp
   "Creates a Reagent component."
   [app params]
-  (let [{:keys [cmp-id view-fn dom-id]} params
-        cmp (r/component view-fn dom-id)]
+  (let [{:keys [cmp-id view-fn dom-id init-state]} params
+        cmp (r/component view-fn dom-id init-state)]
     (prn "Creating new Reagent component: " cmp-id)
     (swap! app assoc-in [:components cmp-id] cmp)))
 
