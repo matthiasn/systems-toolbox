@@ -22,7 +22,12 @@
     (put-fn [:log/switchboard-sub (str from "->" to)])
     (swap! app update-in [:subs] conj [from to])))
 
-(defn tap-comp
+(defn subscribe-components
+  [app put-fn [from to-seq]]
+  (doseq [to to-seq]
+    (subscribe-component app put-fn [from to])))
+
+(defn tap-component
   "Tap component in channel to a specified mult."
   [app put-fn [from to]]
   (let [mult-comp (from (:components @app))
@@ -30,6 +35,11 @@
     (tap (:out-mult mult-comp) (:in-chan tap-comp))
     (put-fn [:log/switchboard-tap (str from "->" to)])
     (swap! app update-in [:taps] conj [from to])))
+
+(defn tap-components
+  [app put-fn [from-seq to]]
+  (doseq [from from-seq]
+    (tap-component app put-fn [from to])))
 
 (defn make-ws-comp
   "Initializes Sente / WS component and makes is accessible under [:components :ws]
@@ -79,7 +89,9 @@
          [:cmd/make-log-comp     ] (make-log-comp app put-fn)
          [:cmd/make-r-comp params] (make-reagent-comp app put-fn params)
          [:cmd/sub-comp   from-to] (subscribe-component app put-fn from-to)
-         [:cmd/tap-comp   from-to] (tap-comp app put-fn from-to)
+         [:cmd/tap-comp   from-to] (tap-component app put-fn from-to)
+         [:cmd/sub-comps  from-to] (subscribe-components app put-fn from-to)
+         [:cmd/tap-comps  from-to] (tap-components app put-fn from-to)
          :else (prn "unknown msg in switchboard-in-loop" msg)))
 
 (defn component
