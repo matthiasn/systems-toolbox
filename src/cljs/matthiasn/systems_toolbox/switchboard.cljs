@@ -108,5 +108,10 @@
 
 (defn send
   "Send message to the specified switchboard component."
-  [switchboard msg]
-  (put! (:in-chan switchboard) msg))
+  [switchboard cmd]
+  (put! (:in-chan switchboard) cmd))
+
+(defn send-mult
+  "Send messages to the specified switchboard component."
+  [switchboard cmds]
+  (doseq [cmd cmds] (put! (:in-chan switchboard) cmd)))
