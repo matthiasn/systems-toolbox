@@ -3,14 +3,19 @@
             [cljs.core.async :refer [put! sub tap]]
             [matthiasn.systems-toolbox.component :as comp]
             [matthiasn.systems-toolbox.reagent :as r]
-            [matthiasn.systems-toolbox.log :as l]
-            [matthiasn.systems-toolbox.sente :as ws]))
+            [matthiasn.systems-toolbox.log :as l]))
 
 (defn make-comp
-  [app put-fn cfg]
-  (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} cfg
+  [app put-fn params]
+  (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} params
         cmp (comp/make-component mk-state-fn handler-fn state-pub-handler-fn opts)]
     (put-fn [:log/switchboard-init cmp-id])
+    (swap! app assoc-in [:components cmp-id] cmp)))
+
+(defn wire-comp
+  [app put-fn params]
+  (let [{:keys [cmp-id cmp]} params]
+    (put-fn [:log/switchboard-wire cmp-id])
     (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn subscribe-component
@@ -40,15 +45,6 @@
   [app put-fn [from-seq to]]
   (doseq [from from-seq]
     (tap-component app put-fn [from to])))
-
-(defn make-ws-comp
-  "Initializes Sente / WS component and makes is accessible under [:components :ws]
-  inside the switchboard state atom."
-  [app put-fn]
-  (let [ws (ws/component)]
-    (swap! app assoc-in [:components :ws] ws)
-    (put-fn [:log/switchboard-init :ws])
-    ws))
 
 (defn make-reagent-comp
   "Creates a Reagent component."
@@ -84,8 +80,8 @@
   [app put-fn msg]
   (match msg
          [:cmd/self-register self] (self-register app put-fn self)
-         [:cmd/make-comp      cmp] (make-comp app put-fn cmp)
-         [:cmd/make-ws-comp      ] (make-ws-comp app put-fn)
+         [:cmd/make-comp   params] (make-comp app put-fn params)
+         [:cmd/wire-comp   params] (wire-comp app put-fn params)
          [:cmd/make-log-comp     ] (make-log-comp app put-fn)
          [:cmd/make-r-comp params] (make-reagent-comp app put-fn params)
          [:cmd/sub-comp   from-to] (subscribe-component app put-fn from-to)
@@ -106,12 +102,12 @@
     (put! sw-in-chan [:cmd/tap-comp [:switchboard :log]])
     switchboard))
 
-(defn send
+(defn send-cmd
   "Send message to the specified switchboard component."
   [switchboard cmd]
   (put! (:in-chan switchboard) cmd))
 
-(defn send-mult
+(defn send-mult-cmd
   "Send messages to the specified switchboard component."
   [switchboard cmds]
   (doseq [cmd cmds] (put! (:in-chan switchboard) cmd)))
