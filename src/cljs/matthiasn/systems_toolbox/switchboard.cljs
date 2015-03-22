@@ -12,11 +12,16 @@
     (put-fn [:log/switchboard-init cmp-id])
     (swap! app assoc-in [:components cmp-id] cmp)))
 
-(defn wire-comp
+#_(defn wire-comp
   [app put-fn params]
   (let [{:keys [cmp-id cmp]} params]
     (put-fn [:log/switchboard-wire cmp-id])
     (swap! app assoc-in [:components cmp-id] cmp)))
+
+(defn wire-comp
+  [app put-fn [cmp-id cmp]]
+  (put-fn [:log/switchboard-wire cmp-id])
+  (swap! app assoc-in [:components cmp-id] cmp))
 
 (defn subscribe-component
   "Subscribe component to a specified publisher."
