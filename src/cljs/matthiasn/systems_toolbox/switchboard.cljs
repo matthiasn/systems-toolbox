@@ -5,19 +5,6 @@
             [matthiasn.systems-toolbox.reagent :as r]
             [matthiasn.systems-toolbox.log :as l]))
 
-(defn make-comp
-  [app put-fn params]
-  (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} params
-        cmp (comp/make-component mk-state-fn handler-fn state-pub-handler-fn opts)]
-    (put-fn [:log/switchboard-init cmp-id])
-    (swap! app assoc-in [:components cmp-id] cmp)))
-
-#_(defn wire-comp
-  [app put-fn params]
-  (let [{:keys [cmp-id cmp]} params]
-    (put-fn [:log/switchboard-wire cmp-id])
-    (swap! app assoc-in [:components cmp-id] cmp)))
-
 (defn wire-comp
   [app put-fn [cmp-id cmp]]
   (put-fn [:log/switchboard-wire cmp-id])
@@ -85,7 +72,6 @@
   [app put-fn msg]
   (match msg
          [:cmd/self-register self] (self-register app put-fn self)
-         [:cmd/make-comp   params] (make-comp app put-fn params)
          [:cmd/wire-comp   params] (wire-comp app put-fn params)
          [:cmd/make-log-comp     ] (make-log-comp app put-fn)
          [:cmd/make-r-comp params] (make-reagent-comp app put-fn params)

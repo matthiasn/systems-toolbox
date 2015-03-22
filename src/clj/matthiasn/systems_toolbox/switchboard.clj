@@ -3,15 +3,7 @@
   (:require [clojure.core.match :refer [match]]
             [clojure.core.async :refer [put! sub tap]]
             [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.log :as l]
-            [matthiasn.systems-toolbox.sente :as ws]))
-
-(defn make-comp
-  [app put-fn params]
-  (let [{:keys [cmp-id mk-state-fn handler-fn state-pub-handler-fn opts]} params
-        cmp (comp/make-component mk-state-fn handler-fn state-pub-handler-fn opts)]
-    (put-fn [:log/switchboard-init cmp-id])
-    (swap! app assoc-in [:components cmp-id] cmp)))
+            [matthiasn.systems-toolbox.log :as l]))
 
 (defn wire-comp
   [app put-fn [cmp-id cmp]]
@@ -72,7 +64,6 @@
   [app put-fn msg]
   (match msg
          [:cmd/self-register self] (self-register app put-fn self)
-         [:cmd/make-comp   params] (make-comp app put-fn params)
          [:cmd/wire-comp   params] (wire-comp app put-fn params)
          [:cmd/make-log-comp     ] (make-log-comp app put-fn)
          [:cmd/sub-comp   from-to] (subscribe-component app put-fn from-to)
