@@ -27,6 +27,4 @@
   (let [state (:state ws)]
     ((:send-fn ws) [cmd-type (assoc payload :uid (:uid @state))])))
 
-(defn component
-  []
-  (comp/make-component make-state in-handler nil {:atom false}))
+(defn component [] (comp/make-component make-state in-handler nil))
