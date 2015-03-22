@@ -18,7 +18,7 @@
 
 (def component-defaults
   {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :throttle-ms 5
-   :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]  :atom true})
+   :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]})
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -54,8 +54,12 @@
          put-fn #(put! out-chan %)
          out-mult (mult out-chan)
          state (mk-state put-fn)]
-     (when (:atom cfg)  ; not the case in sente / ws component - ws map has an atom inside
-       (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state]))))
+     #+clj (try
+             (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
+             (catch Exception _ ()))
+     #+cljs (try
+              (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
+              (catch js/Object _ ()))
      (merge
        {:out-mult out-mult
         :state-pub (pub sliding-out-chan first)}
