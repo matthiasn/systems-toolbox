@@ -38,14 +38,6 @@
   (doseq [from from-seq]
     (tap-component app put-fn [from to])))
 
-(defn make-reagent-comp
-  "Creates a Reagent component."
-  [app put-fn params]
-  (let [{:keys [cmp-id view-fn dom-id init-state]} params
-        cmp (r/component view-fn dom-id init-state)]
-    (put-fn [:log/switchboard-init-reagent cmp-id])
-    (swap! app assoc-in [:components cmp-id] cmp)))
-
 (defn make-log-comp
   "Creates a log component."
   [app put-fn]
@@ -74,7 +66,6 @@
          [:cmd/self-register self] (self-register app put-fn self)
          [:cmd/wire-comp   params] (wire-comp app put-fn params)
          [:cmd/make-log-comp     ] (make-log-comp app put-fn)
-         [:cmd/make-r-comp params] (make-reagent-comp app put-fn params)
          [:cmd/sub-comp   from-to] (subscribe-component app put-fn from-to)
          [:cmd/tap-comp   from-to] (tap-component app put-fn from-to)
          [:cmd/sub-comps  from-to] (subscribe-components app put-fn from-to)
