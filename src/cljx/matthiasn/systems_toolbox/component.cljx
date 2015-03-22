@@ -1,7 +1,11 @@
 (ns matthiasn.systems-toolbox.component
-  (:require-macros [cljs.core.async.macros :refer [go-loop]])
-  (:require [cljs.core.match :refer-macros [match]]
-            [cljs.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer timeout]]))
+  #+clj (:gen-class)
+  #+cljs (:require-macros [cljs.core.async.macros :refer [go-loop]])
+  (:require
+    #+clj [clojure.core.match :refer [match]]
+    #+cljs [cljs.core.match :refer-macros [match]]
+    #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer go-loop timeout]]
+    #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer timeout]]))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."

@@ -1,9 +1,12 @@
 (ns matthiasn.systems-toolbox.switchboard
-  (:gen-class)
-  (:require [clojure.core.match :refer [match]]
-            [clojure.core.async :refer [put! sub tap]]
-            [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.log :as l]))
+  #+clj (:gen-class)
+  (:require
+    #+clj [clojure.core.match :refer [match]]
+    #+cljs [cljs.core.match :refer-macros [match]]
+    #+clj [clojure.core.async :refer [put! sub tap]]
+    #+cljs [cljs.core.async :refer [put! sub tap]]
+    [matthiasn.systems-toolbox.component :as comp]
+    [matthiasn.systems-toolbox.log :as l]))
 
 (defn wire-comp
   [app put-fn [cmp-id cmp]]
@@ -93,4 +96,3 @@
   "Send messages to the specified switchboard component."
   [switchboard cmds]
   (doseq [cmd cmds] (put! (:in-chan switchboard) cmd)))
-
