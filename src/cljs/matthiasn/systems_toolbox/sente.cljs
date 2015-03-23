@@ -12,9 +12,9 @@
            [:chsk/state {:first-open? true}] (put-fn [:first-open true])
            [:chsk/recv payload]              (put-fn payload)
            [:chsk/handshake _]               ()
-           :else (print "Unmatched event: %s" event))))
+           :else (println "Unmatched event in WS component:" event))))
 
-(defn make-state
+(defn mk-state
   "Return clean initial component state atom."
   [put-fn]
   (let [ws (sente/make-channel-socket! "/chsk" {:type :auto})]
@@ -27,4 +27,4 @@
   (let [state (:state ws)]
     ((:send-fn ws) [cmd-type (assoc payload :uid (:uid @state))])))
 
-(defn component [] (comp/make-component make-state in-handler nil))
+(defn component [] (comp/make-component mk-state in-handler nil))

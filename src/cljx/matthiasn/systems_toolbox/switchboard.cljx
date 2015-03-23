@@ -25,9 +25,13 @@
 (defn subscribe-comp-state
   "Subscribe component to a specified publisher."
   [app put-fn [from to]]
-  (if (vector? to)
-    (doseq [t to] (subscribe app put-fn [from :state-pub] :app-state [t :sliding-in-chan]))
-    (subscribe app put-fn [from :state-pub] :app-state [to :sliding-in-chan])))
+  (doseq [t (flatten [to])]
+    (subscribe app put-fn [from :state-pub] :app-state [t :sliding-in-chan])))
+
+(defn subscribe-comp
+  "Subscribe component to a specified publisher."
+  [app put-fn [from msg-type to]]
+  (doseq [t (flatten [to])] (subscribe app put-fn [from :out-pub] msg-type [t :in-chan])))
 
 (defn tap-component
   "Tap component in channel to a specified mult."
@@ -60,9 +64,7 @@
 (defn make-state
   "Return clean initial component state atom."
   [put-fn]
-  (let [app (atom {:components {}
-                   :subs #{}
-                   :taps #{}})]
+  (let [app (atom {:components {} :subs #{} :taps #{}})]
     app))
 
 (defn in-handler
@@ -73,6 +75,7 @@
          [:cmd/wire-comp       params] (wire-comp app put-fn params)
          [:cmd/make-log-comp         ] (make-log-comp app put-fn)
          [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
+         [:cmd/sub-comp       from-to] (subscribe-comp app put-fn from-to)
          [:cmd/tap-comp       from-to] (tap-components app put-fn from-to)
          :else (prn "unknown msg in switchboard-in-loop" msg)))
 
