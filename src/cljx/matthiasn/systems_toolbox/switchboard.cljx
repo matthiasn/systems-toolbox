@@ -10,9 +10,10 @@
 
 (defn wire-comp
   "Wire existing and already instantiated component."
-  [app put-fn [cmp-id cmp]]
-  (put-fn [:log/switchboard-wire cmp-id])
-  (swap! app assoc-in [:components cmp-id] cmp))
+  [app put-fn cmp]
+  (let [cmp-id (:cmp-id cmp)]
+    (put-fn [:log/switchboard-wire cmp-id])
+    (swap! app assoc-in [:components cmp-id] cmp)))
 
 (defn subscribe
   "Subscribe component to a specified publisher."
@@ -70,7 +71,7 @@
   [app put-fn msg]
   (match msg
          [:cmd/self-register     self] (self-register app put-fn self)
-         [:cmd/wire-comp       params] (wire-comp app put-fn params)
+         [:cmd/wire-comp          cmp] (wire-comp app put-fn cmp)
          [:cmd/make-log-comp         ] (make-log-comp app put-fn)
          [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
          [:cmd/sub-comp       from-to] (subscribe-comp app put-fn from-to)
