@@ -45,9 +45,9 @@
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
   state snapshots from other components."
-  ([mk-state handler sliding-handler]
-   (make-component mk-state handler sliding-handler component-defaults))
-  ([mk-state handler sliding-handler opts]
+  ([cmp-id mk-state handler sliding-handler]
+   (make-component cmp-id mk-state handler sliding-handler component-defaults))
+  ([cmp-id mk-state handler sliding-handler opts]
    (let [cfg (merge component-defaults opts)
          out-chan (make-chan-w-buf (:out-chan cfg))
          out-pub-chan (make-chan-w-buf (:out-chan cfg))
@@ -65,6 +65,7 @@
      (merge
        {:out-mult out-mult
         :out-pub (pub out-pub-chan first)
-        :state-pub (pub sliding-out-chan first)}
+        :state-pub (pub sliding-out-chan first)
+        :cmp-id cmp-id}
        (msg-handler-loop state handler put-fn cfg :in-chan)
        (msg-handler-loop state sliding-handler put-fn cfg :sliding-in-chan)))))

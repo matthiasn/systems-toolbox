@@ -59,4 +59,4 @@
 
 (defn component
   [index-page-fn port]
-  (comp/make-component (mk-state index-page-fn port) in-handler nil))
+  (comp/make-component :ws-comp (mk-state index-page-fn port) in-handler nil))

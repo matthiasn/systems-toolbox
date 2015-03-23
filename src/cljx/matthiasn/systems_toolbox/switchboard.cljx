@@ -82,7 +82,7 @@
   a communicating system."
   []
   (println "Switchboard starting.")
-  (let [switchboard (comp/make-component make-state in-handler nil)
+  (let [switchboard (comp/make-component :switchboard make-state in-handler nil)
         sw-in-chan (:in-chan switchboard)]
     (put! sw-in-chan [:cmd/self-register switchboard])
     (put! sw-in-chan [:cmd/make-log-comp])
