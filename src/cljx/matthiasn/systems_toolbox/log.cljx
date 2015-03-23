@@ -14,7 +14,7 @@
   "Handle incoming messages: process / add to application state."
   [_ _ msg]
   #+clj (log/info msg)
-  #+cljs (println msg))
+  #+cljs (println "Log: " msg))
 
 (defn component
   []

@@ -43,7 +43,7 @@
                  (route/not-found "Page not found"))
       (let [my-ring-handler (ring.middleware.defaults/wrap-defaults my-routes ring-defaults-config)
             server (http-kit-server/run-server my-ring-handler {:port port})]
-        (log/info "Http-kit server is running at" (:local-port (meta server))))
+        (log/info "Http-kit server is running on port" (:local-port (meta server))))
       (sente/start-chsk-router! ch-recv (make-handler ws put-fn))
       ws)))
 
