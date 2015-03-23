@@ -16,4 +16,4 @@
 
 (defn component
   []
-  (comp/make-component :log make-state in-handler nil))
+  (comp/make-component :log-cmp make-state in-handler nil))
