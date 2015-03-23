@@ -1,6 +1,7 @@
 (ns matthiasn.systems-toolbox.log
   #+clj (:gen-class)
-  (:require [matthiasn.systems-toolbox.component :as comp]))
+  (:require [matthiasn.systems-toolbox.component :as comp]
+            #+clj [clojure.tools.logging :as log]))
 
 #+cljs (enable-console-print!)
 
@@ -12,7 +13,8 @@
 (defn in-handler
   "Handle incoming messages: process / add to application state."
   [_ _ msg]
-  (println msg))
+  #+clj (log/info msg)
+  #+cljs (println msg))
 
 (defn component
   []
