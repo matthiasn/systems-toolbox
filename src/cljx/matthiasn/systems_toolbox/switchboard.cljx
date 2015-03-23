@@ -13,19 +13,21 @@
   (put-fn [:log/switchboard-wire cmp-id])
   (swap! app assoc-in [:components cmp-id] cmp))
 
-(defn subscribe-component
+(defn subscribe
+  "Subscribe component to a specified publisher."
+  [app put-fn [from-cmp from-pub] msg-type [to-cmp to-chan]]
+  (let [pub-comp (from-cmp (:components @app))
+        sub-comp (to-cmp (:components @app))]
+    (sub (from-pub pub-comp) msg-type (to-chan sub-comp))
+    (put-fn [:log/switchboard-sub (str from-cmp " -[" msg-type "]-> " to-cmp)])
+    (swap! app update-in [:subs] conj [from-cmp to-cmp])))
+
+(defn subscribe-comp-state
   "Subscribe component to a specified publisher."
   [app put-fn [from to]]
-  (let [pub-comp (from (:components @app))
-        sub-comp (to (:components @app))]
-    (sub (:state-pub pub-comp) :app-state (:sliding-in-chan sub-comp))
-    (put-fn [:log/switchboard-sub (str from "->" to)])
-    (swap! app update-in [:subs] conj [from to])))
-
-(defn subscribe-components
-  [app put-fn [from to-seq]]
-  (doseq [to to-seq]
-    (subscribe-component app put-fn [from to])))
+  (if (vector? to)
+    (doseq [t to] (subscribe app put-fn [from :state-pub] :app-state [t :sliding-in-chan]))
+    (subscribe app put-fn [from :state-pub] :app-state [to :sliding-in-chan])))
 
 (defn tap-component
   "Tap component in channel to a specified mult."
@@ -37,9 +39,10 @@
     (swap! app update-in [:taps] conj [from to])))
 
 (defn tap-components
-  [app put-fn [from-seq to]]
-  (doseq [from from-seq]
-    (tap-component app put-fn [from to])))
+  [app put-fn [from-cmps to]]
+  (if (vector? from-cmps)
+    (doseq [from from-cmps] (tap-component app put-fn [from to]))
+    (tap-component app put-fn [from-cmps to])))
 
 (defn make-log-comp
   "Creates a log component."
@@ -66,13 +69,11 @@
   "Handle incoming messages: process / add to application state."
   [app put-fn msg]
   (match msg
-         [:cmd/self-register self] (self-register app put-fn self)
-         [:cmd/wire-comp   params] (wire-comp app put-fn params)
-         [:cmd/make-log-comp     ] (make-log-comp app put-fn)
-         [:cmd/sub-comp   from-to] (subscribe-component app put-fn from-to)
-         [:cmd/tap-comp   from-to] (tap-component app put-fn from-to)
-         [:cmd/sub-comps  from-to] (subscribe-components app put-fn from-to)
-         [:cmd/tap-comps  from-to] (tap-components app put-fn from-to)
+         [:cmd/self-register     self] (self-register app put-fn self)
+         [:cmd/wire-comp       params] (wire-comp app put-fn params)
+         [:cmd/make-log-comp         ] (make-log-comp app put-fn)
+         [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
+         [:cmd/tap-comp       from-to] (tap-components app put-fn from-to)
          :else (prn "unknown msg in switchboard-in-loop" msg)))
 
 (defn component

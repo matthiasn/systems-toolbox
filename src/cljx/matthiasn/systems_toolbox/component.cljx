@@ -4,8 +4,8 @@
   (:require
     #+clj [clojure.core.match :refer [match]]
     #+cljs [cljs.core.match :refer-macros [match]]
-    #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer go-loop timeout]]
-    #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult pub buffer sliding-buffer dropping-buffer timeout]]))
+    #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
+    #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]]))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -50,10 +50,12 @@
   ([mk-state handler sliding-handler opts]
    (let [cfg (merge component-defaults opts)
          out-chan (make-chan-w-buf (:out-chan cfg))
+         out-pub-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
          put-fn #(put! out-chan %)
          out-mult (mult out-chan)
          state (mk-state put-fn)]
+     (tap out-mult out-pub-chan)
      #+clj (try
              (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
              (catch Exception _ ()))
@@ -62,6 +64,7 @@
               (catch js/Object _ ()))
      (merge
        {:out-mult out-mult
+        :out-pub (pub out-pub-chan first)
         :state-pub (pub sliding-out-chan first)}
        (msg-handler-loop state handler put-fn cfg :in-chan)
        (msg-handler-loop state sliding-handler put-fn cfg :sliding-in-chan)))))
