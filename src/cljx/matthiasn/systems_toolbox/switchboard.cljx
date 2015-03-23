@@ -10,10 +10,11 @@
 
 (defn wire-comp
   "Wire existing and already instantiated component."
-  [app put-fn cmp]
-  (let [cmp-id (:cmp-id cmp)]
-    (put-fn [:log/switchboard-wire cmp-id])
-    (swap! app assoc-in [:components cmp-id] cmp)))
+  [app put-fn cmps]
+  (doseq [cmp (flatten [cmps])]
+    (let [cmp-id (:cmp-id cmp)]
+      (put-fn [:log/switchboard-wire cmp-id])
+      (swap! app assoc-in [:components cmp-id] cmp))))
 
 (defn subscribe
   "Subscribe component to a specified publisher."
