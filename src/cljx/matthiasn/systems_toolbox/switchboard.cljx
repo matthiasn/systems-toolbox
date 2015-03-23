@@ -9,6 +9,7 @@
     [matthiasn.systems-toolbox.log :as l]))
 
 (defn wire-comp
+  "Wire existing and already instantiated component."
   [app put-fn [cmp-id cmp]]
   (put-fn [:log/switchboard-wire cmp-id])
   (swap! app assoc-in [:components cmp-id] cmp))
@@ -33,20 +34,15 @@
   [app put-fn [from msg-type to]]
   (doseq [t (flatten [to])] (subscribe app put-fn [from :out-pub] msg-type [t :in-chan])))
 
-(defn tap-component
-  "Tap component in channel to a specified mult."
-  [app put-fn [from to]]
-  (let [mult-comp (from (:components @app))
-        tap-comp  (to  (:components @app))]
-    (tap (:out-mult mult-comp) (:in-chan tap-comp))
-    (put-fn [:log/switchboard-tap (str from "->" to)])
-    (swap! app update-in [:taps] conj [from to])))
-
 (defn tap-components
+  "Tap into a mult."
   [app put-fn [from-cmps to]]
-  (if (vector? from-cmps)
-    (doseq [from from-cmps] (tap-component app put-fn [from to]))
-    (tap-component app put-fn [from-cmps to])))
+  (doseq [from (flatten [from-cmps])]
+    (let [mult-comp (from (:components @app))
+          tap-comp  (to  (:components @app))]
+      (tap (:out-mult mult-comp) (:in-chan tap-comp))
+      (put-fn [:log/switchboard-tap (str from " -> " to)])
+      (swap! app update-in [:taps] conj [from to]))))
 
 (defn make-log-comp
   "Creates a log component."
@@ -56,8 +52,10 @@
     (put-fn [:log/switchboard-init :log])
     log-comp))
 
-(defn self-register
-  ""
+(defn- self-register
+  "Registers switchboard itself as another component that can be wired. Useful
+  for communication with the outside world / within hierarchies where a subsystem
+  has its own switchboard."
   [app put-fn self]
   (swap! app assoc-in [:components :switchboard] self))
 
@@ -83,7 +81,7 @@
   "Creates a switchboard component that wires individual components together into
   a communicating system."
   []
-  (prn "Switchboard starting.")
+  (println "Switchboard starting.")
   (let [switchboard (comp/make-component make-state in-handler nil)
         sw-in-chan (:in-chan switchboard)]
     (put! sw-in-chan [:cmd/self-register switchboard])
