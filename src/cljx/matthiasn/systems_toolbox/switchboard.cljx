@@ -50,8 +50,8 @@
   "Creates a log component."
   [app put-fn]
   (let [log-comp (l/component)]
-    (swap! app assoc-in [:components :log] log-comp)
-    (put-fn [:log/switchboard-init :log])
+    (swap! app assoc-in [:components :log-cmp] log-comp)
+    (put-fn [:log/switchboard-init :log-cmp])
     log-comp))
 
 (defn- self-register
@@ -88,7 +88,7 @@
         sw-in-chan (:in-chan switchboard)]
     (put! sw-in-chan [:cmd/self-register switchboard])
     (put! sw-in-chan [:cmd/make-log-comp])
-    (put! sw-in-chan [:cmd/tap-comp [:switchboard :log]])
+    (put! sw-in-chan [:cmd/tap-comp [:switchboard :log-cmp]])
     switchboard))
 
 (defn send-cmd

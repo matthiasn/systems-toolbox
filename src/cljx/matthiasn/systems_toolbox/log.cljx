@@ -4,7 +4,7 @@
 
 #+cljs (enable-console-print!)
 
-(defn make-state
+(defn mk-state
   "Return clean initial component state atom."
   [_]
   (atom {}))
@@ -16,4 +16,4 @@
 
 (defn component
   []
-  (comp/make-component :log-cmp make-state in-handler nil))
+  (comp/make-component :log-cmp mk-state in-handler nil))
