@@ -62,6 +62,8 @@
      #+cljs (try
               (add-watch state :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state])))
               (catch js/Object _ ()))
+     (when-let [watch (:watch cfg)]
+       (add-watch (watch state) :watcher (fn [_ _ _ new-state] (put! sliding-out-chan [:app-state new-state]))))
      (merge
        {:out-mult out-mult
         :out-pub (pub out-pub-chan first)

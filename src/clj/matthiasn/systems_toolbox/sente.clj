@@ -60,4 +60,4 @@
 
 (defn component
   [index-page-fn port]
-  (comp/make-component :ws-cmp (mk-state index-page-fn port) in-handler nil))
+  (comp/make-component :ws-cmp (mk-state index-page-fn port) in-handler nil {:watch :connected-uids}))
