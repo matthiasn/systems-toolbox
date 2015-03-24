@@ -7,7 +7,7 @@
   :source-paths ["src/clj" "src/cljs" "target/generated/src/clj" "target/generated/src/cljs"]
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.6.0"]
-                                  [org.clojure/clojurescript "0.0-3119"]
+                                  [org.clojure/clojurescript "0.0-3126"]
                                   [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                                   [reagent "0.5.0"]
                                   [org.clojure/tools.logging "0.3.1"]
@@ -42,7 +42,6 @@
 
   :cljsbuild {:builds {:test
                        {:source-paths ["test"]
-                        ;:dependencies [[org.clojure/clojurescript "0.0-3119"]]
                         :compiler {:output-to "resources/test.js"
                                    :optimizations :advanced}
                         :jar false}}})
