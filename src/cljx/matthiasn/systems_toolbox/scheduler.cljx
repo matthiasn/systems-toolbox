@@ -15,28 +15,28 @@
 
 ;;; Example: we want to let web clients know how many documents we have in a database so they can update the UI
 ;;; accordingly. The subsystem handling the database connectivity has the logic for figuring out how many documents
-;;; there are when receiving a request, but no notion of repeated emitting this information itself. Now say we want
+;;; there are when receiving a request, but no notion of repeatedly emitting this information itself. Now say we want
 ;;; this every 10 seconds. We tell the scheduler to emit the message type that will trigger the request every 10 seconds,
 ;;; and that's it.
 
 ;;; Internally, each scheduled event starts a go-loop with a timeout of the specified duration while recording
-;;; the scheduled event in the state atom. Post-timeout, it is checked if the message is scheduled to be sent
-;;; (not deleted) and if so, the specified message is sent.
+;;; the scheduled event in the state atom. Post-timeout, it is checked if the message is still scheduled to be sent
+;;; and if so, the specified message is sent.
 
-;;; Scheduled events can be changed or deleted. By checking the latest version after the timeout, the deletion of
-;;; a scheduled event will end it without a last repeat.
+;;; Scheduled events can be deleted. TODO: implement
 
 ;;; WARNING: timeouts specified here are not precise unless proven otherwise. Even if timeouts happen to have a
 ;;; sufficiently precise duration, the go-loop in which they run (and the associated thread pool) may be busy
 ;;; otherwise and delay the next iteration.s
 
 (defn start-loop
-  "Starts a loop for se"
+  "Starts a loop for sending messages at set intervals."
   [app put-fn params]
   (let [timout-ms (:timeout params)
         scheduler-id (:id params)
         msg-to-send (:message params)]
     (swap! app assoc-in [:active-timers scheduler-id] params)
+    (println "Scheduling:" params)
     (go-loop []
       (<! (timeout timout-ms))
       (let [state @app
@@ -60,9 +60,9 @@
   "Handle incoming messages: process / add to application state."
   [app put-fn msg]
   (match msg
-         [:cmd/schedule-new params] (start-loop app put-fn param)
-         ))
+         [:cmd/schedule-new params] (start-loop app put-fn params)
+         [:cmd/schedule-delete params] ()))
 
 (defn component
-  [cmp-id]
-  (comp/make-component cmp-id mk-state in-handler nil))
+  []
+  (comp/make-component :scheduler-cmp mk-state in-handler nil))
