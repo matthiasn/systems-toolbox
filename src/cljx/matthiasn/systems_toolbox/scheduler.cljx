@@ -25,6 +25,8 @@
 
 ;;; Scheduled events can be deleted. TODO: implement
 
+;;; TODO: record start time so that the scheduled time can be shown in UI. Platform-specific implementation.
+
 ;;; WARNING: timeouts specified here are not precise unless proven otherwise. Even if timeouts happen to have a
 ;;; sufficiently precise duration, the go-loop in which they run (and the associated thread pool) may be busy
 ;;; otherwise and delay the next iteration.s
@@ -49,8 +51,6 @@
               (swap! app update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
               (swap! app assoc-in [:completed-timers scheduler-id] params))))))))
 
-
-
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
@@ -64,5 +64,5 @@
          [:cmd/schedule-delete params] ()))
 
 (defn component
-  []
-  (comp/make-component :scheduler-cmp mk-state in-handler nil))
+  [cmd-id]
+  (comp/make-component cmd-id mk-state in-handler nil))

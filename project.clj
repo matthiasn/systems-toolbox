@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.1.18-SNAPSHOT"
+(defproject matthiasn/systems-toolbox "0.1.19-SNAPSHOT"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -19,10 +19,12 @@
                                   [ring "1.3.2"]
                                   [ring/ring-defaults "0.1.4"]
                                   [http-kit "2.1.19"]]
+
                    :plugins [[com.keminglabs/cljx "0.6.0" :exclusions [org.clojure/clojure]]
                              [codox "0.8.8"]
                              [lein-cljsbuild "1.0.5"]
                              [com.cemerick/clojurescript.test "0.3.1"]]
+
                    :cljx {:builds [{:source-paths ["src/cljx"]
                                     :output-path "target/generated/src/clj"
                                     :rules :clj}

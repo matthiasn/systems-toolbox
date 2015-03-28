@@ -59,5 +59,5 @@
         (chsk-send! uid [cmd-type payload])))))
 
 (defn component
-  [index-page-fn port]
-  (comp/make-component :ws-cmp (mk-state index-page-fn port) in-handler nil {:watch :connected-uids}))
+  [cmp-id index-page-fn port]
+  (comp/make-component cmp-id (mk-state index-page-fn port) in-handler nil {:watch :connected-uids}))
