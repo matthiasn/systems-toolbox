@@ -33,8 +33,9 @@
 
 (defn subscribe-comp
   "Subscribe component to a specified publisher."
-  [app put-fn [from msg-type to]]
-  (doseq [t (flatten [to])] (subscribe app put-fn [from :out-pub] msg-type [t :in-chan])))
+  [app put-fn sources destination]
+  (doseq [[from msg-type] sources]
+    (subscribe app put-fn [from :out-pub] msg-type [destination :in-chan])))
 
 (defn tap-components
   "Tap into a mult."
@@ -75,7 +76,7 @@
          [:cmd/wire-comp          cmp] (wire-comp app put-fn cmp)
          [:cmd/make-log-comp         ] (make-log-comp app put-fn)
          [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
-         [:cmd/sub-comp       from-to] (subscribe-comp app put-fn from-to)
+         [:cmd/sub-comp  sources dest] (subscribe-comp app put-fn sources dest)
          [:cmd/tap-comp       from-to] (tap-components app put-fn from-to)
          :else (prn "unknown msg in switchboard-in-loop" msg)))
 
