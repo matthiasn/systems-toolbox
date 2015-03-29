@@ -68,6 +68,12 @@
   (let [app (atom {:components {} :subs #{} :taps #{}})]
     app))
 
+(defn send-to
+  "Send message to the specified component."
+  [app [dest-id msg]]
+  (let [dest-comp (dest-id (:components @app))]
+    (put! (:in-chan dest-comp) msg)))
+
 (defn in-handler
   "Handle incoming messages: process / add to application state."
   [app put-fn msg]
@@ -75,6 +81,7 @@
          [:cmd/self-register     self] (self-register app put-fn self)
          [:cmd/wire-comp          cmp] (wire-comp app put-fn cmp)
          [:cmd/make-log-comp         ] (make-log-comp app put-fn)
+         [:cmd/send-to            env] (send-to app env)
          [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
          [:cmd/sub-comp  sources dest] (subscribe-comp app put-fn sources dest)
          [:cmd/tap-comp       from-to] (tap-components app put-fn from-to)
