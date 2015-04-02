@@ -37,30 +37,23 @@
         sys-load-avg (:system-load-avg latest)
         available-cpus (:available-cpus latest)
         uptime (:uptime latest)
-        m 60000 s 1000          ; minutes and seconds in milliseconds for uptime calculation
-        w 3 gap 1               ; bar width and gap between bars
-        chart-w 400 chart-h 16] ; chart dimensions
+        m 60000 s 1000           ; minutes and seconds in milliseconds for uptime calculation
+        w 3 gap 1 sparkline-h 16 ; bar width, height, and gap between bars
+        chart-w 378 chart-h 44]  ; chart dimensions
     [:div
-     [:div.pure-g
-      [:div.pure-u-1.pure-u-sm-5-12.pure-u-lg-5-12
-       {:style {:padding-top 3 :padding-left 6}}
-       [:strong "Sys Load Avg: "]
-       (when latest
-         (str (fmt "%.2f" (-> sys-load-avg (/ available-cpus) (* 100))) "%"))]
-      [:div.pure-u-1.pure-u-sm-7-12.pure-u-lg-7-12
-       [:svg {:width chart-w :height chart-h}
-        [:g
-         (for [[idx v] indexed]
-           ^{:key (str idx v)} [bar (* idx w) chart-h (* (/ v mx) chart-h) (- w gap)])]]]]
-     [:hr]
-     [:div.pure-g
-      {:style {:padding-top 3}}
-      [:div.pure-u-1.pure-u-sm-1-2.pure-u-lg-1-2
-       {:style {:padding-left 6}}
-       [:strong "CPUs: "] available-cpus]
-      [:div.pure-u-1.pure-u-sm-1-2.pure-u-lg-1-2
-       [:strong "Uptime: "] (floor (/ uptime m)) "m" (floor (/ (rem uptime m) s)) "s"]]
-     [:hr]]))
+     [:svg {:width chart-w :height chart-h :style {:background-color :white}}
+      [:g
+       [:text {:y 12 :x 10 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}}
+        "Sys Load Avg:"]
+       [:text {:y 12 :x 128 :stroke "none" :fill "black" :dy ".35em"}
+        (when latest (str (fmt "%.2f" (-> sys-load-avg (/ available-cpus) (* 100))) "%"))]
+       (for [[idx v] indexed]
+         ^{:key (str idx v)} [bar (+ (* idx w) 190) (+ 3 sparkline-h) (* (/ v mx) sparkline-h) (- w gap)])
+       [:text {:y 32 :x 10 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}} "CPUs:"]
+       [:text {:y 32 :x 64 :stroke "none" :fill "black" :dy ".35em"} available-cpus]
+       [:text {:y 32 :x 80 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}} "Uptime:"]
+       [:text {:y 32 :x 144 :stroke "none" :fill "black" :dy ".35em"}
+        (str (floor (/ uptime m)) "m" (floor (/ (rem uptime m) s)) "s")]]]]))
 
 (defn mk-state
   "Return clean initial component state atom."
