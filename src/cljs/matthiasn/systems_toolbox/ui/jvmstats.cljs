@@ -30,8 +30,7 @@
         floor #(Math/floor %)
         readings (:readings state)
         cpu-loads (map :system-load-avg readings)
-        last-n (take-last 60 cpu-loads)
-        mx 8 ; workaround for some problem with actual mx function, only accurate on quadcore machine with HT
+        last-n (take-last 30 cpu-loads)
         indexed (vec (map-indexed vector last-n))
         latest (last readings)
         sys-load-avg (:system-load-avg latest)
@@ -39,7 +38,7 @@
         uptime (:uptime latest)
         m 60000 s 1000           ; minutes and seconds in milliseconds for uptime calculation
         w 3 gap 1 sparkline-h 16 ; bar width, height, and gap between bars
-        chart-w 378 chart-h 44]  ; chart dimensions
+        chart-w 292 chart-h 44]  ; chart dimensions
     [:div
      [:svg {:width chart-w :height chart-h :style {:background-color :white}}
       [:g
@@ -48,7 +47,7 @@
        [:text {:y 12 :x 128 :stroke "none" :fill "black" :dy ".35em"}
         (when latest (str (fmt "%.2f" (-> sys-load-avg (/ available-cpus) (* 100))) "%"))]
        (for [[idx v] indexed]
-         ^{:key (str idx v)} [bar (+ (* idx w) 190) (+ 3 sparkline-h) (* (/ v mx) sparkline-h) (- w gap)])
+         ^{:key (str idx v)} [bar (+ (* idx w) 194) (+ 3 sparkline-h) (* (/ v available-cpus) sparkline-h) (- w gap)])
        [:text {:y 32 :x 10 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}} "CPUs:"]
        [:text {:y 32 :x 64 :stroke "none" :fill "black" :dy ".35em"} available-cpus]
        [:text {:y 32 :x 80 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}} "Uptime:"]
