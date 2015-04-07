@@ -3,13 +3,9 @@
   (:require [reagent.core :as r :refer [atom]]
             [cljs.core.match :refer-macros [match]]
             [matthiasn.systems-toolbox.component :as comp]
+            [matthiasn.systems-toolbox.helpers :refer [by-id]]
             [goog.string :as gstring]
             [goog.string.format]))
-
-(defn by-id
-  "Helper function, gets DOM element by ID."
-  [id]
-  (.getElementById js/document id))
 
 (defn bar
   "Renders a vertical bar."

@@ -1,12 +1,7 @@
 (ns matthiasn.systems-toolbox.reagent
   (:require [reagent.core :as r :refer [atom]]
             [matthiasn.systems-toolbox.component :as comp]
-            [cljs.core.async :refer [chan pub sub buffer sliding-buffer pipe]]))
-
-(defn by-id
-  "Helper function, gets DOM element by ID."
-  [id]
-  (.getElementById js/document id))
+            [matthiasn.systems-toolbox.helpers :refer [by-id]]))
 
 (defn init
   "Return clean initial component state atom."
