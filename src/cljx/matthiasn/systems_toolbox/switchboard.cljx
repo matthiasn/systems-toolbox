@@ -42,10 +42,15 @@
   [app put-fn [from-cmps to]]
   (doseq [from (flatten [from-cmps])]
     (let [mult-comp (from (:components @app))
-          tap-comp  (to  (:components @app))]
-      (tap (:out-mult mult-comp) (:in-chan tap-comp))
-      (put-fn [:log/switchboard-tap (str from " -> " to)])
-      (swap! app update-in [:taps] conj [from to]))))
+          tap-comp (to  (:components @app))
+          err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " from " -> " to " - " %)])]
+      (try
+        (do
+          (tap (:out-mult mult-comp) (:in-chan tap-comp))
+          (put-fn [:log/switchboard-tap (str from " -> " to)])
+          (swap! app update-in [:taps] conj [from to]))
+        #+clj (catch Exception e (err-put (.getMessage e)))
+        #+cljs (catch js/Object e (err-put e))))))
 
 (defn make-log-comp
   "Creates a log component."
