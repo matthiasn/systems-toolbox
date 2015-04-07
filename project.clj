@@ -15,7 +15,7 @@
                                   [org.clojure/core.match "0.3.0-alpha4"]
                                   [com.cognitect/transit-clj "0.8.259"]
                                   [com.cognitect/transit-cljs "0.8.205"]
-                                  [compojure "1.3.1"]
+                                  [compojure "1.3.3"]
                                   [ring "1.3.2"]
                                   [ring/ring-defaults "0.1.4"]
                                   [http-kit "2.1.19"]]
