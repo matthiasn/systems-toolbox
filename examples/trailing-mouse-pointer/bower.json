@@ -1,11 +1,11 @@
 {
-  "name": "inspect",
+  "name": "trailing-mouse-pointer",
   "version": "0.1.0",
-  "homepage": "https://github.com/matthiasn/inspect",
+  "homepage": "https://github.com/matthiasn/systems-toolbox/examples",
   "authors": [
     "Matthias Nehlsen <matthias.nehlsen@gmail.com>"
   ],
-  "description": "Tool for peeking into data structures in a Clojure system",
+  "description": "Tool for visualizing WebSocket Latency.",
   "license": "Apache",
   "private": true,
   "ignore": [
