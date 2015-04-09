@@ -94,7 +94,7 @@
    [:text (merge text-bold {:x 265 :y 12}) "Current Position:"]
    (when pos [:text (merge text-default {:x 405 :y 12}) (str "x: " (:x pos) " y: " (:y pos))])
    [:text (merge text-bold {:x 530 :y 12}) "Latency (ms):"]
-   (when latency 
+   (when latency
      [:text (merge text-default {:x 640 :y 12}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
 
 (defn mouse-view
