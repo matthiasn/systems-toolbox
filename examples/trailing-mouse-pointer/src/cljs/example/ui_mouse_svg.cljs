@@ -49,9 +49,10 @@
   [:g
    [:path (merge path-defaults {:d (str "M" x " " y "l 0 " (* l scale -1) " l -4 0 l 4 -10 l 4 10 l -4 0 z")})]
    (for [n (range 0 l 10)]
-     [:path (merge path-defaults {:d (str "M" x " " (- y (* n scale)) "l -" (tick-length n) " 0")})])
+     ^{:key (str "yt" n)} [:path (merge path-defaults
+                                        {:d (str "M" x " " (- y (* n scale)) "l -" (tick-length n) " 0")})])
    (for [n (range 0 l 50)]
-     ^{:key (str "xl" n)} [:text (merge axis-label {:x (- x 10) :y (- y (* n scale)) :text-anchor :end}) n])])
+     ^{:key (str "yl" n)} [:text (merge axis-label {:x (- x 10) :y (- y (* n scale)) :text-anchor :end}) n])])
 
 (defn histogram-view
   "Renders a histogram chart for roundtrip times in ms and their frequencies."
@@ -59,16 +60,19 @@
   (let [freq (frequencies rtt-times)
         max-freq (apply max (map (fn [[_ f]] f) freq))
         scale 2
-        x-axis-l (+ (* (Math/ceil (/ max-v 50)) 50) 20)]
+        x-axis-l (+ (* (Math/ceil (/ max-v 50)) 50) 20)
+        y-axis-l (min (+ (* (Math/ceil (/ max-freq 50)) 50) 20) 120)]
     (when-not (empty? freq)
       [:g
        (for [[v f] freq]
-         ^{:key (str "b" v f)} [:rect {:x    (+ x (* v scale)) :y (- y (* f scale))
+         ^{:key (str "b" v f)} [:rect {:x (+ x (* v scale)) :y (- y (* f scale))
                                        :fill "steelblue" :width 1.3 :height (* f scale)}])
        [x-axis x y x-axis-l scale]
-       [:text (merge text-bold x-axis-label {:x (+ x x-axis-l) :y (+ y 35)})
-        "Roundtrip t/ms"]
-       [y-axis x y (min (+ (* (Math/ceil (/ max-freq 50)) 50) 20) 120) scale]])))
+       [:text (merge text-bold x-axis-label {:x (+ x x-axis-l -10) :y (+ y 35)}) "Roundtrip t/ms"]
+       [:text (let [x-coord (- x 45) y-coord (- y y-axis-l 10) rotate (str "rotate(270 " x-coord " " y-coord ")")]
+                (merge text-bold x-axis-label {:x x-coord :y y-coord :transform rotate}))
+        "Frequencies"]
+       [y-axis x y y-axis-l scale]])))
 
 (defn trailing-circles
   "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a rountrip.
@@ -90,8 +94,8 @@
    [:text (merge text-bold {:x 265 :y 12}) "Current Position:"]
    (when pos [:text (merge text-default {:x 405 :y 12}) (str "x: " (:x pos) " y: " (:y pos))])
    [:text (merge text-bold {:x 530 :y 12}) "Latency (ms):"]
-   (when latency [:text (merge text-default {:x 640 :y 12}) (str (.toFixed mean 0) "/" mn "/" mx "/" latency)])
-   [:text (merge text-default {:x 840 :y 12}) "(mean/min/max/last)"]])
+   (when latency 
+     [:text (merge text-default {:x 640 :y 12}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
 
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
@@ -107,7 +111,7 @@
         mean (/ (apply + rtt-times) (count rtt-times))]
     [:svg {:width chart-w :height chart-h :style {:background-color :white}
            :on-mouse-move (mouse-move-ev-handler app put-fn (r/current-component))}
-     [text-view state pos mean mn mx latency]
+     [text-view state pos (.toFixed mean 0) mn mx latency]
      [trailing-circles state]
      [histogram-view rtt-times 80 340 mx]]))
 
