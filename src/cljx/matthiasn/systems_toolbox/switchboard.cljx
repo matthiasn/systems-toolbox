@@ -37,6 +37,15 @@
   (doseq [[from msg-type] sources]
     (subscribe app put-fn [from :out-pub] msg-type [destination :in-chan])))
 
+(defn subscribe-comp-bidirectional
+  "Subscribes cmp1 to all message types of cmp2 and, at the same time,
+  subscribes cmp2 to all message types of cmp1."
+  [app put-fn cmp1 cmp2 msg-types]
+  (letfn [(sub-msg-type [from to m] (subscribe app put-fn [from :out-pub] m [to :in-chan]))]
+    (doseq [msg-type msg-types]
+      (sub-msg-type cmp1 cmp2 msg-type)
+      (sub-msg-type cmp2 cmp1 msg-type))))
+
 (defn tap-components
   "Tap into a mult."
   [app put-fn [from-cmps to]]
@@ -51,6 +60,13 @@
           (swap! app update-in [:taps] conj [from to]))
         #+clj (catch Exception e (err-put (.getMessage e)))
         #+cljs (catch js/Object e (err-put e))))))
+
+(defn tap-components-bidirectional
+  "Same as tap-components, but is symmetric - taps cmp1 into cmp2
+  and, at the same time taps, cmp2 into cmp1."
+  [app put-fn cmp1 cmp2]
+  (tap-components app put-fn [[cmp1] cmp2])
+  (tap-components app put-fn [[cmp2] cmp1]))
 
 (defn make-log-comp
   "Creates a log component."
@@ -89,7 +105,9 @@
          [:cmd/send-to            env] (send-to app env)
          [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
          [:cmd/sub-comp  sources dest] (subscribe-comp app put-fn sources dest)
+         [:cmd/sub-comp-2 cmp1 cmp2 m] (subscribe-comp-bidirectional app put-fn cmp1 cmp2 m)
          [:cmd/tap-comp       from-to] (tap-components app put-fn from-to)
+         [:cmd/tap-comp-2   cmp1 cmp2] (tap-components-bidirectional app put-fn cmp1 cmp2)
          :else (prn "unknown msg in switchboard-in-loop" msg)))
 
 (defn component
