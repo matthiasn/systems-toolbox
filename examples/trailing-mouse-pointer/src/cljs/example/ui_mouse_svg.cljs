@@ -5,8 +5,8 @@
             [cljs.core.match :refer-macros [match]]))
 
 (def circle-defaults {:fill "rgba(255,0,0,0.1)" :stroke "black" :stroke-width 2 :r 15})
-(def text-default {:stroke "none" :fill "black" :dy ".35em"})
-(def text-bold (merge text-default {:style {:font-weight :bold}}))
+(def text-default {:stroke "none" :fill "black" :style {:font-size 12}})
+(def text-bold (merge text-default {:style {:font-weight :bold :font-size 12}}))
 (def axis-label (merge text-default {:font-size 12}))
 (def x-axis-label (merge axis-label {:font-size 12 :text-anchor :middle}))
 
@@ -89,13 +89,13 @@
   time is measured."
   [state pos mean mn mx latency]
   [:g
-   [:text (merge text-bold {:x 10 :y 12}) "Mouse Moves Processed:"]
-   [:text (merge text-default {:x 215 :y 12}) (:count state)]
-   [:text (merge text-bold {:x 265 :y 12}) "Current Position:"]
-   (when pos [:text (merge text-default {:x 405 :y 12}) (str "x: " (:x pos) " y: " (:y pos))])
-   [:text (merge text-bold {:x 530 :y 12}) "Latency (ms):"]
+   [:text (merge text-bold {:x 10 :y 15}) "Mouse Moves Processed:"]
+   [:text (merge text-default {:x 163 :y 15}) (:count state)]
+   [:text (merge text-bold {:x 265 :y 15}) "Current Position:"]
+   (when pos [:text (merge text-default {:x 372 :y 15}) (str "x: " (:x pos) " y: " (:y pos))])
+   [:text (merge text-bold {:x 530 :y 15}) "Latency (ms):"]
    (when latency
-     [:text (merge text-default {:x 640 :y 12}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
+     [:text (merge text-default {:x 615 :y 15}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
 
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
