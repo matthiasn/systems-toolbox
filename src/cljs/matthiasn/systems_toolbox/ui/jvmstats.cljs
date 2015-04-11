@@ -7,6 +7,9 @@
             [goog.string :as gstring]
             [goog.string.format]))
 
+(def text-default {:stroke "none" :fill "black" :style {:font-size 10}})
+(def text-bold (merge text-default {:style {:font-weight :bold :font-size 10}}))
+
 (defn bar
   "Renders a vertical bar."
   [x y h w]
@@ -31,24 +34,26 @@
         latest (last readings)
         sys-load-avg (:system-load-avg latest)
         available-cpus (:available-cpus latest)
-        uptime (:uptime latest)
-        m 60000 s 1000           ; minutes and seconds in milliseconds for uptime calculation
+        s 1000 m (* 60 s) h (* 60 m) ; time units for uptime calculation
+        uptime-str (when-let [upt (:uptime latest)]
+                     (str (floor (/ upt h)) "h" (floor (/ (rem upt h) m)) "m" (floor (/ (rem upt m) s)) "s"))
+        gc-percentage (when latest (str " time " (.toFixed (* (/ (:gc-time latest) (:uptime latest)) 100) 2) "%"))
         w 3 gap 1 sparkline-h 16 ; bar width, height, and gap between bars
-        chart-w 292 chart-h 44]  ; chart dimensions
+        chart-w 300 chart-h 44]  ; chart dimensions
     [:div
      [:svg {:width chart-w :height chart-h :style {:background-color :white}}
       [:g
-       [:text {:y 12 :x 10 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}}
-        "Sys Load Avg:"]
-       [:text {:y 12 :x 128 :stroke "none" :fill "black" :dy ".35em"}
+       [:text (merge text-bold {:y 17 :x 10}) "Sys Load Avg:"]
+       [:text (merge text-default {:y 17 :x 85})
         (when latest (str (fmt "%.2f" (-> sys-load-avg (/ available-cpus) (* 100))) "%"))]
        (for [[idx v] indexed]
-         ^{:key (str idx v)} [bar (+ (* idx w) 194) (+ 3 sparkline-h) (* (/ v available-cpus) sparkline-h) (- w gap)])
-       [:text {:y 32 :x 10 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}} "CPUs:"]
-       [:text {:y 32 :x 64 :stroke "none" :fill "black" :dy ".35em"} available-cpus]
-       [:text {:y 32 :x 80 :stroke "none" :fill "black" :dy ".35em" :style {:font-weight :bold}} "Uptime:"]
-       [:text {:y 32 :x 144 :stroke "none" :fill "black" :dy ".35em"}
-        (str (floor (/ uptime m)) "m" (floor (/ (rem uptime m) s)) "s")]]]]))
+         ^{:key (str idx v)} [bar (+ (* idx w) 130) (+ 3 sparkline-h) (* (/ v available-cpus) sparkline-h) (- w gap)])
+       [:text (merge text-bold {:y 35 :x 10}) "CPUs:"]
+       [:text (merge text-default {:y 35 :x 42}) available-cpus]
+       [:text (merge text-bold {:y 35 :x 54}) "Uptime:"]
+       [:text (merge text-default {:y 35 :x 94}) uptime-str]
+       [:text (merge text-bold {:y 35 :x 150}) "GC:"]
+       [:text (merge text-default {:y 35 :x 172}) (str "count " (:gc-count latest) gc-percentage)]]]]))
 
 (defn mk-state
   "Return clean initial component state atom."
