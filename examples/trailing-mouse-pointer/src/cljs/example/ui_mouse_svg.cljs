@@ -7,8 +7,7 @@
 (def circle-defaults {:fill "rgba(255,0,0,0.1)" :stroke "black" :stroke-width 2 :r 15})
 (def text-default {:stroke "none" :fill "black" :style {:font-size 12}})
 (def text-bold (merge text-default {:style {:font-weight :bold :font-size 12}}))
-(def axis-label (merge text-default {:font-size 12}))
-(def x-axis-label (merge axis-label {:font-size 12 :text-anchor :middle}))
+(def x-axis-label (merge text-default {:text-anchor :middle}))
 
 (defn now [] (.getTime (js/Date.)))
 
@@ -41,7 +40,7 @@
    (for [n (range 0 l 10)]
      ^{:key (str "xt" n)} [:path (merge path-defaults {:d (str "M" (+ x (* n scale)) " " y "l 0 " (tick-length n))})])
    (for [n (range 0 l 50)]
-     ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* n scale)) :y (+ y 17)}) n])])
+     ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* n scale)) :y (+ y 20)}) n])])
 
 (defn y-axis
   "Draws y-axis of a chart."
@@ -52,7 +51,7 @@
      ^{:key (str "yt" n)} [:path (merge path-defaults
                                         {:d (str "M" x " " (- y (* n scale)) "l -" (tick-length n) " 0")})])
    (for [n (range 0 l 50)]
-     ^{:key (str "yl" n)} [:text (merge axis-label {:x (- x 10) :y (- y (* n scale)) :text-anchor :end}) n])])
+     ^{:key (str "yl" n)} [:text (merge text-default {:x (- x 10) :y (- y (* n scale) -4) :text-anchor :end}) n])])
 
 (defn histogram-view
   "Renders a histogram chart for roundtrip times in ms and their frequencies."
@@ -68,14 +67,14 @@
          ^{:key (str "b" v f)} [:rect {:x (+ x (* v scale)) :y (- y (* f scale))
                                        :fill "steelblue" :width 1.3 :height (* f scale)}])
        [x-axis x y x-axis-l scale]
-       [:text (merge text-bold x-axis-label {:x (+ x x-axis-l -10) :y (+ y 35)}) "Roundtrip t/ms"]
+       [:text (merge x-axis-label text-bold {:x (+ x x-axis-l -10) :y (+ y 40)}) "Roundtrip t/ms"]
        [:text (let [x-coord (- x 45) y-coord (- y y-axis-l 10) rotate (str "rotate(270 " x-coord " " y-coord ")")]
-                (merge text-bold x-axis-label {:x x-coord :y y-coord :transform rotate}))
+                (merge x-axis-label text-bold {:x x-coord :y y-coord :transform rotate}))
         "Frequencies"]
        [y-axis x y y-axis-l scale]])))
 
 (defn trailing-circles
-  "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a rountrip.
+  "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a roundtrip.
   This makes it easier to experience any delays."
   [state]
   (let [pos (:pos state)
