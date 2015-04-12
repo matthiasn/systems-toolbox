@@ -59,19 +59,18 @@
   (let [freq (frequencies rtt-times)
         max-freq (apply max (map (fn [[_ f]] f) freq))
         scale 2
-        x-axis-l (+ (* (Math/ceil (/ max-v 50)) 50) 20)
+        x-axis-l (max (+ (* (Math/ceil (/ max-v 50)) 50) 20) 130)
         y-axis-l (min (max (+ (* (Math/ceil (/ max-freq 10)) 10) 20) 70) 110)]
-    (when-not (empty? freq)
-      [:g
-       (for [[v f] freq]
-         ^{:key (str "b" v f)} [:rect {:x (+ x (* v scale)) :y (- y (* f scale))
-                                       :fill "steelblue" :width 1.3 :height (* f scale)}])
-       [x-axis x y x-axis-l scale]
-       [:text (merge x-axis-label text-bold {:x (+ x x-axis-l -10) :y (+ y 40)}) "Roundtrip t/ms"]
-       [:text (let [x-coord (- x 45) y-coord (- y y-axis-l 10) rotate (str "rotate(270 " x-coord " " y-coord ")")]
-                (merge x-axis-label text-bold {:x x-coord :y y-coord :transform rotate}))
-        "Frequencies"]
-       [y-axis x y y-axis-l scale]])))
+    [:g
+     (for [[v f] freq]
+       ^{:key (str "b" v f)} [:rect {:x    (+ x (* v scale)) :y (- y (* f scale))
+                                     :fill "steelblue" :width 1.3 :height (* f scale)}])
+     [x-axis x y x-axis-l scale]
+     [:text (merge x-axis-label text-bold {:x (+ x x-axis-l -10) :y (+ y 40)}) "Roundtrip t/ms"]
+     [:text (let [x-coord (- x 45) y-coord (- y y-axis-l 10) rotate (str "rotate(270 " x-coord " " y-coord ")")]
+              (merge x-axis-label text-bold {:x x-coord :y y-coord :transform rotate}))
+      "Frequencies"]
+     [y-axis x y y-axis-l scale]]))
 
 (defn trailing-circles
   "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a roundtrip.
@@ -113,7 +112,7 @@
            :on-mouse-move (mouse-move-ev-handler app put-fn (r/current-component))}
      [text-view state pos (.toFixed mean 0) mn mx latency]
      [trailing-circles state]
-     [histogram-view rtt-times 80 280 mx]]))
+     [histogram-view rtt-times 90 280 mx]]))
 
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server."
