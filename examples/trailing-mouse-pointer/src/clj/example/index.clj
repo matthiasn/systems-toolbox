@@ -8,48 +8,13 @@
 (defn index-css
   "Generate index page CSS in Clojure using Garden."
   []
-  (let [small-font (u/em 0.7)
-        string-color "#6A8759"
-        strong-blue "#4471FF"]
-    (css {:pretty-print? false}
-         [:.event
-          [:h4 {:margin-top 0
-                :margin-bottom 0
-                :color "#63809C"}]
-          [:pre {:margin-top (px 2)
-                 :background-color "#202F41"
-                 :color "#A9B7C6"
-                 :overflow :scroll-x
-                 :border-radius (px 2)
-                 :padding (px 10)}
-           [:code {:margin-top 0
-                   :margin-bottom (px 10)
-                   :font-size small-font
-                   :font-family "Monaco, monospace"
-                   :overflow :scroll-x}]]]
-         [:.received {:margin-top 0
-                      :margin-bottom 0
-                      :font-size small-font
-                      :float :right}]
-         [:.markup {:background-color :white
-                    :padding (px 20)}]
-         [:table :th :td {:text-align :right :background-color "#EEE"}]
-         [:th {:background-color "#DDD"}]
-         [:.table-small     {:font-size small-font}]
-         [:.button-xsmall   {:font-size small-font :margin (px 2)}]
-         [:.active          {:font-weight :bold :color :black}]
-         [:.delimiter       {:font-weight :bold :color :red}]
-         [:.number          {:color "#6897BB"}]
-         [:.tag             {:color :red}]
-         [:.boolean         {:color :green}]
-         [:.class-delimiter {:color strong-blue}]
-         [:.string          {:font-weight :bold :color string-color}]
-         [:.character       {:font-weight :bold :color string-color}]
-         [:.keyword         {:font-weight :bold :color "#CC7832"}]
-         [:.class-name      {:font-weight :bold :color strong-blue}]
-         [:.function-symbol {:font-weight :bold :color strong-blue}]
-         [:.nil             {:font-weight :bold :color "#CC7832"}]
-         [:.symbol])))
+  (css {:pretty-print? false}
+       [:.content {:background-color "#EEE"}]
+       [:p {:line-height (px 25)
+            :margin-left "10%" :margin-right "10%"}]
+       [:#mouse {:border-color :darkgray
+                 :border-width (px 1)
+                 :border-style :solid}]))
 
 (defn index-page
   "Generates index page HTML with the specified page title."
@@ -57,7 +22,7 @@
   (html
     [:html
      {:lang "en"}
-     [:head 
+     [:head
       [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
       [:title "Systems-Toolbox: Trailing Mouse Pointer Example"]
       [:link {:href "/bower_components/pure/pure-min.css", :media "screen", :rel "stylesheet"}]
@@ -71,11 +36,18 @@
         [:ul
          [:li [:div#jvm-stats-frame]]]]]
       [:div.splash-container
-       [:div.splash 
+       [:div.splash
         [:h1.splash-head "Trailing Mouse Moves Example"]
         [:p.splash-subhead "WebSockets Latency Visualizer"]]]
       [:div.content-wrapper
        [:div.content
-        [:div#search]
+        [:h2.content-head.is-center "Systems Toolbox Example #1"]
+        [:div.l-box-lrg
+         [:p "This application is both a sample for building a single-page app communicating with the server over
+              WebSockets and a visualizer for how well the WebSocket is performing. Please move your mouse in the
+              white box below. The mouse move events will then be sent to the server and returned over the WebSocket
+              connection and the time for sending and returning each message is measured. These times are then
+              shown in a histogram."]]]
+       [:div.content
         [:div.pure-g [:div.l-box-lrg [:div#mouse.pure-u-1]]]]]
       [:script {:src "/js/build/example.js"}]]]))

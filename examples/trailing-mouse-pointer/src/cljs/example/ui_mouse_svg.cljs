@@ -60,7 +60,7 @@
         max-freq (apply max (map (fn [[_ f]] f) freq))
         scale 2
         x-axis-l (+ (* (Math/ceil (/ max-v 50)) 50) 20)
-        y-axis-l (min (+ (* (Math/ceil (/ max-freq 50)) 50) 20) 120)]
+        y-axis-l (min (max (+ (* (Math/ceil (/ max-freq 10)) 10) 20) 70) 110)]
     (when-not (empty? freq)
       [:g
        (for [[v f] freq]
@@ -88,13 +88,13 @@
   time is measured."
   [state pos mean mn mx latency]
   [:g
-   [:text (merge text-bold {:x 10 :y 15}) "Mouse Moves Processed:"]
-   [:text (merge text-default {:x 163 :y 15}) (:count state)]
-   [:text (merge text-bold {:x 265 :y 15}) "Current Position:"]
-   (when pos [:text (merge text-default {:x 372 :y 15}) (str "x: " (:x pos) " y: " (:y pos))])
-   [:text (merge text-bold {:x 530 :y 15}) "Latency (ms):"]
+   [:text (merge text-bold {:x 130 :y 20}) "Mouse Moves Processed:"]
+   [:text (merge text-default {:x 283 :y 20}) (:count state)]
+   [:text (merge text-bold {:x 130 :y 40}) "Current Position:"]
+   (when pos [:text (merge text-default {:x 237 :y 40}) (str "x: " (:x pos) " y: " (:y pos))])
+   [:text (merge text-bold {:x 130 :y 60}) "Latency (ms):"]
    (when latency
-     [:text (merge text-default {:x 615 :y 15}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
+     [:text (merge text-default {:x 215 :y 60}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
 
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
@@ -102,7 +102,8 @@
   [app put-fn]
   (let [state @app
         pos (:pos state)
-        chart-w 1000 chart-h 400
+        chart-w (*  (.. js/window -innerWidth) 0.92)
+        chart-h 350
         latency (:latency (:from-server state))
         rtt-times (:rtt-times state)
         mx (apply max rtt-times)
@@ -112,7 +113,7 @@
            :on-mouse-move (mouse-move-ev-handler app put-fn (r/current-component))}
      [text-view state pos (.toFixed mean 0) mn mx latency]
      [trailing-circles state]
-     [histogram-view rtt-times 80 340 mx]]))
+     [histogram-view rtt-times 80 280 mx]]))
 
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server."
