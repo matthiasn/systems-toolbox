@@ -51,4 +51,5 @@
                            :message [:cmd/get-jvm-stats]
                            :repeat true}]]]])
 
+  (pid/save "example.pid")
   (log/info "Application started, PID" (pid/current)))
