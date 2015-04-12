@@ -10,6 +10,9 @@
   []
   (css {:pretty-print? false}
        [:.content {:background-color "#EEE"}]
+       [:a {:font-weight :bold
+            :text-decoration :none
+            :color "#1f8dd6"}]
        [:p {:line-height (px 25)
             :margin-left "10%" :margin-right "10%"}]
        [:#mouse {:border-color :darkgray
@@ -47,7 +50,8 @@
               WebSockets and a visualizer for how well the WebSocket is performing. Please move your mouse in the
               white box below. The mouse move events will then be sent to the server and returned over the WebSocket
               connection and the time for sending and returning each message is measured. These times are then
-              shown in a histogram."]]]
+              shown in a histogram. Check out the code on "
+          [:a {:href "https://github.com/matthiasn/systems-toolbox"} "GitHub"] "."]]]
        [:div.content
         [:div.pure-g [:div.l-box-lrg [:div#mouse.pure-u-1]]]]]
       [:script {:src "/js/build/example.js"}]]]))
