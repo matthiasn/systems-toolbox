@@ -12,8 +12,8 @@
 
 (defn bar
   "Renders a vertical bar."
-  [x y h w]
-  [:rect {:x x :y (- y h) :fill "steelblue" :width w :height h}])
+  [x y h w val]
+  [:rect {:x x :y (- y h) :fill (if (> val 0.6) "red" "steelblue") :width w :height h}])
 
 (defn reading-view
   "View for displaying a JVM stats reading. In the case of the average system load, there's also a sparkline chart
@@ -47,7 +47,13 @@
        [:text (merge text-default {:y 17 :x 85})
         (when latest (str (fmt "%.2f" (-> sys-load-avg (/ available-cpus) (* 100))) "%"))]
        (for [[idx v] indexed]
-         ^{:key (str idx v)} [bar (+ (* idx w) 130) (+ 3 sparkline-h) (* (/ v available-cpus) sparkline-h) (- w gap)])
+         ^{:key (str idx v)}
+         [bar
+          (+ (* idx w) 130)
+          (+ 3 sparkline-h)
+          (* (/ v available-cpus) sparkline-h)
+          (- w gap)
+          (/ v available-cpus)])
        [:text (merge text-bold {:y 35 :x 10}) "CPUs:"]
        [:text (merge text-default {:y 35 :x 42}) available-cpus]
        [:text (merge text-bold {:y 35 :x 54}) "Uptime:"]
