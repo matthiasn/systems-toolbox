@@ -3,9 +3,7 @@
   (:require [reagent.core :as r :refer [atom]]
             [cljs.core.match :refer-macros [match]]
             [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.helpers :refer [by-id]]))
-
-(defn now [] (.toISOString (js/Date.)))
+            [matthiasn.systems-toolbox.helpers :refer [by-id now]]))
 
 (defn snapshot-view
   "Render application state snapshot."
@@ -17,18 +15,17 @@
           :on-click #(swap! app update-in [:show] not)} "snapshots"]
      (when show
        (for [[timestamp from snapshot] (reverse (take-last 10 (:snapshots state)))]
-        ^{:key (str "snapshot-" timestamp)}
-        [:div
+         ^{:key (str "snapshot-" timestamp)}
+         [:div
           [:h3 (str from " - Snapshot")]
           [:h6 timestamp]
           [:pre [:code (str snapshot)]]]))]))
 
 (defn mk-state
   "Return clean initial component state atom."
-  [dom-id heading]
+  [dom-id]
   (fn [put-fn]
     (let [app (atom {:snapshots [] :show false})]
-      (swap! app assoc :heading heading)
       (r/render-component [snapshot-view app] (by-id dom-id))
       app)))
 
@@ -45,5 +42,5 @@
          :else (println "Unmatched event:" msg)))
 
 (defn component
-  [cmp-id dom-id heading]
-  (comp/make-component cmp-id (mk-state dom-id heading) nil state-pub-handler))
+  [cmp-id dom-id]
+  (comp/make-component cmp-id (mk-state dom-id) nil state-pub-handler))
