@@ -52,7 +52,7 @@
          out-chan (make-chan-w-buf (:out-chan cfg))
          out-pub-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
-         put-fn #(put! out-chan %)
+         put-fn #(put! out-chan (with-meta % {:from cmp-id}))
          out-mult (mult out-chan)
          state (mk-state put-fn)]
      (tap out-mult out-pub-chan)

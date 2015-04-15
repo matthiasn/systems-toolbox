@@ -13,8 +13,8 @@
 (defn in-handler
   "Handle incoming messages: process / add to application state."
   [_ _ msg]
-  #+clj (log/info msg)
-  #+cljs (println "Log: " msg))
+  #+clj (log/info (meta msg) msg)
+  #+cljs (println "Log: " (meta msg) " " msg))
 
 (defn component
   []
