@@ -16,10 +16,10 @@
      [:a {:style {:float :right :margin "10px" :color (if show "steelblue" "#EEE")}
           :on-click #(swap! app update-in [:show] not)} "snapshots"]
      (when show
-       (for [[timestamp snapshot] (reverse (take-last 10 (:snapshots state)))]
+       (for [[timestamp from snapshot] (reverse (take-last 10 (:snapshots state)))]
         ^{:key (str "snapshot-" timestamp)}
         [:div
-          [:h3 (:heading state)]
+          [:h3 (str from " - Snapshot")]
           [:h6 timestamp]
           [:pre [:code (str snapshot)]]]))]))
 
@@ -34,14 +34,14 @@
 
 (defn recv-snapshot
   "Handle receiving a snapshot."
-  [app snapshot]
-  (swap! app assoc :snapshots (conj (:snapshots @app) [(now) snapshot])))
+  [app from snapshot]
+  (swap! app assoc :snapshots (conj (:snapshots @app) [(now) from snapshot])))
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
   [app put-fn msg]
   (match msg
-         [:app-state snapshot] (recv-snapshot app snapshot)
+         [:app-state snapshot] (recv-snapshot app (:from (meta msg)) snapshot)
          :else (println "Unmatched event:" msg)))
 
 (defn component
