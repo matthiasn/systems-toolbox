@@ -11,16 +11,17 @@
   "Render application state snapshot."
   [app]
   (let [state @app
-        [timestamp last-snapshot] (last (:snapshots state))
         show (:show state)]
     [:div
      [:a {:style {:float :right :margin "10px" :color (if show "steelblue" "#EEE")}
           :on-click #(swap! app update-in [:show] not)} "snapshots"]
      (when show
-       [:div
-        [:h3 (:heading state)]
-        [:h6 timestamp]
-        [:pre [:code (str last-snapshot)]]])]))
+       (for [[timestamp snapshot] (reverse (take-last 10 (:snapshots state)))]
+        ^{:key (str "snapshot-" timestamp)}
+        [:div
+          [:h3 (:heading state)]
+          [:h6 timestamp]
+          [:pre [:code (str snapshot)]]]))]))
 
 (defn mk-state
   "Return clean initial component state atom."
