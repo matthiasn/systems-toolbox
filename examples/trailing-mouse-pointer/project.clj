@@ -11,7 +11,7 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5"]
                  [clj-pid "0.1.1"]
-                 [matthiasn/systems-toolbox "0.1.27-SNAPSHOT"]
+                 [matthiasn/systems-toolbox "0.1.28-SNAPSHOT"]
                  [clj-time "0.9.0"]
                  [org.clojure/clojurescript "0.0-3196"]]
 
