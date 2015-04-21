@@ -12,7 +12,6 @@
   [config]
   (match config
          [:sliding  n]  (chan (sliding-buffer n))
-         [:dropping n]  (chan (dropping-buffer n))
          [:buffer   n]  (chan (buffer n))
          :else          (prn "invalid: " config)))
 
