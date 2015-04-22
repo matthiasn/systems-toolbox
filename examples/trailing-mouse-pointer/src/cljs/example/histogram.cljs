@@ -61,12 +61,14 @@
   [x y mn mx w scale]
   (let [mx-mn (- mx mn)
         increment (cond (> mx-mn 250) 50 (> mx-mn 90) 20 :else 10)
-        rng (range mn (inc mx) increment)]
+        mx2 (round-up (or mx 100) increment)
+        mn2 (round-down (or mn 0) increment)
+        rng (range mn2 (inc mx2) increment)]
     [:g
      [:path (merge path-defaults {:d (str "M" x " " y "l" w " 0 z")})]
      (for [n rng] ^{:key (str "xt" n)}
-                  [:path (merge path-defaults {:d (str "M" (+ x (* (- n mn) scale)) " " y "l 0 " 6)})])
-     (for [n rng] ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* (- n mn) scale)) :y (+ y 20)}) n])]))
+                  [:path (merge path-defaults {:d (str "M" (+ x (* (- n mn2) scale)) " " y "l 0 " 6)})])
+     (for [n rng] ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* (- n mn2) scale)) :y (+ y 20)}) n])]))
 
 (defn histogram-view
   "Renders a histogram for roundtrip times."
@@ -97,7 +99,7 @@
 
          [:text {:x (+ x (/ w 2)) :y (- y 50) :stroke "none" :fill "#DDD" :text-anchor :middle
                  :style {:font-weight :bold :font-size 24}} "insufficient data"])
-       [histogram-x-axis x (+ y 7) mn2 mx2 w x-scale]
+       [histogram-x-axis x (+ y 7) mn mx w x-scale]
        [:text (merge x-axis-label text-bold {:x (+ x (/ w 2)) :y (+ y 48) :text-anchor :middle}) x-label]
        [:text (let [x-coord (- x 45) y-coord (- y (/ h 3)) rotate (str "rotate(270 " x-coord " " y-coord ")")]
                 (merge x-axis-label text-bold {:x x-coord :y y-coord :transform rotate})) "Frequencies"]
