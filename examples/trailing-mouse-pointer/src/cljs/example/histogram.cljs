@@ -58,17 +58,13 @@
 
 (defn histogram-x-axis
   "Draws x-axis for histrogram."
-  [x y mn mx w scale]
-  (let [mx-mn (- mx mn)
-        increment (cond (> mx-mn 250) 50 (> mx-mn 90) 20 :else 10)
-        mx2 (round-up (or mx 100) increment)
-        mn2 (round-down (or mn 0) increment)
-        rng (range mn2 (inc mx2) increment)]
+  [x y mn mx w scale increment]
+  (let [rng (range mn (inc mx) increment)]
     [:g
      [:path (merge path-defaults {:d (str "M" x " " y "l" w " 0 z")})]
      (for [n rng] ^{:key (str "xt" n)}
-                  [:path (merge path-defaults {:d (str "M" (+ x (* (- n mn2) scale)) " " y "l 0 " 6)})])
-     (for [n rng] ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* (- n mn2) scale)) :y (+ y 20)}) n])]))
+                  [:path (merge path-defaults {:d (str "M" (+ x (* (- n mn) scale)) " " y "l 0 " 6)})])
+     (for [n rng] ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* (- n mn) scale)) :y (+ y 20)}) n])]))
 
 (defn histogram-view
   "Renders a histogram for roundtrip times."
@@ -76,8 +72,9 @@
     (let [mx (apply max rtt-times)
           mn (apply min rtt-times)
           rng (- mx mn)
-          mx2 (round-up (or mx 100) 10)
-          mn2 (round-down (or mn 0) 10)
+          increment (cond (> rng 500) 100 (> rng 250) 50 (> rng 90) 20 :else 10)
+          mx2 (round-up (or mx 100) increment)
+          mn2 (round-down (or mn 0) increment)
           rng2 (- mx2 mn2)
           x-scale (/ w rng2)
           bin-size (freedman-diaconis-rule rtt-times)
@@ -87,8 +84,8 @@
           bar-width (/ (* rng x-scale) bins)
           y-scale (/ (- h 20) binned-freq-mx)]
       [:g
-       ;[:rect {:x x :y (- y h) :stroke :red :width w :height h :fill "rgba(255,0,0,0.1)"}]
-       ;[:rect {:x (- x 50) :y (- y h 10) :stroke :green :width (+ w 70) :height (+ 60 h) :fill "rgba(0,255,0,0.1)"}]
+       [:rect {:x x :y (- y h) :stroke :red :width w :height h :fill "rgba(255,0,0,0.1)"}]
+       [:rect {:x (- x 50) :y (- y h 10) :stroke :green :width (+ w 70) :height (+ 60 h) :fill "rgba(0,255,0,0.1)"}]
        (if (> bins 4)
          (for [[v f] binned-freq]
            ^{:key (str "bf" v f)} [:rect {:x      (+ x (* (- mn mn2) x-scale) (* v bar-width))
@@ -99,7 +96,7 @@
 
          [:text {:x (+ x (/ w 2)) :y (- y 50) :stroke "none" :fill "#DDD" :text-anchor :middle
                  :style {:font-weight :bold :font-size 24}} "insufficient data"])
-       [histogram-x-axis x (+ y 7) mn mx w x-scale]
+       [histogram-x-axis x (+ y 7) mn2 mx2 w x-scale increment]
        [:text (merge x-axis-label text-bold {:x (+ x (/ w 2)) :y (+ y 48) :text-anchor :middle}) x-label]
        [:text (let [x-coord (- x 45) y-coord (- y (/ h 3)) rotate (str "rotate(270 " x-coord " " y-coord ")")]
                 (merge x-axis-label text-bold {:x x-coord :y y-coord :transform rotate})) "Frequencies"]

@@ -28,5 +28,5 @@
                         :source-paths ["src/cljs"]
                         :compiler {:output-dir "resources/public/js/build/"
                                    :output-to "resources/public/js/build/example.js"
-                                   :optimizations :simple
+                                   :optimizations :advanced
                                    :source-map "resources/public/js/build/example.js.map"}}]})
