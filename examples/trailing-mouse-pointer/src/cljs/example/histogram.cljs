@@ -84,8 +84,8 @@
           bar-width (/ (* rng x-scale) bins)
           y-scale (/ (- h 20) binned-freq-mx)]
       [:g
-       [:rect {:x x :y (- y h) :stroke :red :width w :height h :fill "rgba(255,0,0,0.1)"}]
-       [:rect {:x (- x 50) :y (- y h 10) :stroke :green :width (+ w 70) :height (+ 60 h) :fill "rgba(0,255,0,0.1)"}]
+       ;[:rect {:x x :y (- y h) :stroke :red :width w :height h :fill "rgba(255,0,0,0.1)"}]
+       ;[:rect {:x (- x 50) :y (- y h 10) :stroke :green :width (+ w 70) :height (+ 60 h) :fill "rgba(0,255,0,0.1)"}]
        (if (> bins 4)
          (for [[v f] binned-freq]
            ^{:key (str "bf" v f)} [:rect {:x      (+ x (* (- mn mn2) x-scale) (* v bar-width))
