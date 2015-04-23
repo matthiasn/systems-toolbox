@@ -11,7 +11,7 @@
   (let [state @app
         show (:show state)]
     [:div
-     [:a {:style {:float :right :margin "10px" :color (if show "steelblue" "#EEE")}
+     [:a {:style {:float :right :margin "10px" :color (if show "steelblue" "#AAA")}
           :on-click #(swap! app update-in [:show] not)} "snapshots"]
      (when show
        (for [[timestamp from snapshot] (reverse (take-last 10 (:snapshots state)))]
