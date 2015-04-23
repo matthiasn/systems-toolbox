@@ -59,6 +59,13 @@
         [:div.l-box-lrg
          [:div#histograms]]]
        [:div.content
+        [:div.l-box-lrg
+         [:p "The histograms above are entirely drawn in ClojureScript - without any additional charting library.
+              The number of bins is determined by applying the "
+          [:a {:href "http://en.wikipedia.org/wiki/Freedman–Diaconis_rule"} "Freedman-Diaconis rule"] ".
+              The first histogram takes the entire sample into account whereas the second only dispays the observations
+              that fall within the 99th percentile in order to remove potential outliers."]]]
+       [:div.content
         [:div.l-box-lrg.pure-g
          [:div#messages.pure-u-1.pure-u-md-1-2]
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]]
