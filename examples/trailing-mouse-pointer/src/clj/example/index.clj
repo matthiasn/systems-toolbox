@@ -15,9 +15,8 @@
             :color "#1f8dd6"}]
        [:p {:line-height (px 25)
             :margin-left "10%" :margin-right "10%"}]
-       [:#mouse {:border-color :darkgray
-                 :border-width (px 1)
-                 :border-style :solid}]))
+       [:#mouse {:width "100%"}]
+       [:#messages {:padding-right "10px"}]))
 
 (defn index-page
   "Generates index page HTML with the specified page title."
@@ -29,6 +28,7 @@
       [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
       [:title "Systems-Toolbox: Trailing Mouse Pointer Example"]
       [:link {:href "/bower_components/pure/pure-min.css", :media "screen", :rel "stylesheet"}]
+      [:link {:href "/bower_components/pure/grids-responsive-min.css", :media "screen", :rel "stylesheet"}]
       [:link {:href "/css/example.css", :media "screen", :rel "stylesheet"}]
       [:style (index-css)]
       [:link {:href "/images/favicon.png", :rel "shortcut icon", :type "image/png"}]]
@@ -50,8 +50,16 @@
               WebSockets and a visualizer for how well the WebSocket is performing. Please move your mouse in the
               white box below. The mouse move events will then be sent to the server and returned over the WebSocket
               connection and the time for sending and returning each message is measured. These times are then
-              shown in a histogram. Check out the code on "
+              shown in histograms. Check out the code on "
           [:a {:href "https://github.com/matthiasn/systems-toolbox"} "GitHub"] "."]]]
        [:div.content
-        [:div.pure-g [:div.l-box-lrg [:div#mouse.pure-u-1]]]]]
+        [:div.l-box-lrg.pure-g
+         [:div#mouse]]]
+       [:div.content
+        [:div.l-box-lrg
+         [:div#histograms]]]
+       [:div.content
+        [:div.l-box-lrg.pure-g
+         [:div#messages.pure-u-1.pure-u-md-1-2]
+         [:div#snapshots.pure-u-1.pure-u-md-1-2]]]]
       [:script {:src "/js/build/example.js"}]]]))

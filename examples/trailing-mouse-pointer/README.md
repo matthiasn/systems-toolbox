@@ -5,8 +5,12 @@
 Before the first usage, you need to compile the ClojureScript into a JavaScript file:
 
     lein cljsbuild auto
+    
+You'll also want the **[Bower](http://bower.io)** dependencies:
 
-Once this is done, you can start the application as usual:
+    bower install
+
+Once these steps are done, you can start the application as usual:
 
     lein run
 
