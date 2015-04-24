@@ -29,7 +29,7 @@
        :log-cmp]]      ; <= «═══«═══«══╝   instantiated logging component. Only used for development purposes.
 
      [:cmd/tap-comp
-      [:ptr-cmp    ;    »───»───»──╢   Route all messages from :pointer-cmp to :ws-cmp.
+      [:ptr-cmp    ;    »───»───»──╢   Route all messages from :ptr-cmp to :ws-cmp.
        :ws-cmp]]   ; <= «═══«═══«══╝
 
      [:cmd/sub-comp

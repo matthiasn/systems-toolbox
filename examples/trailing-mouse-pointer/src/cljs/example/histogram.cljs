@@ -72,7 +72,13 @@
     (let [mx (apply max rtt-times)
           mn (apply min rtt-times)
           rng (- mx mn)
-          increment (cond (> rng 1500) 500 (> rng 900) 200 (> rng 400) 100 (> rng 200) 50 (> rng 90) 20 :else 10)
+          increment (cond (> rng 3000) 1000
+                          (> rng 1500) 500
+                          (> rng 900) 200
+                          (> rng 400) 100
+                          (> rng 200) 50
+                          (> rng 90) 20
+                          :else 10)
           mx2 (round-up (or mx 100) increment)
           mn2 (round-down (or mn 0) increment)
           rng2 (- mx2 mn2)

@@ -15,7 +15,7 @@
             :color "#1f8dd6"}]
        [:p {:line-height (px 25)
             :margin-left "10%" :margin-right "10%"}]
-       [:#mouse {:width "100%"}]
+       [:#mouse {:width "100%" :cursor :pointer}]
        [:#messages {:padding-right "10px"}]))
 
 (defn index-page
@@ -25,7 +25,7 @@
     [:html
      {:lang "en"}
      [:head
-      [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
+      [:meta {:content "width=device-width, user-scalable=no", :name "viewport"}]
       [:title "Systems-Toolbox: Trailing Mouse Pointer Example"]
       [:link {:href "/bower_components/pure/pure-min.css", :media "screen", :rel "stylesheet"}]
       [:link {:href "/bower_components/pure/grids-responsive-min.css", :media "screen", :rel "stylesheet"}]

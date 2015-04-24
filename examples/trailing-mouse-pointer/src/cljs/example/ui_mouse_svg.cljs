@@ -11,17 +11,6 @@
 
 (defn now [] (.getTime (js/Date.)))
 
-(defn mouse-move-ev-handler
-  "Handler function for mouse move events, triggered when mouse is moved above SVG. Sends timestamped
-  coordinates to server."
-  [app put-fn curr-cmp]
-  (fn [ev]
-    (let [rect (-> curr-cmp r/dom-node .getBoundingClientRect)
-          pos {:x (- (.-clientX ev) (.-left rect)) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0) :timestamp (now)}]
-      (swap! app assoc :pos pos)
-      (put-fn [:cmd/mouse-pos pos])
-      (.stopPropagation ev))))
-
 (defn trailing-circles
   "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a roundtrip.
   This makes it easier to experience any delays."
@@ -45,6 +34,29 @@
    (when latency
      [:text (merge text-default {:x 115 :y 60}) (str mean " mean / " mn " min / " mx " max / " latency " last")])])
 
+(defn mouse-move-ev-handler
+  "Handler function for mouse move events, triggered when mouse is moved above SVG. Sends timestamped
+  coordinates to server."
+  [app put-fn curr-cmp]
+  (fn [ev]
+    (let [rect (-> curr-cmp r/dom-node .getBoundingClientRect)
+          pos {:x (- (.-clientX ev) (.-left rect)) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0) :timestamp (now)}]
+      (swap! app assoc :pos pos)
+      (put-fn [:cmd/mouse-pos pos])
+      (.stopPropagation ev))))
+
+(defn touch-move-ev-handler
+  "Handler function for touch move events, triggered when finger is moved above SVG. Sends timestamped
+  coordinates to server."
+  [app put-fn curr-cmp]
+  (fn [ev]
+    (let [rect (-> curr-cmp r/dom-node .getBoundingClientRect)
+          t (aget (.-targetTouches ev) 0)
+          pos {:x (- (.-clientX t) (.-left rect)) :y (.toFixed (- (.-clientY t) (.-top rect)) 0) :timestamp (now)}]
+      (swap! app assoc :pos pos)
+      (put-fn [:cmd/mouse-pos pos])
+      (.stopPropagation ev))))
+
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
   time is measured."
@@ -59,7 +71,8 @@
     [:div.pure-u-1 {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
      [:svg {:width (- (.-offsetWidth mouse-div) 2) :height 200
             :style {:background-color :white}
-            :on-mouse-move (mouse-move-ev-handler app put-fn (r/current-component))}
+            :on-mouse-move (mouse-move-ev-handler app put-fn (r/current-component))
+            :on-touch-move (touch-move-ev-handler app put-fn (r/current-component))}
       [text-view state pos (.toFixed mean 0) mn mx latency]
       [trailing-circles state]]]))
 
