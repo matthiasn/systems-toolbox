@@ -46,26 +46,41 @@
   state snapshots from other components."
   ([cmp-id mk-state handler sliding-handler]
    (make-component cmp-id mk-state handler sliding-handler component-defaults))
+
   ([cmp-id mk-state handler sliding-handler opts]
    (let [cfg (merge component-defaults opts)
          out-chan (make-chan-w-buf (:out-chan cfg))
          out-pub-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
-         put-fn #(put! out-chan (with-meta % {:from cmp-id}))
+         put-fn (fn [msg]
+                  (let [msg-meta (merge (meta msg) {:from cmp-id})]
+                    (put! out-chan (with-meta msg msg-meta))))
          out-mult (mult out-chan)
          state (mk-state put-fn)]
      (tap out-mult out-pub-chan)
-     #+clj (try
-             (add-watch state :watcher (fn [_ _ _ new-state]
-                                         (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
-             (catch Exception _ ()))
-     #+cljs (try
-              (add-watch state :watcher (fn [_ _ _ new-state]
-                                          (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
-              (catch js/Object _ ()))
+
+     #+clj
+     (try
+       (add-watch state
+                  :watcher
+                  (fn [_ _ _ new-state]
+                    (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
+       (catch Exception _ ()))
+
+     #+cljs
+     (try
+       (add-watch state
+                  :watcher
+                  (fn [_ _ _ new-state]
+                    (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
+       (catch js/Object _ ()))
+
      (when-let [watch (:watch cfg)]
-       (add-watch (watch state) :watcher (fn [_ _ _ new-state]
-                                           (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id})))))
+       (add-watch (watch state)
+                  :watcher
+                  (fn [_ _ _ new-state]
+                    (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id})))))
+
      (merge
        {:out-mult out-mult
         :out-pub (pub out-pub-chan first)

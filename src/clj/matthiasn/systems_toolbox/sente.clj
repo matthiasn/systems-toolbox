@@ -26,7 +26,9 @@
 (defn make-handler
   "Create handler function for messages from WebSocket connection. Calls put-fn with received messages."
   [_ put-fn]
-  (fn [{:keys [event]}] (put-fn event)))
+  (fn [{:keys [event]}]
+    (let [[cmd-type {:keys [msg msg-meta]}] event]
+      (put-fn (with-meta [cmd-type msg] msg-meta)))))
 
 (defn mk-state
   "Return clean initial component state atom."

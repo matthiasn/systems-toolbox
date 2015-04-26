@@ -58,8 +58,9 @@
           (tap (:out-mult mult-comp) (:in-chan tap-comp))
           (put-fn [:log/switchboard-tap (str from " -> " to)])
           (swap! app update-in [:taps] conj [from to]))
-        #+clj (catch Exception e (err-put (.getMessage e)))
-        #+cljs (catch js/Object e (err-put e))))))
+        #+clj  (catch Exception e (err-put (.getMessage e)))
+        #+cljs (catch js/Object e (err-put e))
+        ))))
 
 (defn tap-components-bidirectional
   "Same as tap-components, but is symmetric - taps cmp1 into cmp2
