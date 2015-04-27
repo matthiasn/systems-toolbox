@@ -5,6 +5,11 @@
 
 (defn now [] (.getTime (js/Date.)))
 
+(defn deserialize-meta
+  [payload]
+  (let [[cmd-type {:keys [msg msg-meta]}] payload]
+    (with-meta [cmd-type msg] (assoc-in msg-meta [:client-ws-cmp :recv-timestamp] (now)))))
+
 (defn make-handler
   "Create handler function for messages from WebSocket connection. Calls put-fn with received
    messages."
@@ -12,7 +17,8 @@
   (fn [{:keys [event]}]
     (match event
            [:chsk/state {:first-open? true}] (put-fn [:first-open true])
-           [:chsk/recv [cmd-type payload]] (put-fn [cmd-type (assoc payload :recv-timestamp (now))])
+           ;[:chsk/recv [cmd-type payload]] (put-fn [cmd-type (assoc payload :recv-timestamp (now))])
+           [:chsk/recv payload] (put-fn (deserialize-meta payload))
            [:chsk/handshake _] ()
            :else (println "Unmatched event in WS component:" event))))
 
@@ -32,6 +38,6 @@
         msg-meta (-> (merge (meta msg) {})
                      (assoc-in , [:client-ws-cmp :uid] (:uid @state))
                      (assoc-in , [:client-ws-cmp :sent-timestamp] (now)))]
-    (send-fn [cmd-type {:msg (assoc payload :uid (:uid @state) :sent-timestamp (now)) :msg-meta msg-meta}])))
+    (send-fn [cmd-type {:msg (assoc payload :sent-timestamp (now)) :msg-meta msg-meta}])))
 
 (defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil))

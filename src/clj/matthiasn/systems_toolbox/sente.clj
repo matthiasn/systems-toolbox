@@ -51,14 +51,17 @@
 
 (defn in-handler
   "Handle incoming messages: process / add to application state."
-  [ws _ [cmd-type payload]]
+  [ws _ msg]
   (let [chsk-send! (:send-fn ws)
         connected-uids (:connected-uids ws)
-        dest-ui (:uid payload)]
+        msg-meta (meta msg)
+        dest-ui (:uid msg-meta)
+        [cmd-type payload] msg
+        msg-w-ser-meta [cmd-type {:msg payload :msg-meta msg-meta}]]
     (if dest-ui
-      (chsk-send! dest-ui [cmd-type payload])
+      (chsk-send! dest-ui msg-w-ser-meta)
       (doseq [uid (:any @connected-uids)]
-        (chsk-send! uid [cmd-type payload])))))
+        (chsk-send! uid msg-w-ser-meta)))))
 
 (defn component
   [cmp-id index-page-fn port]
