@@ -42,9 +42,16 @@
   subscribes cmp2 to all message types of cmp1."
   [app put-fn cmp1 cmp2 msg-types]
   (letfn [(sub-msg-type [from to m] (subscribe app put-fn [from :out-pub] m [to :in-chan]))]
-    (doseq [msg-type msg-types]
+    (doseq [msg-type (flatten (vector msg-types))]          ; TODO: same pattern in other commands
       (sub-msg-type cmp1 cmp2 msg-type)
       (sub-msg-type cmp2 cmp1 msg-type))))
+
+(defn subscribe-comp-unidirectional          ; TODO: refactor, almost identical with subscribe-comp-bidirectional
+  "Subscribes cmp2 to all message types of cmp1."
+  [app put-fn cmp1 cmp2 msg-types]
+  (letfn [(sub-msg-type [from to m] (subscribe app put-fn [from :out-pub] m [to :in-chan]))]
+    (doseq [msg-type (flatten (vector msg-types))]
+      (sub-msg-type cmp1 cmp2 msg-type))))
 
 (defn tap-components
   "Tap into a mult."
@@ -106,6 +113,7 @@
          [:cmd/send-to            env] (send-to app env)
          [:cmd/sub-comp-state from-to] (subscribe-comp-state app put-fn from-to)
          [:cmd/sub-comp  sources dest] (subscribe-comp app put-fn sources dest)
+         [:cmd/sub-comp   cmp1 cmp2 m] (subscribe-comp-unidirectional app put-fn cmp1 cmp2 m)
          [:cmd/sub-comp-2 cmp1 cmp2 m] (subscribe-comp-bidirectional app put-fn cmp1 cmp2 m)
          [:cmd/tap-comp       from-to] (tap-components app put-fn from-to)
          [:cmd/tap-comp-2   cmp1 cmp2] (tap-components-bidirectional app put-fn cmp1 cmp2)
