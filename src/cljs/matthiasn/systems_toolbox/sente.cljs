@@ -17,7 +17,6 @@
   (fn [{:keys [event]}]
     (match event
            [:chsk/state {:first-open? true}] (put-fn [:first-open true])
-           ;[:chsk/recv [cmd-type payload]] (put-fn [cmd-type (assoc payload :recv-timestamp (now))])
            [:chsk/recv payload] (put-fn (deserialize-meta payload))
            [:chsk/handshake _] ()
            :else (println "Unmatched event in WS component:" event))))
