@@ -8,15 +8,16 @@
 
 (defn process-mouse-pos
   "Handler function for received mouse positions, increments counter and returns mouse position to sender."
-  [app params put-fn]
-  (swap! app update-in [:count] inc)
-  (put-fn [:cmd/mouse-pos-proc (assoc params :count (:count @app))]))
+  [app msg put-fn]
+  (let [[_ params] msg]
+    (swap! app update-in [:count] inc)
+    (put-fn (with-meta [:cmd/mouse-pos-proc (assoc params :count (:count @app))] (meta msg)))))
 
 (defn in-handler
   "Handle incoming messages: process / add to application state."
   [app put-fn msg]
   (match msg
-         [:cmd/mouse-pos params] (process-mouse-pos app params put-fn)
+         [:cmd/mouse-pos _] (process-mouse-pos app msg put-fn)
          :else (println "Unmatched event in :pointer-cmp: " msg)))
 
 (defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil))
