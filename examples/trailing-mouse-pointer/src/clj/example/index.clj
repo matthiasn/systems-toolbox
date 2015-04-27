@@ -15,7 +15,9 @@
             :color "#1f8dd6"}]
        [:p {:line-height (px 25)
             :margin-left "10%" :margin-right "10%"}]
-       [:#mouse {:width "100%" :cursor :pointer}]
+       [:#mouse {:width "100%"
+                 ;:cursor :pointer
+                 }]
        [:#messages {:padding-right "10px"}]))
 
 (defn index-page
@@ -25,7 +27,8 @@
     [:html
      {:lang "en"}
      [:head
-      [:meta {:content "width=device-width, user-scalable=no", :name "viewport"}]
+      ;[:meta {:content "width=device-width, user-scalable=no", :name "viewport"}]
+      [:meta {:name "viewport" :content "width=device-width, minimum-scale=1.0"}]
       [:title "Systems-Toolbox: Trailing Mouse Pointer Example"]
       [:link {:href "/bower_components/pure/pure-min.css", :media "screen", :rel "stylesheet"}]
       [:link {:href "/bower_components/pure/grids-responsive-min.css", :media "screen", :rel "stylesheet"}]
@@ -69,4 +72,5 @@
         [:div.l-box-lrg.pure-g
          [:div#messages.pure-u-1.pure-u-md-1-2]
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]]
+      [:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
       [:script {:src "/js/build/example.js"}]]]))
