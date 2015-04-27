@@ -1,7 +1,7 @@
 (ns example.ui-mouse-svg
   (:require [reagent.core :as r :refer [atom]]
-            [example.histogram :as hist]
             [matthiasn.systems-toolbox.component :as comp]
+            [matthiasn.systems-toolbox.ui.histogram :as hist]
             [matthiasn.systems-toolbox.helpers :refer [by-id]]
             [cljs.core.match :refer-macros [match]]))
 

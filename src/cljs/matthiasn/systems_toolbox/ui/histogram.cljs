@@ -1,4 +1,4 @@
-(ns example.histogram)
+(ns matthiasn.systems-toolbox.ui.histogram)
 
 (def text-default {:stroke "none" :fill "black" :style {:font-size 12}})
 (def text-bold (merge text-default {:style {:font-weight :bold :font-size 12}}))
