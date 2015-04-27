@@ -11,7 +11,7 @@
   [app msg put-fn]
   (let [[_ params] msg]
     (swap! app update-in [:count] inc)
-    (put-fn (with-meta [:cmd/mouse-pos-proc (assoc params :count (:count @app))] (meta msg)))))
+    (put-fn (with-meta [:cmd/mouse-pos (assoc params :count (:count @app))] (meta msg)))))
 
 (defn in-handler
   "Handle incoming messages: process / add to application state."

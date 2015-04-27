@@ -9,8 +9,6 @@
 (def text-default {:stroke "none" :fill "black" :style {:font-size 12}})
 (def text-bold (merge text-default {:style {:font-weight :bold :font-size 12}}))
 
-(defn now [] (.getTime (js/Date.)))
-
 (defn trailing-circles
   "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a roundtrip.
   This makes it easier to experience any delays."
@@ -52,7 +50,7 @@
   (fn [ev]
     (let [rect (-> curr-cmp r/dom-node .getBoundingClientRect)
           t (aget (.-targetTouches ev) 0)
-          pos {:x (- (.-clientX t) (.-left rect)) :y (.toFixed (- (.-clientY t) (.-top rect)) 0) :timestamp (now)}]
+          pos {:x (- (.-clientX t) (.-left rect)) :y (.toFixed (- (.-clientY t) (.-top rect)) 0)}]
       (swap! app assoc :pos pos)
       (put-fn [:cmd/mouse-pos pos])
       (.stopPropagation ev))))
@@ -81,14 +79,18 @@
   [app put-fn]
   (let [state @app
         rtt-times (:rtt-times state)]
-    [:div.pure-g
+    [:div.pure-g {:style {:background-color :white}}
      [:div.pure-u-1.pure-u-sm-1-2.pure-u-md-1-3
       [:svg {:width "100%" :style {:background-color :white} :viewBox "0 0 400 250"}
        [hist/histogram-view rtt-times 80 180 300 160 "Roundtrip t/ms"]]]
      [:div.pure-u-1.pure-u-sm-1-2.pure-u-md-1-3
       [:svg {:width "100%" :style {:background-color :white} :viewBox "0 0 400 250"}
        [hist/histogram-view (hist/percentile-range rtt-times 99) 80 180 300 160
-        "Roundtrip t/ms (within 99th percentile)"]]]]))
+        "Roundtrip t/ms (within 99th percentile)"]]]
+     [:div.pure-u-1.pure-u-sm-1-2.pure-u-md-1-3
+      [:svg {:width "100%" :style {:background-color :white} :viewBox "0 0 400 250"}
+       [hist/histogram-view (hist/percentile-range rtt-times 95) 80 180 300 160
+        "Roundtrip t/ms (within 95th percentile)"]]]]))
 
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server."
@@ -105,7 +107,7 @@
   "Handle incoming messages: process / add to application state."
   [app put-fn msg]
   (match msg
-         [:cmd/mouse-pos-proc _] (mouse-pos-from-server! app msg)
+         [:cmd/mouse-pos _] (mouse-pos-from-server! app msg)
          :else (prn "unknown msg in data-loop" msg)))
 
 (defn mk-state

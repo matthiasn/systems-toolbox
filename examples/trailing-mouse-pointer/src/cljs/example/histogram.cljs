@@ -94,11 +94,12 @@
        ;[:rect {:x (- x 50) :y (- y h 10) :stroke :green :width (+ w 70) :height (+ 60 h) :fill "rgba(0,255,0,0.1)"}]
        (if (> bins 4)
          (for [[v f] binned-freq]
-           ^{:key (str "bf" v f)} [:rect {:x      (+ x (* (- mn mn2) x-scale) (* v bar-width))
-                                          :y      (- y (* f y-scale))
-                                          :fill   "steelblue" :stroke "black"
-                                          :width  bar-width
-                                          :height (* f y-scale)}])
+           ^{:key (str "bf" x "-" y "-" v "-" f)}
+           [:rect {:x      (+ x (* (- mn mn2) x-scale) (* v bar-width))
+                   :y      (- y (* f y-scale))
+                   :fill   "steelblue" :stroke "black"
+                   :width  bar-width
+                   :height (* f y-scale)}])
 
          [:text {:x (+ x (/ w 2)) :y (- y 50) :stroke "none" :fill "#DDD" :text-anchor :middle
                  :style {:font-weight :bold :font-size 24}} "insufficient data"])
