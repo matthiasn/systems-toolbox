@@ -3,12 +3,10 @@
             [matthiasn.systems-toolbox.component :as comp]
             [taoensso.sente :as sente :refer (cb-success?)]))
 
-(defn now [] (.getTime (js/Date.)))
-
 (defn deserialize-meta
   [payload]
   (let [[cmd-type {:keys [msg msg-meta]}] payload]
-    (with-meta [cmd-type msg] (assoc-in msg-meta [:client-ws-cmp :recv-timestamp] (now)))))
+    (with-meta [cmd-type msg] msg-meta)))
 
 (defn make-handler
   "Create handler function for messages from WebSocket connection. Calls put-fn with received
@@ -35,8 +33,7 @@
         send-fn (:send-fn ws)
         [cmd-type payload] msg
         msg-meta (-> (merge (meta msg) {})
-                     (assoc-in , [:sente-uid] (:uid @state))
-                     (assoc-in , [:client-ws-cmp :sent-timestamp] (now)))]  ; TODO: move to timestamping to component
-    (send-fn [cmd-type {:msg (assoc payload :sent-timestamp (now)) :msg-meta msg-meta}])))
+                     (assoc-in, [:sente-uid] (:uid @state)))]
+    (send-fn [cmd-type {:msg payload :msg-meta msg-meta}])))
 
 (defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil))

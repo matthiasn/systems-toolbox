@@ -2,10 +2,13 @@
   #+clj (:gen-class)
   #+cljs (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require
-    #+clj [clojure.core.match :refer [match]]
+    #+clj  [clojure.core.match :refer [match]]
     #+cljs [cljs.core.match :refer-macros [match]]
-    #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
+    #+clj  [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
     #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]]))
+
+#+clj  (defn now [] (System/currentTimeMillis))
+#+cljs (defn now [] (.getTime (js/Date.)))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -25,13 +28,17 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [state handler-fn put-fn cfg chan-key]
+  [state handler-fn put-fn cfg cmp-id chan-key]
   (when handler-fn
     (let [chan (make-chan-w-buf (chan-key cfg))]
       (go-loop []
-               (handler-fn state put-fn (<! chan))
-               (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
-               (recur))
+        (let [msg (<! chan)
+              msg-meta (-> (merge (meta msg) {})
+                           (assoc-in , [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
+                           (assoc-in , [cmp-id :in-timestamp] (now)))]
+          (handler-fn state put-fn (with-meta msg msg-meta))
+          (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
+          (recur)))
       {chan-key chan})))
 
 (defn make-component
@@ -53,7 +60,9 @@
          out-pub-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
          put-fn (fn [msg]
-                  (let [msg-meta (merge (meta msg) {:from cmp-id})]
+                  (let [msg-meta (-> (merge (meta msg) {})
+                                     (assoc-in , [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
+                                     (assoc-in , [cmp-id :out-timestamp] (now)))]
                     (put! out-chan (with-meta msg msg-meta))))
          out-mult (mult out-chan)
          state (mk-state put-fn)]
@@ -86,5 +95,5 @@
         :out-pub (pub out-pub-chan first)
         :state-pub (pub sliding-out-chan first)
         :cmp-id cmp-id}
-       (msg-handler-loop state handler put-fn cfg :in-chan)
-       (msg-handler-loop state sliding-handler put-fn cfg :sliding-in-chan)))))
+       (msg-handler-loop state handler put-fn cfg cmp-id :in-chan)
+       (msg-handler-loop state sliding-handler put-fn cfg cmp-id :sliding-in-chan)))))
