@@ -35,8 +35,8 @@
         send-fn (:send-fn ws)
         [cmd-type payload] msg
         msg-meta (-> (merge (meta msg) {})
-                     (assoc-in , [:client-ws-cmp :uid] (:uid @state))
-                     (assoc-in , [:client-ws-cmp :sent-timestamp] (now)))]
+                     (assoc-in , [:sente-uid] (:uid @state))
+                     (assoc-in , [:client-ws-cmp :sent-timestamp] (now)))]  ; TODO: move to timestamping to component
     (send-fn [cmd-type {:msg (assoc payload :sent-timestamp (now)) :msg-meta msg-meta}])))
 
 (defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil))

@@ -55,7 +55,7 @@
   (let [chsk-send! (:send-fn ws)
         connected-uids (:connected-uids ws)
         msg-meta (meta msg)
-        dest-ui (:uid msg-meta)
+        dest-ui (:sente-uid msg-meta)
         [cmd-type payload] msg
         msg-w-ser-meta [cmd-type {:msg payload :msg-meta msg-meta}]]
     (if dest-ui

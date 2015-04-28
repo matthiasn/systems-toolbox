@@ -30,4 +30,5 @@
                         :compiler {:output-dir "resources/public/js/build/"
                                    :output-to "resources/public/js/build/example.js"
                                    :optimizations :advanced
-                                   :source-map "resources/public/js/build/example.js.map"}}]})
+                                   ;:source-map "resources/public/js/build/example.js.map"
+                                   }}]})
