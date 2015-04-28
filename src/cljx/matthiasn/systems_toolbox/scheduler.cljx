@@ -49,12 +49,12 @@
             (recur)
             (do
               (swap! app update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
-              (swap! app assoc-in [:completed-timers scheduler-id] params))))))))
+              (put-fn [:info/completed-timer scheduler-id]))))))))
 
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (atom {:active-timers {} :completed-timers {}}))
+  (atom {:active-timers {}}))
 
 (defn in-handler
   "Handle incoming messages: process / add to application state."
