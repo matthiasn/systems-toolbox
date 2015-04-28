@@ -7,9 +7,9 @@
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server."
   [app msg]
-  (let [ws-meta (:client-ws-cmp (meta msg))
+  (let [ws-meta (:client/ws-cmp (meta msg))
         [_ pos] msg
-        rt-time (- (:recv-timestamp ws-meta) (:sent-timestamp ws-meta))
+        rt-time (- (:out-timestamp ws-meta) (:in-timestamp ws-meta))
         with-ts (assoc pos :rt-time rt-time)]
     (swap! app assoc :from-server with-ts)
     (swap! app update-in [:count] inc)
