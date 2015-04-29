@@ -68,7 +68,7 @@
 
 (defn histogram-view
   "Renders a histogram for roundtrip times."
-  [rtt-times x y w h x-label color]
+  [rtt-times x y w h x-label color bin-cf max-bins]
     (let [mx (apply max rtt-times)
           mn (apply min rtt-times)
           rng (- mx mn)
@@ -83,7 +83,7 @@
           mn2 (round-down (or mn 0) increment)
           rng2 (- mx2 mn2)
           x-scale (/ w rng2)
-          bin-size (freedman-diaconis-rule rtt-times)
+          bin-size (max (/ rng max-bins) (* (freedman-diaconis-rule rtt-times) bin-cf))
           binned-freq (frequencies (map (fn [n] (Math/floor (/ (- n mn) bin-size))) rtt-times))
           binned-freq-mx (apply max (map (fn [[_ f]] f) binned-freq))
           bins (inc (apply max (map (fn [[v _]] v) binned-freq)))
