@@ -37,14 +37,14 @@
   (let [timout-ms (:timeout params)
         scheduler-id (:id params)
         msg-to-send (:message params)]
-    (swap! app assoc-in [:active-timers scheduler-id] params)
-    (println "Scheduling:" params)
+    (when scheduler-id (swap! app assoc-in [:active-timers scheduler-id] params)
+                       (println "Scheduling:" params))
     (go-loop []
       (<! (timeout timout-ms))
       (let [state @app
-            active-timer (scheduler-id (:active-timers state))]
+            active-timer (get (:active-timers state) scheduler-id)]
+        (put-fn msg-to-send)
         (when active-timer
-          (put-fn msg-to-send)
           (if (:repeat active-timer)
             (recur)
             (do
@@ -61,7 +61,8 @@
   [app put-fn msg]
   (match msg
          [:cmd/schedule-new params] (start-loop app put-fn params)
-         [:cmd/schedule-delete params] ()))
+         [:cmd/schedule-delete params] ()
+         :else (prn "unknown msg in scheduler-loop" msg)))
 
 (defn component
   [cmd-id]

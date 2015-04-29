@@ -68,7 +68,7 @@
 
 (defn histogram-view
   "Renders a histogram for roundtrip times."
-  [rtt-times x y w h x-label]
+  [rtt-times x y w h x-label color]
     (let [mx (apply max rtt-times)
           mn (apply min rtt-times)
           rng (- mx mn)
@@ -97,10 +97,9 @@
            ^{:key (str "bf" x "-" y "-" v "-" f)}
            [:rect {:x      (+ x (* (- mn mn2) x-scale) (* v bar-width))
                    :y      (- y (* f y-scale))
-                   :fill   "steelblue" :stroke "black"
+                   :fill   color :stroke "black"
                    :width  bar-width
                    :height (* f y-scale)}])
-
          [:text {:x (+ x (/ w 2)) :y (- y 50) :stroke "none" :fill "#DDD" :text-anchor :middle
                  :style {:font-weight :bold :font-size 24}} "insufficient data"])
        [histogram-x-axis x (+ y 7) mn2 mx2 w x-scale increment]
