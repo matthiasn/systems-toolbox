@@ -47,7 +47,7 @@
        [:text (merge text-default {:y 17 :x 85})
         (when latest (str (fmt "%.2f" (-> sys-load-avg (/ available-cpus) (* 100))) "%"))]
        (for [[idx v] indexed]
-         ^{:key (str idx v)}
+         ^{:key (str idx "-" v)}
          [bar
           (+ (* idx w) 130)
           (+ 3 sparkline-h)
