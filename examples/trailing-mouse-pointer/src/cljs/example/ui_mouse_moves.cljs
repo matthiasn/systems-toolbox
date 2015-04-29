@@ -70,7 +70,7 @@
             :style         {:background-color :white}
             :on-mouse-move (mouse-move-ev-handler app put-fn (rc/current-component))
             :on-touch-move (touch-move-ev-handler app put-fn (rc/current-component))}
-      [text-view state pos (.toFixed mean 0) mn mx last-rt]
-      [trailing-circles state]]]))
+      (text-view state pos (.toFixed mean 0) mn mx last-rt)
+      (trailing-circles state)]]))
 
 (defn component [cmp-id] (r/component cmp-id mouse-view "mouse" {}))

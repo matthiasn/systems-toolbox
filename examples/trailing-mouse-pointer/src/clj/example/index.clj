@@ -9,15 +9,14 @@
   "Generate index page CSS in Clojure using Garden."
   []
   (css {:pretty-print? false}
-       [:.content {:background-color "#EEE"}]
+       [:.content {:background-color "#FCFCF0"}]
        [:a {:font-weight :bold
             :text-decoration :none
             :color "#1f8dd6"}]
        [:p {:line-height (px 25)
             :margin-left "10%" :margin-right "10%"}]
        [:#mouse {:width "100%"
-                 ;:cursor :pointer
-                 }]
+                 :cursor :pointer}]
        [:#messages {:padding-right "10px"}]))
 
 (defn index-page
@@ -72,5 +71,5 @@
         [:div.l-box-lrg.pure-g
          [:div#messages.pure-u-1.pure-u-md-1-2]
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]]
-      [:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
+      ;[:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
       [:script {:src "/js/build/example.js"}]]]))
