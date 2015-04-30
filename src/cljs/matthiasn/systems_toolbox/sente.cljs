@@ -36,4 +36,4 @@
                      (assoc-in, [:sente-uid] (:uid @state)))]
     (send-fn [cmd-type {:msg payload :msg-meta msg-meta}])))
 
-(defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil))
+(defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil {:watch :state}))

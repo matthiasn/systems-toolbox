@@ -19,8 +19,16 @@
          :else          (prn "invalid: " config)))
 
 (def component-defaults
-  {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :throttle-ms 5
+  {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :throttle-ms 1
    :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]})
+
+#+cljs
+(def request-animation-frame
+  (or (.-requestAnimationFrame js/window)
+      (.-webkitRequestAnimationFrame js/window)
+      (.-mozRequestAnimationFrame js/window)
+      (.-msRequestAnimationFrame js/window)
+      (fn [callback] (js/setTimeout callback 17))))
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -65,7 +73,8 @@
                                      (assoc-in , [cmp-id :out-timestamp] (now)))]
                     (put! out-chan (with-meta msg msg-meta))))
          out-mult (mult out-chan)
-         state (mk-state put-fn)]
+         state (mk-state put-fn)
+         changed (atom true)]
      (tap out-mult out-pub-chan)
 
      #+clj
@@ -77,12 +86,19 @@
        (catch Exception _ ()))
 
      #+cljs
-     (try
-       (add-watch state
-                  :watcher
-                  (fn [_ _ _ new-state]
-                    (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
-       (catch js/Object _ ()))
+     (when-not (:watch cfg)
+       (letfn [(step []
+                     (request-animation-frame step)
+                     (when @changed
+                       (put! sliding-out-chan (with-meta [:app-state @state] {:from cmp-id}))
+                       (swap! changed not)))]
+         (request-animation-frame step)
+         (try
+           (add-watch state
+                      :watcher
+                      (fn [_ _ _ new-state]
+                        (reset! changed true)))
+           (catch js/Object _ ()))))
 
      (when-let [watch (:watch cfg)]
        (add-watch (watch state)
