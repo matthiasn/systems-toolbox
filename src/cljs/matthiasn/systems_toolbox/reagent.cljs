@@ -18,6 +18,9 @@
   (reset! app state-snapshot))
 
 (defn component
-  [cmp-id view-fn dom-id init-state]
-  (let [make-state (partial init view-fn dom-id init-state)]
-    (comp/make-component cmp-id make-state nil state-pub-handler)))
+  ([cmp-id view-fn dom-id init-state]
+   (let [make-state (partial init view-fn dom-id init-state)]
+     (comp/make-component cmp-id make-state nil state-pub-handler)))
+  ([cmp-id view-fn dom-id init-state cfg]
+   (let [make-state (partial init view-fn dom-id init-state)]
+     (comp/make-component cmp-id make-state nil state-pub-handler cfg))))
