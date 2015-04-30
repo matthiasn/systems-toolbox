@@ -37,4 +37,4 @@
        (hist/histogram-view server-proc-times 80 180 300 160 "Server processing time t/ms" "#F1684D" 0.8 25)]]
      ]))
 
-(defn component [cmp-id] (r/component cmp-id histogram-view "histograms" {}))
+(defn component [cmp-id] (r/component cmp-id histogram-view "histograms" {} {:throttle-ms 100}))
