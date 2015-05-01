@@ -8,8 +8,10 @@
   [view-fn dom-id init-state put-fn]
   (let [app (if init-state
               (atom init-state)
-              (atom {}))]
-    (r/render-component [view-fn app put-fn] (by-id dom-id))
+              (atom {}))
+        local (atom {})
+        cmd (fn ([& r] (fn [e] (.stopPropagation e) (put-fn (into [] r)))))]
+    (r/render-component [view-fn app local put-fn cmd] (by-id dom-id))
     app))
 
 (defn state-pub-handler
