@@ -56,7 +56,7 @@
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
   time is measured."
-  [app put-fn mouse-div]
+  [app local put-fn mouse-div]
   (let [state @app
         mouse-div (by-id "mouse")
         pos (:pos state)
