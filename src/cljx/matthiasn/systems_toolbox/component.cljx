@@ -2,10 +2,11 @@
   #+clj (:gen-class)
   #+cljs (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require
-    #+clj  [clojure.core.match :refer [match]]
+    #+clj [clojure.core.match :refer [match]]
     #+cljs [cljs.core.match :refer-macros [match]]
-    #+clj  [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
-    #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]]))
+    #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
+    #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]]
+    #+clj [clojure.tools.logging :as log]))
 
 #+clj  (defn now [] (System/currentTimeMillis))
 #+cljs (defn now [] (.getTime (js/Date.)))
@@ -74,37 +75,31 @@
                     (put! out-chan (with-meta msg msg-meta))))
          out-mult (mult out-chan)
          state (mk-state put-fn)
+         watch-state (if-let [watch (:watch cfg)] (watch state) state)
          changed (atom true)]
      (tap out-mult out-pub-chan)
 
      #+clj
      (try
-       (add-watch state
+       (add-watch watch-state
                   :watcher
                   (fn [_ _ _ new-state]
                     (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
-       (catch Exception _ ()))
+       (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
 
      #+cljs
-     (when-not (:watch cfg)
-       (letfn [(step []
-                     (request-animation-frame step)
-                     (when @changed
-                       (put! sliding-out-chan (with-meta [:app-state @state] {:from cmp-id}))
-                       (swap! changed not)))]
-         (request-animation-frame step)
-         (try
-           (add-watch state
-                      :watcher
-                      (fn [_ _ _ new-state]
-                        (reset! changed true)))
-           (catch js/Object _ ()))))
-
-     (when-let [watch (:watch cfg)]
-       (add-watch (watch state)
-                  :watcher
-                  (fn [_ _ _ new-state]
-                    (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id})))))
+     (letfn [(step []
+                   (request-animation-frame step)
+                   (when @changed
+                     (put! sliding-out-chan (with-meta [:app-state @watch-state] {:from cmp-id}))
+                     (swap! changed not)))]
+       (request-animation-frame step)
+       (try
+         (add-watch watch-state
+                    :watcher
+                    (fn [_ _ _ new-state]
+                      (reset! changed true)))
+         (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e))))
 
      (merge
        {:out-mult out-mult
