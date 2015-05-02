@@ -30,7 +30,7 @@
    (when pos [:text (merge text-default {:x 137 :y 60}) (str "x: " (:x pos) " y: " (:y pos))])
    [:text (merge text-bold {:x 30 :y 80}) "Latency (ms):"]
    (when last-rt
-     [:text (merge text-default {:x 115 :y 80})(str mean " mean / " mn " min / " mx " max / " last-rt " last")])])
+     [:text (merge text-default {:x 115 :y 80}) (str mean " mean / " mn " min / " mx " max / " last-rt " last")])])
 
 (defn mouse-move-ev-handler
   "Handler function for mouse move events, triggered when mouse is moved above SVG. Sends coordinates to server."
@@ -56,7 +56,7 @@
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
   time is measured."
-  [app local put-fn mouse-div]
+  [app local put-fn]
   (let [state @app
         mouse-div (by-id "mouse")
         pos (:pos state)
@@ -64,10 +64,12 @@
         rtt-times (:rtt-times state)
         mx (apply max rtt-times)
         mn (apply min rtt-times)
-        mean (/ (apply + rtt-times) (count rtt-times))]
+        mean (/ (apply + rtt-times) (count rtt-times))
+        update-width #(swap! local assoc :width (- (.-offsetWidth mouse-div) 2))]
+    (update-width)
+    (aset js/window "onresize" update-width)
     [:div.pure-u-1 {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
-     [:svg {:width         (- (.-offsetWidth mouse-div) 2) :height 200
-            :style         {:background-color :white}
+     [:svg {:width         (:width @local) :height 220 :style {:background-color :white}
             :on-mouse-move (mouse-move-ev-handler app put-fn (rc/current-component))
             :on-touch-move (touch-move-ev-handler app put-fn (rc/current-component))}
       (text-view state pos (.toFixed mean 0) mn mx last-rt)
