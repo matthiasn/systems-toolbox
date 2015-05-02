@@ -18,11 +18,9 @@
    [:cmd/wire-comp (store/component    :client/store-cmp)]      ; Data store component
    [:cmd/wire-comp (jvmstats/component :client/jvmstats-cmp "jvm-stats-frame")]  ;  UI component: JVM stats
 
-   [:cmd/sub-comp   :client/mouse-cmp  :client/ws-cmp           :cmd/mouse-pos] ; from to type
-   [:cmd/sub-comp   :client/mouse-cmp  :client/store-cmp  :cmd/mouse-pos-local] ; from to type
-   [:cmd/sub-comp   :client/ws-cmp     :client/store-cmp        :cmd/mouse-pos] ; from to type
-
-   [:cmd/sub-comp-state   :client/store-cmp   :client/histogram-cmp]
-   [:cmd/sub-comp-state   :client/store-cmp   :client/mouse-cmp]
-
-   [:cmd/sub-comp     :client/ws-cmp   :client/jvmstats-cmp   :stats/jvm]])
+   [:cmd/sub-comp  :client/mouse-cmp  :client/ws-cmp         :cmd/mouse-pos] ; from to type
+   [:cmd/sub-comp  :client/mouse-cmp  :client/store-cmp      :cmd/mouse-pos-local] ; from to type
+   [:cmd/sub-comp  :client/ws-cmp     :client/store-cmp      :cmd/mouse-pos] ; from to type
+   [:cmd/sub-comp  :client/store-cmp  :client/histogram-cmp  :app-state]
+   [:cmd/sub-comp  :client/store-cmp  :client/mouse-cmp      :app-state]
+   [:cmd/sub-comp  :client/ws-cmp     :client/jvmstats-cmp   :stats/jvm]])

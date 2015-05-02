@@ -25,12 +25,9 @@
      [:cmd/wire-comp (metrics/component :server/metrics-cmp)]    ; Component for metrics and stats
 
      [:cmd/sub-comp-2   :server/ptr-cmp        :server/ws-cmp         :cmd/mouse-pos] ; from to type
-
-     [:cmd/sub-comp   :server/scheduler-cmp  :server/ws-cmp         :cmd/mouse-pos] ; from to type
-
+     [:cmd/sub-comp     :server/scheduler-cmp  :server/ws-cmp         :cmd/mouse-pos] ; from to type
      [:cmd/sub-comp     :server/metrics-cmp    :server/ws-cmp         :stats/jvm]
      [:cmd/sub-comp     :server/scheduler-cmp  :server/metrics-cmp    :cmd/get-jvm-stats]
-
      [:cmd/sub-comp     :server/ptr-cmp        :server/scheduler-cmp  :cmd/schedule-new]
 
      [:cmd/send-to
