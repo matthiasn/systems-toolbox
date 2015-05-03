@@ -83,6 +83,8 @@
         (.attr "dy" ".35em")
         (.attr "text-anchor" "middle")
         (.attr "text-rendering" "geometricPrecision")
+        (.attr "stroke" "none")
+        (.attr "fill" "black")
         (.style "font-size" "11px")
         (.style "font-weight" "bold")
         (.text #(.-name %))))

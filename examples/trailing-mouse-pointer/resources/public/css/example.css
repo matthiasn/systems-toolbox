@@ -153,7 +153,6 @@ label {
 /* This is the subheading that appears on the blue section */
 .splash-subhead {
     color: white;
-    letter-spacing: 0.05em;
     opacity: 0.8;
 }
 
@@ -175,7 +174,6 @@ label {
 .content-head {
     font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
     margin: 1em 0 0.5em;
 }
 

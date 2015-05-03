@@ -17,9 +17,7 @@
             :margin-left "10%" :margin-right "10%"}]
        [:#mouse {:width "100%"
                  :cursor :pointer}]
-       [:#messages {:padding-right "10px"}]
-       ;[:.link {:stroke "#BBB"}]
-       ))
+       [:#messages {:padding-right "10px"}]))
 
 (defn index-page
   "Generates index page HTML with the specified page title."
@@ -74,7 +72,7 @@
          [:div#messages.pure-u-1.pure-u-md-1-2]
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]
        [:div.content
-        [:div.l-box-lrg.pure-g
+        [:div.l-box-lrg
          [:div#d3]]]]
       ;[:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
       [:script {:src "/bower_components/d3/d3.min.js"}]
