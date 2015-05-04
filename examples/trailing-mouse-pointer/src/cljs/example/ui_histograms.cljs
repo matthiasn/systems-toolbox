@@ -4,7 +4,7 @@
 
 (defn histogram-view
   "Renders histograms with roundtrip times."
-  [app put-fn]
+  [app local put-fn]
   (let [state @app
         rtt-times (:rtt-times state)
         server-proc-times (:server-proc-times state)
@@ -34,7 +34,6 @@
         "Network time t/ms (within 95th percentile)" "#66A9A5" 1.0 25)]]
      [:div.pure-u-1.pure-u-sm-1-2.pure-u-md-1-3
       [:svg {:width "100%" :viewBox "0 0 400 250"}
-       (hist/histogram-view server-proc-times 80 180 300 160 "Server processing time t/ms" "#F1684D" 0.8 25)]]
-     ]))
+       (hist/histogram-view server-proc-times 80 180 300 160 "Server processing time t/ms" "#F1684D" 0.8 25)]]]))
 
 (defn component [cmp-id] (r/component cmp-id histogram-view "histograms" {} {:throttle-ms 100}))
