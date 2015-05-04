@@ -10,17 +10,19 @@
   (match msg
          :else (prn "unknown msg in data-loop" msg)))
 
-(def nodes-map {:srv/sb-cmp {:group 0 :x 250 :y 250}
-                :srv/ws-cmp {:group 0 :x 400 :y 250}
-                :srv/metrics-cmp {:group 0 :x 150 :y 150}
-                :srv/ptr-cmp {:group 0 :x 150 :y 350}
-                :client/ws-cmp {:group 1 :x 600 :y 250}
-                :client/sb-cmp {:group 1 :x 750 :y 250}
-                :client/mouse-cmp {:group 1 :x 800 :y 150}
-                :client/hist-cmp {:group 1 :x 800 :y 250}
-                :client/stats-cmp {:group 1 :x 800 :y 350}})
+(def nodes [{:name "srv/sb-cmp" :group 0 :x 250 :y 250}
+            {:name "srv/ws-cmp" :group 0 :x 400 :y 250}
+            {:name "srv/metrics-cmp" :group 0 :x 150 :y 150}
+            {:name "srv/ptr-cmp" :group 0 :x 150 :y 350}
+            {:name "client/ws-cmp" :group 1 :x 600 :y 250}
+            {:name "client/sb-cmp" :group 1 :x 750 :y 250}
+            {:name "client/mouse-cmp" :group 1 :x 800 :y 150}
+            {:name "client/hist-cmp" :group 1 :x 800 :y 250}
+            {:name "client/stats-cmp" :group 1 :x 800 :y 350}])
 
-(def nodes (for [[k v] nodes-map] (merge v {:name (str k)})))
+;(def nodes (for [[k v] nodes-map] (merge v {:name (str (namespace k) "/" (name k))})))
+
+(def nodes-map (into {} (map (fn [m] [(keyword (:name m)) m]) nodes)))
 
 (def links [{:source 1 :target 0 :value 1}
             {:source 1 :target 4 :value 8}
@@ -30,6 +32,15 @@
             {:source 5 :target 6 :value 1}
             {:source 7 :target 5 :value 1}
             {:source 5 :target 8 :value 1}])
+
+(def links-vec [{:source :srv/ws-cmp :target :srv/sb-cmp :value 1}
+                {:source :srv/ws-cmp :target :client/ws-cmp :value 8}
+                {:source :srv/sb-cmp :target :srv/ptr-cmp :value 8}
+                {:source :srv/metrics-cmp :target :srv/sb-cmp :value 10}
+                {:source :client/ws-cmp :target :client/sb-cmp :value 6}
+                {:source :client/sb-cmp :target :client/mouse-cmp :value 1}
+                {:source :client/hist-cmp :target :client/sb-cmp :value 1}
+                {:source :client/sb-cmp :target :client/stats-cmp :value 1}])
 
 (defn cmp-node
   [x y name grp]
@@ -45,13 +56,22 @@
   [app put-fn]
   (let [force-div (by-id "force")
         local (atom {})
-        nodes (:nodes @app)]
+        nodes (:nodes @app)
+        nodes-map (:nodes-map @app)]
     [:div.pure-u-1
      [:svg {:width "100%" :viewBox "0 0 960 500"}
       [:g
-       (for [n nodes]
-         ^{:key (str "force-" (:name n))}
-         [cmp-node (:x n) (:y n) (:name n) (:group n)])]]]))
+       (for [m links-vec]
+         ^{:key (str "force-link-" m)}
+         [:line.link {:stroke "#BBB" :stroke-width "3px"
+                      :x1 (:x ((:source m) nodes-map))
+                      :x2 (:x ((:target m) nodes-map))
+                      :y1 (:y ((:source m) nodes-map))
+                      :y2 (:y ((:target m) nodes-map))
+                      }])
+       (for [[k v] nodes-map]
+         ^{:key (str "force-node-" k)}
+         [cmp-node (:x v) (:y v) (str k) (:group v)])]]]))
 
 (defn render-d3-force
   [app]
@@ -98,7 +118,15 @@
                           (.attr "y1" #(.-y (.-source %)))
                           (.attr "y2" #(.-y (.-target %))))
                       (-> node
-                          (.attr "transform" #(str "translate(" (.-x %) "," (.-y %) ")"))))))
+;                          (.attr "transform" #(str "translate(" (.-x %) "," (.-y %) ")"))
+                          (.attr "transform" (fn [d]
+                                               (let [x (.-x d)
+                                                     y (.-y d)
+                                                     k (keyword (.-name d))]
+                                                  (swap! app assoc-in [:nodes-map k :x] x)
+                                                  (swap! app assoc-in [:nodes-map k :y] y)
+                                                 (str "translate(" x "," y ")"))))
+                          ))))
     (-> node
         (.append "rect")
         (.attr "width" 110)
@@ -124,7 +152,7 @@
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (let [app (atom {:nodes nodes :links links})
+  (let [app (atom {:nodes nodes :links links :nodes-map nodes-map})
         force-elem (by-id "force")]
     (render-d3-force app)
     (r/render-component [force-view app put-fn force-elem] force-elem)
