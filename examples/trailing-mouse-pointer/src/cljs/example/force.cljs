@@ -39,7 +39,7 @@
                   .-layout
                   (.force)
                   (.gravity 0.05)
-                  (.distance 70)
+                  (.distance 90)
                   (.charge -2000)
                   (.size (clj->js [960 500])))
         link (-> svg
@@ -76,7 +76,8 @@
         (.attr "width" 110)
         (.attr "height" 30)
         (.attr "fill" "white")
-        (.attr "stroke" "black")
+        (.attr "stroke" #(if (zero? (.-group %)) "#C55" "#5C5"))
+        (.attr "stroke-width" "2px")
         (.attr "x" -55)
         (.attr "y" -15)
         (.attr "rx" 5)
