@@ -73,7 +73,8 @@
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]
        [:div.content
         [:div.l-box-lrg
-         [:div#d3]]]]
+         [:div#d3]
+         [:div#force]]]]
       ;[:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
       [:script {:src "/bower_components/d3/d3.min.js"}]
       [:script {:src "/js/build/example.js"}]]]))
