@@ -21,7 +21,7 @@
 
 (def component-defaults
   {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :throttle-ms 1
-   :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]})
+   :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]  :firehose-chan  [:buffer 1]})
 
 #+cljs
 (def request-animation-frame
@@ -37,14 +37,17 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [state handler-fn put-fn cfg cmp-id chan-key]
+  [state handler-fn put-fn cfg cmp-id chan-key firehose-chan]
   (when handler-fn
     (let [chan (make-chan-w-buf (chan-key cfg))]
       (go-loop []
         (let [msg (<! chan)
               msg-meta (-> (merge (meta msg) {})
                            (assoc-in , [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
-                           (assoc-in , [cmp-id :in-timestamp] (now)))]
+                           (assoc-in , [cmp-id :in-timestamp] (now)))
+              [msg-type _] msg]
+          (when-not (= "firehose" (namespace msg-type))
+            (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
           (handler-fn state put-fn (with-meta msg msg-meta))
           (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
           (recur)))
@@ -66,14 +69,18 @@
   ([cmp-id mk-state handler sliding-handler opts]
    (let [cfg (merge component-defaults opts)
          out-chan (make-chan-w-buf (:out-chan cfg))
+         firehose-chan (make-chan-w-buf (:firehose-chan cfg))
          out-pub-chan (make-chan-w-buf (:out-chan cfg))
          sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
          put-fn (fn [msg]
                   (let [msg-meta (-> (merge (meta msg) {})
                                      (assoc-in , [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
-                                     (assoc-in , [cmp-id :out-timestamp] (now)))]
-                    (put! out-chan (with-meta msg msg-meta))))
+                                     (assoc-in , [cmp-id :out-timestamp] (now)))
+                        msg-w-meta (with-meta msg msg-meta)]
+                    (put! out-chan msg-w-meta)
+                    (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}])))
          out-mult (mult out-chan)
+         firehose-mult (mult firehose-chan)
          state (mk-state put-fn)
          watch-state (if-let [watch (:watch cfg)] (watch state) state)
          changed (atom true)]
@@ -103,8 +110,10 @@
 
      (merge
        {:out-mult out-mult
+        :firehose-chan firehose-chan
+        :firehose-mult firehose-mult
         :out-pub (pub out-pub-chan first)
         :state-pub (pub sliding-out-chan first)
         :cmp-id cmp-id}
-       (msg-handler-loop state handler put-fn cfg cmp-id :in-chan)
-       (msg-handler-loop state sliding-handler put-fn cfg cmp-id :sliding-in-chan)))))
+       (msg-handler-loop state handler put-fn cfg cmp-id :in-chan firehose-chan)
+       (msg-handler-loop state sliding-handler put-fn cfg cmp-id :sliding-in-chan firehose-chan)))))
