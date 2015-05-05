@@ -54,12 +54,10 @@
               connection and the time for sending and returning each message is measured. These times are then
               shown in histograms. Check out the code on "
           [:a {:href "https://github.com/matthiasn/systems-toolbox"} "GitHub"] "."]]]
-       [:div.content
-        [:div.l-box-lrg.pure-g
-         [:div#mouse]]]
-       [:div.content
-        [:div.l-box-lrg
-         [:div#histograms]]]
+       [:div.content [:div.l-box-lrg.pure-g
+                      [:div.pure-u-1.pure-u-md-1-3 [:div#mouse]]
+                      [:div.pure-u-1.pure-u-md-2-3 [:div#force]]]]
+       [:div.content [:div.l-box-lrg [:div#histograms]]]
        [:div.content
         [:div.l-box-lrg
          [:p "The histograms above are entirely drawn in ClojureScript - without any additional charting library.
@@ -73,8 +71,7 @@
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]
        [:div.content
         [:div.l-box-lrg
-         [:div#d3]
-         [:div#force]]]]
+         [:div#d3]]]]
       ;[:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
       [:script {:src "/bower_components/d3/d3.min.js"}]
       [:script {:src "/js/build/example.js"}]]]))

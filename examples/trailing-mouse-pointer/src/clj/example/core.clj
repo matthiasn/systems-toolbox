@@ -11,7 +11,7 @@
     [clojure.tools.logging :as log]
     [clj-pid.core :as pid]))
 
-(def switchboard (sb/component))
+(def switchboard (sb/component :server/switchboard))
 
 (defn -main [& args]
   (pid/save "example.pid")

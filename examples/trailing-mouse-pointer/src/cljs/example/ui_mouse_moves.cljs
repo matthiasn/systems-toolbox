@@ -68,8 +68,9 @@
         update-width #(swap! local assoc :width (- (.-offsetWidth mouse-div) 2))]
     (update-width)
     (aset js/window "onresize" update-width)
-    [:div.pure-u-1 {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
-     [:svg {:width         (:width @local) :height 220 :style {:background-color :white}
+    [:div {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
+     [:svg {:width (:width @local) :height (:width @local)                 ;220
+            :style {:background-color :white}
             :on-mouse-move (mouse-move-ev-handler app put-fn (rc/current-component))
             :on-touch-move (touch-move-ev-handler app put-fn (rc/current-component))}
       (text-view state pos (.toFixed mean 0) mn mx last-rt)
