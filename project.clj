@@ -7,7 +7,10 @@
   :source-paths ["src/clj" "src/cljs" "target/generated/src/clj" "target/generated/src/cljs"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-3211"]
+                 [org.clojure/clojurescript "0.0-3269"
+                  :classifier "aot" :exclusions [org.clojure/tools.reader org.clojure/data.json]]
+                 [org.clojure/tools.reader "0.9.2" :classifier "aot"]
+                 [org.clojure/data.json "0.2.6" :classifier "aot"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [reagent "0.5.0"]
                  [org.clojure/tools.logging "0.3.1"]

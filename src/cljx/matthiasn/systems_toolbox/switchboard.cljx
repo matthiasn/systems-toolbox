@@ -149,14 +149,15 @@
 (defn component
   "Creates a switchboard component that wires individual components together into
   a communicating system."
-  [switchboard-id]
-  (println "Switchboard starting.")
-  (let [switchboard (comp/make-component switchboard-id make-state in-handler nil)
-        sw-in-chan (:in-chan switchboard)]
-    (put! sw-in-chan [:cmd/self-register switchboard])
-    (put! sw-in-chan [:cmd/make-log-comp])
-    (put! sw-in-chan [:cmd/tap-comp [switchboard-id :log-cmp]])
-    switchboard))
+  ([] (component :switchboard))
+  ([switchboard-id]
+   (println "Switchboard starting.")
+   (let [switchboard (comp/make-component switchboard-id make-state in-handler nil)
+         sw-in-chan (:in-chan switchboard)]
+     (put! sw-in-chan [:cmd/self-register switchboard])
+     (put! sw-in-chan [:cmd/make-log-comp])
+     (put! sw-in-chan [:cmd/tap-comp [switchboard-id :log-cmp]])
+     switchboard)))
 
 (defn send-cmd
   "Send message to the specified switchboard component."
