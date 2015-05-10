@@ -17,5 +17,5 @@
   #+cljs (println "Log: " (meta msg) " " msg))
 
 (defn component
-  []
-  (comp/make-component :log-cmp mk-state in-handler nil))
+  [cmp-id]
+  (comp/make-component cmp-id mk-state in-handler nil))
