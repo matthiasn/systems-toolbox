@@ -9,3 +9,10 @@
   "Get formatted timestamp string for time of call."
   []
   (.toISOString (js/Date.)))
+
+(def request-animation-frame
+  (or (.-requestAnimationFrame js/window)
+      (.-webkitRequestAnimationFrame js/window)
+      (.-mozRequestAnimationFrame js/window)
+      (.-msRequestAnimationFrame js/window)
+      (fn [callback] (js/setTimeout callback 17))))

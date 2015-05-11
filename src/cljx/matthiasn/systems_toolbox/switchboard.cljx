@@ -110,7 +110,8 @@
   for communication with the outside world / within hierarchies where a subsystem
   has its own switchboard."
   [app put-fn self switchboard-id]
-  (swap! app assoc-in [:components switchboard-id] self))
+  (swap! app assoc-in [:components switchboard-id] self)
+  (swap! app assoc-in [:switchboard-id] switchboard-id))
 
 (defn make-state
   "Return clean initial component state atom."

@@ -4,6 +4,7 @@
   (:require
     #+clj [clojure.core.match :refer [match]]
     #+cljs [cljs.core.match :refer-macros [match]]
+    #+cljs [matthiasn.systems-toolbox.helpers :refer [request-animation-frame]]
     #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
     #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]]
     #+clj [clojure.tools.logging :as log]))
@@ -23,14 +24,6 @@
   {:in-chan  [:buffer 1]  :sliding-in-chan  [:sliding 1]  :throttle-ms 1
    :out-chan [:buffer 1]  :sliding-out-chan [:sliding 1]  :firehose-chan  [:buffer 1]})
 
-#+cljs
-(def request-animation-frame
-  (or (.-requestAnimationFrame js/window)
-      (.-webkitRequestAnimationFrame js/window)
-      (.-mozRequestAnimationFrame js/window)
-      (.-msRequestAnimationFrame js/window)
-      (fn [callback] (js/setTimeout callback 17))))
-
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
   configured according to cfg for the channel keyword. Then starts loop for taking messages
@@ -48,7 +41,9 @@
               [msg-type _] msg]
           (when-not (= "firehose" (namespace msg-type))
             (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
-          (handler-fn state put-fn (with-meta msg msg-meta))
+          (if (= msg-type :cmd/get-state)
+            (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @state}])
+            (handler-fn state put-fn (with-meta msg msg-meta)))
           (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
           (recur)))
       {chan-key chan})))
@@ -114,6 +109,7 @@
         :firehose-mult firehose-mult
         :out-pub (pub out-pub-chan first)
         :state-pub (pub sliding-out-chan first)
-        :cmp-id cmp-id}
+        :cmp-id cmp-id
+        :state-snapshot-fn (fn [] @watch-state)}
        (msg-handler-loop state handler put-fn cfg cmp-id :in-chan firehose-chan)
        (msg-handler-loop state sliding-handler put-fn cfg cmp-id :sliding-in-chan firehose-chan)))))
