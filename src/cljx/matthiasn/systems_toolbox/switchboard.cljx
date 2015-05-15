@@ -25,7 +25,7 @@
         sub-comp (to-cmp (:components @app))]
     (sub (from-pub pub-comp) msg-type (to-chan sub-comp))
     (put-fn [:log/switchboard-sub (str from-cmp " -[" msg-type "]-> " to-cmp)])
-    (swap! app update-in [:subs] conj [from-cmp to-cmp])))
+    (swap! app update-in [:subs] conj {:from from-cmp :to to-cmp :msg-type msg-type})))
 
 (defn subscribe-comp-state
   "Subscribe component to a specified publisher."
@@ -38,15 +38,6 @@
   [app put-fn sources destination]
   (doseq [[from msg-type] sources]
     (subscribe app put-fn [from :out-pub] msg-type [destination :in-chan])))
-
-#_(defn subscribe-comp-bidirectional
-  "Subscribes cmp1 to all message types of cmp2 and, at the same time,
-  subscribes cmp2 to all message types of cmp1."
-  [app put-fn cmp1 cmp2 msg-types]
-  (letfn [(sub-msg-type [from to m] (subscribe app put-fn [from :out-pub] m [to :in-chan]))]
-    (doseq [msg-type (flatten [msg-types])]    ; TODO: same pattern in other commands
-      (sub-msg-type cmp1 cmp2 msg-type)
-      (sub-msg-type cmp2 cmp1 msg-type))))
 
 (defn subscribe-comp-unidirectional
   "Subscribes cmp2 to all message types of cmp1."
