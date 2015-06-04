@@ -56,7 +56,8 @@
           [:a {:href "https://github.com/matthiasn/systems-toolbox"} "GitHub"] "."]]]
        [:div.content [:div.l-box-lrg.pure-g
                       [:div.pure-u-1.pure-u-md-1-3 [:div#mouse]]
-                      [:div.pure-u-1.pure-u-md-2-3 [:div#force]]]]
+                      [:div.pure-u-1.pure-u-md-1-6 [:div]]
+                      [:div.pure-u-1.pure-u-md-1-2 [:div#force]]]]
        [:div.content [:div.l-box-lrg [:div#histograms]]]
        [:div.content
         [:div.l-box-lrg

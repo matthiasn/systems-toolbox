@@ -10,8 +10,8 @@
 (defn trailing-circles
   "Displays two transparent circles where one is drawn directly on the client and the other is drawn after a roundtrip.
   This makes it easier to experience any delays."
-  [state]
-  (let [pos (:pos state)
+  [state local-state]
+  (let [pos (:pos local-state)
         from-server (:from-server state)]
     [:g
      [:circle (merge circle-defaults {:cx (:x pos) :cy (:y pos)})]
@@ -38,7 +38,7 @@
   (fn [ev]
     (let [rect (-> curr-cmp rc/dom-node .getBoundingClientRect)
           pos {:x (- (.-clientX ev) (.-left rect)) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0)}]
-      (put-fn [:cmd/mouse-pos-local pos])
+      (swap! app assoc :pos pos)
       (put-fn [:cmd/mouse-pos pos])
       (.stopPropagation ev))))
 
@@ -58,8 +58,9 @@
   time is measured."
   [app local put-fn]
   (let [state @app
+        local-state @local
         mouse-div (by-id "mouse")
-        pos (:pos state)
+        pos (:pos local-state)
         last-rt (:rt-time (:from-server state))
         rtt-times (:rtt-times state)
         mx (apply max rtt-times)
@@ -71,9 +72,9 @@
     [:div {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
      [:svg {:width (:width @local) :height (:width @local)                 ;220
             :style {:background-color :white}
-            :on-mouse-move (mouse-move-ev-handler app put-fn (rc/current-component))
-            :on-touch-move (touch-move-ev-handler app put-fn (rc/current-component))}
+            :on-mouse-move (mouse-move-ev-handler local put-fn (rc/current-component))
+            :on-touch-move (touch-move-ev-handler local put-fn (rc/current-component))}
       (text-view state pos (.toFixed mean 0) mn mx last-rt)
-      (trailing-circles state)]]))
+      (trailing-circles state local-state)]]))
 
 (defn component [cmp-id] (r/component cmp-id mouse-view "mouse" {}))

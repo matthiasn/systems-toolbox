@@ -11,7 +11,7 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5"]
                  [clj-pid "0.1.1"]
-                 [matthiasn/systems-toolbox "0.1.32-SNAPSHOT"
+                 [matthiasn/systems-toolbox "0.1.33-SNAPSHOT"
                   :exclusions [reagent org.clojure/clojure org.clojure/clojurescript]]
 ;                 [reagent "0.5.0" :exclusions [cljsjs/react]]
                  [reagent "0.5.0"]

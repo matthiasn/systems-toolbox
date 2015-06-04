@@ -3,7 +3,6 @@
 (def text-default {:stroke "none" :fill "black" :style {:font-size 12}})
 (def text-bold (merge text-default {:style {:font-weight :bold :font-size 12}}))
 (def x-axis-label (merge text-default {:text-anchor :middle}))
-
 (def path-defaults {:fill :black :stroke :black :stroke-width 1})
 
 (defn interquartile-range
@@ -33,13 +32,8 @@
     (when (pos? n)
       (* 2 (interquartile-range sample) (Math/pow n (/ -1 3))))))
 
-(defn round-up
-  [n increment]
-  (* (Math/ceil (/ n increment)) increment))
-
-(defn round-down
-  [n increment]
-  (* (Math/floor (/ n increment)) increment))
+(defn round-up [n increment] (* (Math/ceil (/ n increment)) increment))
+(defn round-down [n increment] (* (Math/floor (/ n increment)) increment))
 
 (defn histogram-y-axis
   "Draws y-axis of a chart."
@@ -90,8 +84,6 @@
           bar-width (/ (* rng x-scale) bins)
           y-scale (/ (- h 20) binned-freq-mx)]
       [:g
-       ;[:rect {:x x :y (- y h) :stroke :red :width w :height h :fill "rgba(255,0,0,0.1)"}]
-       ;[:rect {:x (- x 50) :y (- y h 10) :stroke :green :width (+ w 70) :height (+ 60 h) :fill "rgba(0,255,0,0.1)"}]
        (if (> bins 4)
          (for [[v f] binned-freq]
            ^{:key (str "bf" x "-" y "-" v "-" f)}

@@ -15,9 +15,9 @@
         d1 (Math/round (dist/draw (stats/sample-normal 1000 :mean 15 :sd 6)))
         d2 (Math/round (dist/draw (stats/sample-normal 1000 :mean 150 :sd 1)))]
     (swap! app update-in [:count] inc)
-    (put-fn [:cmd/schedule-new {:timeout (if (pos? (dist/draw [0 0 0 0 0 1])) (+ d1 d2) d1)
+    #_(put-fn [:cmd/schedule-new {:timeout (if (pos? (dist/draw [0 0 0 0 0 1])) (+ d1 d2) d1)
                                 :message (with-meta [:cmd/mouse-pos (assoc params :count (:count @app))] (meta msg))}])
-    ;(put-fn (with-meta [:cmd/mouse-pos (assoc params :count (:count @app))] (meta msg)))
+    (put-fn (with-meta [:cmd/mouse-pos (assoc params :count (:count @app))] (meta msg)))
     ))
 
 (defn in-handler

@@ -20,7 +20,7 @@
      [:div.pure-u-1.pure-u-sm-1-2.pure-u-md-1-3
       [:svg {:width "100%" :viewBox "0 0 400 250"}
        (hist/histogram-view (hist/percentile-range rtt-times 95) 80 180 300 160
-        "Roundtrip t/ms (within 95th percentile)" "#D94B61" 0.8 25)]]
+                            "Roundtrip t/ms (within 95th percentile)" "#D94B61" 0.8 25)]]
      [:div.pure-u-1.pure-u-sm-1-2.pure-u-md-1-3
       [:svg {:width "100%" :viewBox "0 0 400 250"}
        (hist/histogram-view network-times 80 180 300 160 "Network time t/ms" "#66A9A5" 1.0 25)]]
