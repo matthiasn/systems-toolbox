@@ -3,7 +3,7 @@
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.7.0-beta2"]
+  :dependencies [[org.clojure/clojure "1.7.0-RC1"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.10"]
                  [ch.qos.logback/logback-classic "1.1.2"]
@@ -11,7 +11,7 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5"]
                  [clj-pid "0.1.1"]
-                 [matthiasn/systems-toolbox "0.1.33-SNAPSHOT"
+                 [matthiasn/systems-toolbox "0.2.1-SNAPSHOT"
                   :exclusions [reagent org.clojure/clojure org.clojure/clojurescript]]
 ;                 [reagent "0.5.0" :exclusions [cljsjs/react]]
                  [reagent "0.5.0"]
@@ -28,7 +28,7 @@
 
   :main example.core
 
-  :plugins [[lein-cljsbuild "1.0.5"]
+  :plugins [[lein-cljsbuild "1.0.6"]
             [codox "0.8.10"]]
 
   :cljsbuild {:builds [{:id "release"

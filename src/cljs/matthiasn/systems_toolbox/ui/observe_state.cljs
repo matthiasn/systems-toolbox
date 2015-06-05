@@ -43,4 +43,6 @@
 
 (defn component
   [cmp-id dom-id]
-  (comp/make-component cmp-id (mk-state dom-id) nil state-pub-handler))
+  (comp/make-component {:cmp-id   cmp-id
+                        :state-fn (mk-state dom-id)
+                        :state-pub-handler state-pub-handler}))

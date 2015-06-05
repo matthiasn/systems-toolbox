@@ -11,7 +11,11 @@
               (atom {}))
         observed (atom {})
         cmd (fn ([& r] (fn [e] (.stopPropagation e) (put-fn (into [] r)))))]
-    (r/render-component [view-fn observed local put-fn cmd] (by-id dom-id))
+    (r/render-component [view-fn {:observed observed
+                                  :local local
+                                  :put-fn put-fn
+                                  :cmd cmd}]
+                        (by-id dom-id))
     {:local local :observed observed}))
 
 (defn state-pub-handler
@@ -20,7 +24,9 @@
   (reset! (:observed app) state-snapshot))
 
 (defn component
-  ([cmp-id view-fn dom-id init-state] (component cmp-id view-fn dom-id init-state nil))
-  ([cmp-id view-fn dom-id init-state cfg]
-   (let [make-state (partial init view-fn dom-id init-state)]
-     (comp/make-component cmp-id make-state nil state-pub-handler (merge cfg {:watch :local})))))
+  [{:keys [cmp-id view-fn dom-id initial-state cfg]}]
+   (let [mk-state (partial init view-fn dom-id initial-state)]
+     (comp/make-component {:cmp-id   cmp-id
+                           :state-fn mk-state
+                           :state-pub-handler state-pub-handler
+                           :opts (merge cfg {:watch :local})})))

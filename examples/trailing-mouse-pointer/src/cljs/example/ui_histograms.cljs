@@ -4,8 +4,8 @@
 
 (defn histogram-view
   "Renders histograms with roundtrip times."
-  [app local put-fn]
-  (let [state @app
+  [{:keys [observed]}]
+  (let [state @observed
         rtt-times (:rtt-times state)
         server-proc-times (:server-proc-times state)
         network-times (:network-times state)]
@@ -36,4 +36,10 @@
       [:svg {:width "100%" :viewBox "0 0 400 250"}
        (hist/histogram-view server-proc-times 80 180 300 160 "Server processing time t/ms" "#F1684D" 0.8 25)]]]))
 
-(defn component [cmp-id] (r/component cmp-id histogram-view "histograms" {} {:throttle-ms 100}))
+(defn component
+  [cmp-id]
+  (r/component {:cmp-id        cmp-id
+                :view-fn       histogram-view
+                :dom-id        "histograms"
+                :initial-state {}
+                :cfg           {:throttle-ms 100}}))

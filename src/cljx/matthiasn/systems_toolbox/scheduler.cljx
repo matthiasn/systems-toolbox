@@ -65,5 +65,7 @@
          :else (prn "unknown msg in scheduler-loop" msg)))
 
 (defn component
-  [cmd-id]
-  (comp/make-component cmd-id mk-state in-handler nil))
+  [cmp-id]
+  (comp/make-component {:cmp-id   cmp-id
+                        :state-fn mk-state
+                        :handler  in-handler}))

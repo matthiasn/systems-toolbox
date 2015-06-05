@@ -58,58 +58,55 @@
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
   state snapshots from other components."
-  ([cmp-id mk-state handler sliding-handler]
-   (make-component cmp-id mk-state handler sliding-handler component-defaults))
+  [{:keys [cmp-id state-fn handler state-pub-handler opts] :as args}]
+  (let [cfg (merge component-defaults opts)
+        out-chan (make-chan-w-buf (:out-chan cfg))
+        firehose-chan (make-chan-w-buf (:firehose-chan cfg))
+        out-pub-chan (make-chan-w-buf (:out-chan cfg))
+        sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
+        put-fn (fn [msg]
+                 (let [msg-meta (-> (merge (meta msg) {})
+                                    (assoc-in, [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
+                                    (assoc-in, [cmp-id :out-timestamp] (now)))
+                       msg-w-meta (with-meta msg msg-meta)]
+                   (put! out-chan msg-w-meta)
+                   (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}])))
+        out-mult (mult out-chan)
+        firehose-mult (mult firehose-chan)
+        state (state-fn put-fn)
+        watch-state (if-let [watch (:watch cfg)] (watch state) state)
+        changed (atom true)]
+    (tap out-mult out-pub-chan)
 
-  ([cmp-id mk-state handler sliding-handler opts]
-   (let [cfg (merge component-defaults opts)
-         out-chan (make-chan-w-buf (:out-chan cfg))
-         firehose-chan (make-chan-w-buf (:firehose-chan cfg))
-         out-pub-chan (make-chan-w-buf (:out-chan cfg))
-         sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
-         put-fn (fn [msg]
-                  (let [msg-meta (-> (merge (meta msg) {})
-                                     (assoc-in , [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
-                                     (assoc-in , [cmp-id :out-timestamp] (now)))
-                        msg-w-meta (with-meta msg msg-meta)]
-                    (put! out-chan msg-w-meta)
-                    (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}])))
-         out-mult (mult out-chan)
-         firehose-mult (mult firehose-chan)
-         state (mk-state put-fn)
-         watch-state (if-let [watch (:watch cfg)] (watch state) state)
-         changed (atom true)]
-     (tap out-mult out-pub-chan)
+    #+clj
+    (try
+      (add-watch watch-state
+                 :watcher
+                 (fn [_ _ _ new-state]
+                   (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
+      (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
 
-     #+clj
-     (try
-       (add-watch watch-state
-                  :watcher
-                  (fn [_ _ _ new-state]
-                    (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
-       (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
+    #+cljs
+    (letfn [(step []
+                  (request-animation-frame step)
+                  (when @changed
+                    (put! sliding-out-chan (with-meta [:app-state @watch-state] {:from cmp-id}))
+                    (swap! changed not)))]
+      (request-animation-frame step)
+      (try
+        (add-watch watch-state
+                   :watcher
+                   (fn [_ _ _ new-state]
+                     (reset! changed true)))
+        (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e))))
 
-     #+cljs
-     (letfn [(step []
-                   (request-animation-frame step)
-                   (when @changed
-                     (put! sliding-out-chan (with-meta [:app-state @watch-state] {:from cmp-id}))
-                     (swap! changed not)))]
-       (request-animation-frame step)
-       (try
-         (add-watch watch-state
-                    :watcher
-                    (fn [_ _ _ new-state]
-                      (reset! changed true)))
-         (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e))))
-
-     (merge
-       {:out-mult out-mult
-        :firehose-chan firehose-chan
-        :firehose-mult firehose-mult
-        :out-pub (pub out-pub-chan first)
-        :state-pub (pub sliding-out-chan first)
-        :cmp-id cmp-id
-        :state-snapshot-fn (fn [] @watch-state)}
-       (msg-handler-loop state handler put-fn cfg cmp-id :in-chan firehose-chan)
-       (msg-handler-loop state sliding-handler put-fn cfg cmp-id :sliding-in-chan firehose-chan)))))
+    (merge
+      {:out-mult          out-mult
+       :firehose-chan     firehose-chan
+       :firehose-mult     firehose-mult
+       :out-pub           (pub out-pub-chan first)
+       :state-pub         (pub sliding-out-chan first)
+       :cmp-id            cmp-id
+       :state-snapshot-fn (fn [] @watch-state)}
+      (msg-handler-loop state handler put-fn cfg cmp-id :in-chan firehose-chan)
+      (msg-handler-loop state state-pub-handler put-fn cfg cmp-id :sliding-in-chan firehose-chan))))

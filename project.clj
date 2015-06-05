@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.1.33-SNAPSHOT"
+(defproject matthiasn/systems-toolbox "0.2.1-SNAPSHOT"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -25,7 +25,7 @@
 
   :plugins [[com.keminglabs/cljx "0.6.0" :exclusions [org.clojure/clojure]]
             [codox "0.8.8"]
-            [lein-cljsbuild "1.0.5"]
+            [lein-cljsbuild "1.0.6"]
             [com.cemerick/clojurescript.test "0.3.1"]]
 
   :prep-tasks [["cljx" "once"] "javac" "compile"]

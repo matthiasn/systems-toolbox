@@ -179,4 +179,7 @@
 
 (defn component
   [cmp-id]
-  (comp/make-component cmp-id mk-state in-handler state-pub-handler))
+  (comp/make-component {:cmp-id   cmp-id
+                        :state-fn mk-state
+                        :handler  in-handler
+                        :state-pub-handler state-pub-handler}))

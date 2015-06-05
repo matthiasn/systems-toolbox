@@ -56,13 +56,13 @@
 (defn mouse-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
   time is measured."
-  [app local put-fn]
-  (let [state @app
+  [{:keys [observed local put-fn]}]
+  (let [state-snapshot @observed
         local-state @local
         mouse-div (by-id "mouse")
         pos (:pos local-state)
-        last-rt (:rt-time (:from-server state))
-        rtt-times (:rtt-times state)
+        last-rt (:rt-time (:from-server state-snapshot))
+        rtt-times (:rtt-times state-snapshot)
         mx (apply max rtt-times)
         mn (apply min rtt-times)
         mean (/ (apply + rtt-times) (count rtt-times))
@@ -74,7 +74,12 @@
             :style {:background-color :white}
             :on-mouse-move (mouse-move-ev-handler local put-fn (rc/current-component))
             :on-touch-move (touch-move-ev-handler local put-fn (rc/current-component))}
-      (text-view state pos (.toFixed mean 0) mn mx last-rt)
-      (trailing-circles state local-state)]]))
+      (text-view state-snapshot pos (.toFixed mean 0) mn mx last-rt)
+      (trailing-circles state-snapshot local-state)]]))
 
-(defn component [cmp-id] (r/component cmp-id mouse-view "mouse" {}))
+(defn component
+  [cmp-id]
+  (r/component {:cmp-id        cmp-id
+                :view-fn       mouse-view
+                :dom-id        "mouse"
+                :initial-state {}}))

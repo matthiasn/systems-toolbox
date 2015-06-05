@@ -27,4 +27,8 @@
          [:cmd/mouse-pos _] (process-mouse-pos app msg put-fn)
          :else (println "Unmatched event in :pointer-cmp: " msg)))
 
-(defn component [cmp-id] (comp/make-component cmp-id mk-state in-handler nil))
+(defn component
+  [cmp-id]
+  (comp/make-component {:cmp-id   cmp-id
+                        :state-fn mk-state
+                        :handler  in-handler}))

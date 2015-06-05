@@ -104,7 +104,7 @@
   (swap! app assoc-in [:components switchboard-id] self)
   (swap! app assoc-in [:switchboard-id] switchboard-id))
 
-(defn make-state
+(defn mk-state
   "Return clean initial component state atom."
   [put-fn]
   (let [app (atom {:components {} :subs #{} :taps #{} :fh-taps #{}})]
@@ -144,7 +144,9 @@
   ([] (component :switchboard))
   ([switchboard-id]
    (println "Switchboard starting.")
-   (let [switchboard (comp/make-component switchboard-id make-state in-handler nil)
+   (let [switchboard (comp/make-component {:cmp-id   switchboard-id
+                                           :state-fn mk-state
+                                           :handler  in-handler})
          sw-in-chan (:in-chan switchboard)]
      (put! sw-in-chan [:cmd/self-register switchboard])
      (put! sw-in-chan [:cmd/make-log-comp :log-cmp])

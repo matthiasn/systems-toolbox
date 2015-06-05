@@ -65,4 +65,7 @@
 
 (defn component
   [cmp-id index-page-fn port]
-  (comp/make-component cmp-id (mk-state index-page-fn port) in-handler nil {:watch :connected-uids}))
+  (comp/make-component {:cmp-id   cmp-id
+                        :state-fn (mk-state index-page-fn port)
+                        :handler  in-handler
+                        :opts     {:watch :connected-uids}}))
