@@ -18,21 +18,23 @@
   (pid/delete-on-shutdown! "example.pid")
 
   (sb/send-mult-cmd
-    switchboard
-    [[:cmd/wire-comp (sente/component   :server/ws-cmp index/index-page 8010)] ; Component for WebSocket communication
+    switchboard  ;; Below, we're interacting with the switchboard component we just created above.
+    [;; First of all, we instantiate and wire a couple fo different components.
+     [:cmd/wire-comp (sente/component   :server/ws-cmp index/index-page 8010)] ; Component for WebSocket communication
      [:cmd/wire-comp (sched/component   :server/scheduler-cmp)]  ; Component for scheduling the dispatch of messages
      [:cmd/wire-comp (ptr/component     :server/ptr-cmp)]        ; Component for processing mouse moves
      [:cmd/wire-comp (metrics/component :server/metrics-cmp)]    ; Component for metrics and stats
-
+     ;; Then, messages of a given type are wired from one component to another. [cmd from-cmp to-cmp msg-type]
      [:cmd/sub-comp-2   :server/ptr-cmp        :server/ws-cmp         :cmd/mouse-pos] ; from to type
      [:cmd/sub-comp     :server/scheduler-cmp  :server/ws-cmp         :cmd/mouse-pos] ; from to type
      [:cmd/sub-comp     :server/metrics-cmp    :server/ws-cmp         :stats/jvm]
      [:cmd/sub-comp     :server/scheduler-cmp  :server/metrics-cmp    :cmd/get-jvm-stats]
      [:cmd/sub-comp     :server/ptr-cmp        :server/scheduler-cmp  :cmd/schedule-new]
-
-     [:cmd/send-to
-      [:server/scheduler-cmp                    ; Schedule dispatch of :cmd/get-jvm-stats every 5 seconds.
-       [:cmd/schedule-new {:timeout 5000 :id :disp-stats :message [:cmd/get-jvm-stats] :repeat true}]]]])
+     ;; Finally, chedule dispatch of :cmd/get-jvm-stats every 5 seconds.
+     [:cmd/send-to [:server/scheduler-cmp [:cmd/schedule-new {:timeout 5000
+                                                              :id :disp-stats
+                                                              :message [:cmd/get-jvm-stats]
+                                                              :repeat true}]]]])
 
   (pid/save "example.pid")
   (log/info "Application started, PID" (pid/current)))

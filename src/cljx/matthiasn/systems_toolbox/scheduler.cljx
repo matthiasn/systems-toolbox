@@ -29,26 +29,26 @@
 
 ;;; WARNING: timeouts specified here are not precise unless proven otherwise. Even if timeouts happen to have a
 ;;; sufficiently precise duration, the go-loop in which they run (and the associated thread pool) may be busy
-;;; otherwise and delay the next iteration.s
+;;; otherwise and delay the next iteration.
 
 (defn start-loop
   "Starts a loop for sending messages at set intervals."
-  [app put-fn params]
-  (let [timout-ms (:timeout params)
-        scheduler-id (:id params)
-        msg-to-send (:message params)]
-    (when scheduler-id (swap! app assoc-in [:active-timers scheduler-id] params)
-                       (println "Scheduling:" params))
+  [{:keys [cmp-state put-fn msg-payload]}]
+  (let [timout-ms (:timeout msg-payload)
+        scheduler-id (:id msg-payload)
+        msg-to-send (:message msg-payload)]
+    (when scheduler-id (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
+                       (println "Scheduling:" msg-payload))
     (go-loop []
       (<! (timeout timout-ms))
-      (let [state @app
+      (let [state @cmp-state
             active-timer (get (:active-timers state) scheduler-id)]
         (put-fn msg-to-send)
         (when active-timer
           (if (:repeat active-timer)
             (recur)
             (do
-              (swap! app update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
+              (swap! cmp-state update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
               (put-fn [:info/completed-timer scheduler-id]))))))))
 
 (defn mk-state
@@ -56,16 +56,9 @@
   [put-fn]
   (atom {:active-timers {}}))
 
-(defn in-handler
-  "Handle incoming messages: process / add to application state."
-  [app put-fn msg]
-  (match msg
-         [:cmd/schedule-new params] (start-loop app put-fn params)
-         [:cmd/schedule-delete params] ()
-         :else (prn "unknown msg in scheduler-loop" msg)))
-
 (defn component
   [cmp-id]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn mk-state
-                        :handler  in-handler}))
+                        :handler-map {:cmd/schedule-new start-loop
+                                      :cmd/schedule-delete ()}}))

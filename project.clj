@@ -18,9 +18,9 @@
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [com.cognitect/transit-clj "0.8.271"]
                  [com.cognitect/transit-cljs "0.8.207"]
-                 [compojure "1.3.3"]
+                 [compojure "1.3.4"]
                  [ring "1.3.2"]
-                 [ring/ring-defaults "0.1.4"]
+                 [ring/ring-defaults "0.1.5"]
                  [http-kit "2.1.19"]]
 
   :plugins [[com.keminglabs/cljx "0.6.0" :exclusions [org.clojure/clojure]]

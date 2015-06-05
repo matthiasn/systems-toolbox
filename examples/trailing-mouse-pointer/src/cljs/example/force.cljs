@@ -160,17 +160,14 @@
       (request-animation-frame step))
     app))
 
-(defn in-handler
-  "Handle incoming messages: process / add to application state."
-  [app put-fn msg]
-  (match msg
-         [:firehose/cmp-put  m] (let [cmp-id (:cmp-id m)]
-                                  (swap! app assoc-in [:nodes-map cmp-id :last-tx] (now))
-                                  (swap! app update-in [:nodes-map cmp-id :tx-count] #(inc (or % 0))))
-         [:firehose/cmp-recv m] (let [cmp-id (:cmp-id m)]
-                                  (swap! app assoc-in [:nodes-map cmp-id :last-rx] (now))
-                                  (swap! app update-in [:nodes-map cmp-id :rx-count] #(inc (or % 0))))
-         :else (prn "unknown msg in :force-cmp in handler" msg)))
+(defn count-msg
+  "Creates a handler function for collecting stats about messages and display inside the for"
+  [ts-key count-key]
+  (fn
+    [{:keys [cmp-state msg-payload]}]
+    (let [cmp-id (:cmp-id msg-payload)]
+      (swap! cmp-state assoc-in [:nodes-map cmp-id ts-key] (now))
+      (swap! cmp-state update-in [:nodes-map cmp-id count-key] #(inc (or % 0))))))
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
@@ -181,5 +178,6 @@
   [cmp-id]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn mk-state
-                        :handler  in-handler
+                        :handler-map {:firehose/cmp-put (count-msg :last-tx :tx-count)
+                                      :firehose/cmp-recv (count-msg :last-rx :rx-count)}
                         :state-pub-handler state-pub-handler}))
