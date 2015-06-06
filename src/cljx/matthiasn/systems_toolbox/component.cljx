@@ -101,7 +101,7 @@
                    (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}])))
         out-mult (mult out-chan)
         firehose-mult (mult firehose-chan)
-        state (state-fn put-fn)
+        state (if state-fn (state-fn put-fn) (atom {}))
         watch-state (if-let [watch (:watch cfg)] (watch state) state)
         changed (atom true)
         cmp-map {:out-mult          out-mult

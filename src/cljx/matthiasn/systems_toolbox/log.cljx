@@ -5,11 +5,6 @@
 
 #+cljs (enable-console-print!)
 
-(defn mk-state
-  "Return clean initial component state atom."
-  [_]
-  (atom {}))
-
 (defn in-handler
   "Handle incoming messages: process / add to application state."
   [_ _ msg]
@@ -17,8 +12,8 @@
   #+cljs (println "Log: " (meta msg) " " msg))
 
 (defn component
+  "Creates component for logging, which in this case does not need local state."
   [cmp-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn mk-state
-                        :handler  in-handler}))
-
+  (comp/make-component
+    {:cmp-id  cmp-id
+     :handler in-handler}))

@@ -51,14 +51,9 @@
               (swap! cmp-state update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
               (put-fn [:info/completed-timer scheduler-id]))))))))
 
-(defn mk-state
-  "Return clean initial component state atom."
-  [put-fn]
-  (atom {:active-timers {}}))
-
 (defn component
   [cmp-id]
   (comp/make-component {:cmp-id   cmp-id
-                        :state-fn mk-state
+                        :state-fn (fn [_] (atom {:active-timers {}}))
                         :handler-map {:cmd/schedule-new start-loop
                                       :cmd/schedule-delete ()}}))

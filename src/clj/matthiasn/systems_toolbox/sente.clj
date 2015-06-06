@@ -55,11 +55,11 @@
   (let [chsk-send! (:send-fn ws)
         connected-uids (:connected-uids ws)
         msg-meta (meta msg)
-        dest-ui (:sente-uid msg-meta)
+        dest-uid (:sente-uid msg-meta)
         [cmd-type payload] msg
         msg-w-ser-meta [cmd-type {:msg payload :msg-meta msg-meta}]]
-    (if dest-ui
-      (chsk-send! dest-ui msg-w-ser-meta)
+    (if dest-uid
+      (chsk-send! dest-uid msg-w-ser-meta)
       (doseq [uid (:any @connected-uids)]
         (chsk-send! uid msg-w-ser-meta)))))
 
