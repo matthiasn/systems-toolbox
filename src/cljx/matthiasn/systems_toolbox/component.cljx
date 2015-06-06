@@ -63,15 +63,17 @@
                            (assoc-in, [:cmp-seq] cmp-id)    ; TODO: replace by actual sequence
                            (assoc-in, [cmp-id :in-timestamp] (now)))
               [msg-type msg-payload] msg
-              handler-fn (msg-type handler-map)]
+              handler-fn (msg-type handler-map)
+              all-msgs-handler-fn (:all handler-map)
+              msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
+                                      :msg-type    msg-type
+                                      :msg-meta    msg-meta
+                                      :msg-payload msg-payload})]
           (when-not (= "firehose" (namespace msg-type))
             (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
-          (if (= msg-type :cmd/get-state)
-            (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}])
-            (when handler-fn (handler-fn (merge cmp-map {:msg         (with-meta msg msg-meta)
-                                                         :msg-type    msg-type
-                                                         :msg-meta    msg-meta
-                                                         :msg-payload msg-payload}))))
+          (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
+          (when handler-fn (handler-fn msg-map))
+          (when all-msgs-handler-fn (all-msgs-handler-fn msg-map))
           (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
           (recur)))
       {chan-key chan})))

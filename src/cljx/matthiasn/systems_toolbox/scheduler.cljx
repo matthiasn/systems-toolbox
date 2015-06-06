@@ -1,11 +1,8 @@
 (ns matthiasn.systems-toolbox.scheduler
   #+clj (:gen-class)
   #+cljs (:require-macros [cljs.core.async.macros :refer [go-loop]])
-  (:require
-    #+clj [clojure.core.match :refer [match]]
-    #+cljs [cljs.core.match :refer-macros [match]]
-    [matthiasn.systems-toolbox.component :as comp]
-    #+clj [clojure.core.async :refer [<! go-loop timeout]]
+  (:require [matthiasn.systems-toolbox.component :as comp]
+            #+clj [clojure.core.async :refer [<! go-loop timeout]]
     #+cljs [cljs.core.async :refer [<! timeout]]))
 
 ;;; Systems Toolbox - Scheduler Subsystem
@@ -38,7 +35,7 @@
         scheduler-id (:id msg-payload)
         msg-to-send (:message msg-payload)]
     (when scheduler-id (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
-                       (println "Scheduling:" msg-payload))
+                       (put-fn [:log/info (str "Scheduling:" msg-payload)]))
     (go-loop []
       (<! (timeout timout-ms))
       (let [state @cmp-state
@@ -53,7 +50,7 @@
 
 (defn component
   [cmp-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn (fn [_] (atom {:active-timers {}}))
-                        :handler-map {:cmd/schedule-new start-loop
+  (comp/make-component {:cmp-id      cmp-id
+                        :state-fn    (fn [_] (atom {:active-timers {}}))
+                        :handler-map {:cmd/schedule-new    start-loop
                                       :cmd/schedule-delete ()}}))

@@ -5,15 +5,15 @@
 
 #+cljs (enable-console-print!)
 
-(defn in-handler
+(defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
-  [_ _ msg]
-  #+clj (log/info (meta msg) msg)
-  #+cljs (println "Log: " (meta msg) " " msg))
+  [{:keys [msg msg-meta]}]
+  #+clj (log/info msg-meta msg)
+  #+cljs (println "Log: " msg-meta " " msg))
 
 (defn component
   "Creates component for logging, which in this case does not need local state."
   [cmp-id]
   (comp/make-component
     {:cmp-id  cmp-id
-     :handler in-handler}))
+     :handler-map {:all all-msgs-handler}}))

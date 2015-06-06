@@ -26,19 +26,19 @@
     (sente/start-chsk-router! (:ch-recv ws) (make-handler put-fn))
     ws))
 
-(defn in-handler
+(defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
-  [ws _ msg]
-  (let [state (:state ws)
+  [{:keys [cmp-state msg-type msg-meta msg-payload]}]
+  (let [ws cmp-state
+        state (:state ws)
         send-fn (:send-fn ws)
-        [cmd-type payload] msg
-        msg-meta (-> (merge (meta msg) {})
-                     (assoc-in, [:sente-uid] (:uid @state)))]
-    (send-fn [cmd-type {:msg payload :msg-meta msg-meta}])))
+        msg-w-ser-meta (-> (merge msg-meta {}) (assoc-in, [:sente-uid] (:uid @state)))]
+    (send-fn [msg-type {:msg msg-payload :msg-meta msg-w-ser-meta}])))
 
 (defn component
+  "Creates client-side WebSockets communication component."
   [cmp-id]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn mk-state
-                        :handler  in-handler
+                        :handler-map {:all all-msgs-handler}
                         :opts     {:watch :state}}))

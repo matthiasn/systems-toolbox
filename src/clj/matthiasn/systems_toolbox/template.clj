@@ -1,25 +1,23 @@
 (ns matthiasn.systems-toolbox.template
   (:gen-class)
-  (:require
-    [clojure.tools.logging :as log]
-    [clojure.core.match :refer [match]]
-    [matthiasn.systems-toolbox.component :as comp]))
+  (:require [matthiasn.systems-toolbox.component :as comp]))
 
 (defn mk-state
-  "Return clean initial component state."
+  "Return clean initial component state. Map can hold whatever is useful inside this particular component."
   [put-fn]
   (let [state (atom {})]
     state))
 
-(defn in-handler
-  "Handle incoming messages: process / add to application state."
-  [state put-fn msg]
-  (match msg
-         [:cmd/some-msg-comp  m] ()
-         :else (log/error "unknown msg in component" msg)))
+(defn some-msg-handler
+  "Handle incoming messages of the type chosen below in :handler-map. Any kind of behavior of a component can be
+  implemented here."
+  [{:keys [cmp-state msg msg-type msg-meta msg-payload cmp-id cfg]}]
+  ())          ;; do something here
 
 (defn component
+  "Creates a component that has initial state created by the mk-state function, come component ID and reacts to
+  the message types defined in :handler-map."
   [cmp-id]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn mk-state
-                        :handler  in-handler}))
+                        :handler-map  {:cmd/some-msg-type some-msg-handler}}))

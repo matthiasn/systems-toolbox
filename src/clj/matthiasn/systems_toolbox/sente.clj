@@ -7,7 +7,6 @@
     [ring.util.response :refer [resource-response response content-type]]
     [compojure.core :refer (defroutes GET POST)]
     [compojure.route :as route]
-    [clojure.core.match :refer [match]]
     [matthiasn.systems-toolbox.component :as comp]
     [taoensso.sente.server-adapters.http-kit :refer [sente-web-server-adapter]]
     [clojure.core.async :refer [<! chan put! mult tap pub sub timeout go-loop sliding-buffer]]
@@ -49,23 +48,23 @@
       (sente/start-chsk-router! ch-recv (make-handler ws put-fn))
       ws)))
 
-(defn in-handler
+(defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
-  [ws _ msg]
-  (let [chsk-send! (:send-fn ws)
+  [{:keys [cmp-state msg-type msg-meta msg-payload]}]
+  (let [ws cmp-state
+        chsk-send! (:send-fn ws)
         connected-uids (:connected-uids ws)
-        msg-meta (meta msg)
         dest-uid (:sente-uid msg-meta)
-        [cmd-type payload] msg
-        msg-w-ser-meta [cmd-type {:msg payload :msg-meta msg-meta}]]
+        msg-w-ser-meta [msg-type {:msg msg-payload :msg-meta msg-meta}]]
     (if dest-uid
       (chsk-send! dest-uid msg-w-ser-meta)
       (doseq [uid (:any @connected-uids)]
         (chsk-send! uid msg-w-ser-meta)))))
 
 (defn component
+  "Creates server-side WebSockets communication component."
   [cmp-id index-page-fn port]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn (mk-state index-page-fn port)
-                        :handler  in-handler
+                        :handler-map {:all all-msgs-handler}
                         :opts     {:watch :connected-uids}}))
