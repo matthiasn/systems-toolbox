@@ -84,7 +84,7 @@
       (subscribe cmp-state put-fn [from :out-pub] msg-type [to :in-chan]))))
 
 (defn route-all-handler
-  [{:keys [cmp-state put-fn msg-payload] :as handler-args}]
+  [{:keys [cmp-state put-fn msg-payload]}]
   (let [{:keys [from to]} msg-payload]
     (tap-components cmp-state put-fn [from to])))
 

@@ -171,8 +171,8 @@
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
-  [app _ [_ state-snapshot]]
-  (swap! app assoc :switchboard-state state-snapshot))
+  [{:keys [cmp-state msg-payload]}]
+  (swap! cmp-state assoc :switchboard-state msg-payload))
 
 (defn component
   [cmp-id]

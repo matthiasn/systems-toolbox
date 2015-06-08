@@ -20,8 +20,8 @@
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
-  [app _ [_ state-snapshot]]
-  (reset! (:observed app) state-snapshot))
+  [{:keys [cmp-state msg-payload]}]
+  (reset! (:observed cmp-state) msg-payload))
 
 (defn component
   [{:keys [cmp-id view-fn dom-id initial-state cfg]}]
