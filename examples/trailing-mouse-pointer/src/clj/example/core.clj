@@ -24,17 +24,19 @@
      [:cmd/wire-comp (sched/component   :server/scheduler-cmp)]  ; Component for scheduling the dispatch of messages
      [:cmd/wire-comp (ptr/component     :server/ptr-cmp)]        ; Component for processing mouse moves
      [:cmd/wire-comp (metrics/component :server/metrics-cmp)]    ; Component for metrics and stats
-     ;; Then, messages of a given type are wired from one component to another. [cmd from-cmp to-cmp msg-type]
-     [:cmd/sub-comp-2   :server/ptr-cmp        :server/ws-cmp         :cmd/mouse-pos] ; from to type
-     [:cmd/sub-comp     :server/scheduler-cmp  :server/ws-cmp         :cmd/mouse-pos] ; from to type
-     [:cmd/sub-comp     :server/metrics-cmp    :server/ws-cmp         :stats/jvm]
-     [:cmd/sub-comp     :server/scheduler-cmp  :server/metrics-cmp    :cmd/get-jvm-stats]
-     [:cmd/sub-comp     :server/ptr-cmp        :server/scheduler-cmp  :cmd/schedule-new]
-     ;; Finally, chedule dispatch of :cmd/get-jvm-stats every 5 seconds.
-     [:cmd/send-to [:server/scheduler-cmp [:cmd/schedule-new {:timeout 5000
-                                                              :id :disp-stats
-                                                              :message [:cmd/get-jvm-stats]
-                                                              :repeat true}]]]])
+
+     ;; Then, messages of a given type are wired from one component to another.
+     [:cmd/route-all {:from :server/ptr-cmp :to :server/ws-cmp}]
+     [:cmd/route-all {:from :server/metrics-cmp :to :server/ws-cmp}]
+     [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]
+     [:cmd/route {:from :server/scheduler-cmp :to :server/ws-cmp :only :cmd/mouse-pos}]
+     [:cmd/route {:from :server/scheduler-cmp :to :server/metrics-cmp}]
+     [:cmd/route {:from :server/ptr-cmp :to :server/scheduler-cmp}]
+
+     ;; Finally, schedule dispatch of :cmd/get-jvm-stats every 5 seconds.
+     [:cmd/send {:to :server/scheduler-cmp
+                 :msg [:cmd/schedule-new
+                       {:timeout 5000 :id :disp-stats :message [:cmd/get-jvm-stats] :repeat true}]}]])
 
   (pid/save "example.pid")
   (log/info "Application started, PID" (pid/current)))

@@ -16,4 +16,4 @@
   [cmp-id]
   (comp/make-component
     {:cmp-id  cmp-id
-     :handler-map {:all all-msgs-handler}}))
+     :all-msgs-handler all-msgs-handler}))

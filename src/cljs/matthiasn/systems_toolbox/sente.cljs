@@ -40,5 +40,5 @@
   [cmp-id]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn mk-state
-                        :handler-map {:all all-msgs-handler}
+                        :all-msgs-handler all-msgs-handler
                         :opts     {:watch :state}}))

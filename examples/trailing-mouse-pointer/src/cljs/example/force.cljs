@@ -102,11 +102,11 @@
       [:g
        (for [m links-vec]
          ^{:key (str "force-link-" m)}
-         [:line.link {:stroke "#BBB"  :stroke-width "3px"
-                      :x1 (:x ((:source m) nodes-map))
-                      :x2 (:x ((:target m) nodes-map))
-                      :y1 (:y ((:source m) nodes-map))
-                      :y2 (:y ((:target m) nodes-map))}])
+         [:line.link {:stroke "#BBB" :stroke-width "3px"
+                      :x1     (:x ((:source m) nodes-map))
+                      :x2     (:x ((:target m) nodes-map))
+                      :y1     (:y ((:source m) nodes-map))
+                      :y2     (:y ((:target m) nodes-map))}])
        (for [[k v] nodes-map]
          ^{:key (str "force-node-" k)}
          [cmp-node app v k])]]]))

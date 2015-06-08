@@ -10,12 +10,12 @@
 
 (defn wire-comp
   "Wire existing and already instantiated component."
-  [app put-fn cmps switchboard-id]
-  (doseq [cmp (flatten [cmps])]
-    (let [cmp-id (:cmp-id cmp)
-          firehose-chan (:firehose-chan (switchboard-id (:components @app)))]
-      (put-fn [:log/switchboard-wire cmp-id])
-      (swap! app assoc-in [:components cmp-id] cmp)
+  [{:keys [cmp-state put-fn msg-payload cmp-id]}]
+  (doseq [cmp (flatten [msg-payload])]
+    (let [cmp-id-to-wire (:cmp-id cmp)
+          firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))]
+      (put-fn [:log/switchboard-wire cmp-id-to-wire])
+      (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp)
       (tap (:firehose-mult cmp) firehose-chan))))
 
 (defn subscribe
@@ -33,111 +33,93 @@
   (doseq [t (flatten [to])]
     (subscribe app put-fn [from :state-pub] :app-state [t :sliding-in-chan])))
 
-(defn subscribe-comp
-  "Subscribe component to a specified publisher."
-  [app put-fn sources destination]
-  (doseq [[from msg-type] sources]
-    (subscribe app put-fn [from :out-pub] msg-type [destination :in-chan])))
-
-(defn subscribe-comp-unidirectional
-  "Subscribes cmp2 to all message types of cmp1."
-  [app put-fn cmp1 cmp2 msg-types]
-  (letfn [(sub-msg-type [from to m] (subscribe app put-fn [from :out-pub] m [to :in-chan]))]
-    (doseq [msg-type (flatten [msg-types])]
-      (sub-msg-type cmp1 cmp2 msg-type))))
-
-(defn subscribe-comp-bidirectional
-  "Subscribes cmp1 to all message types of cmp2 and, at the same time, subscribes cmp2 to all message types of cmp1."
-  [app put-fn cmp1 cmp2 msg-types]
-  (subscribe-comp-unidirectional app put-fn cmp1 cmp2 msg-types)
-  (subscribe-comp-unidirectional app put-fn cmp2 cmp1 msg-types))
-
 (defn tap-components
   "Tap into a mult."
   [app put-fn [from-cmps to]]
   (doseq [from (flatten [from-cmps])]
     (let [mult-comp (from (:components @app))
-          tap-comp (to  (:components @app))
+          tap-comp (to (:components @app))
           err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " from " -> " to " - " %)])]
       (try
         (do
           (tap (:out-mult mult-comp) (:in-chan tap-comp))
           (put-fn [:log/switchboard-tap (str from " -> " to)])
           (swap! app update-in [:taps] conj [from to]))
-        #+clj  (catch Exception e (err-put (.getMessage e)))
+        #+clj (catch Exception e (err-put (.getMessage e)))
         #+cljs (catch js/Object e (err-put e))))))
 
 (defn tap-switchboard-firehose
   "Tap the switchboard firehose into a component observing it."
   [app put-fn to switchboard-id]
-    (let [sw-firehose-mult (:firehose-mult (switchboard-id (:components @app)))
-          to-comp (to (:components @app))
-          err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " switchboard-id " -> " to " - " %)])]
-      (try
-        (do
-          (tap sw-firehose-mult (:in-chan to-comp))
-          (put-fn [:log/switchboard-firehose-tap (str "Switchboard Firehose -> " to)])
-          (swap! app update-in [:fh-taps] conj [switchboard-id to]))
-        #+clj  (catch Exception e (err-put (.getMessage e)))
-        #+cljs (catch js/Object e (err-put e)))))
-
-(defn tap-components-bidirectional
-  "Same as tap-components, but is symmetric - taps cmp1 into cmp2
-  and, at the same time taps, cmp2 into cmp1."
-  [app put-fn cmp1 cmp2]
-  (tap-components app put-fn [[cmp1] cmp2])
-  (tap-components app put-fn [[cmp2] cmp1]))
-
-(defn make-log-comp
-  "Creates a log component."
-  [app put-fn log-cmp-id]
-  (let [log-comp (l/component log-cmp-id)]
-    (swap! app assoc-in [:components log-cmp-id] log-comp)
-    (put-fn [:log/switchboard-init log-cmp-id])
-    log-comp))
+  (let [sw-firehose-mult (:firehose-mult (switchboard-id (:components @app)))
+        to-comp (to (:components @app))
+        err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " switchboard-id " -> " to " - " %)])]
+    (try
+      (do
+        (tap sw-firehose-mult (:in-chan to-comp))
+        (put-fn [:log/switchboard-firehose-tap (str "Switchboard Firehose -> " to)])
+        (swap! app update-in [:fh-taps] conj [switchboard-id to]))
+      #+clj (catch Exception e (err-put (.getMessage e)))
+      #+cljs (catch js/Object e (err-put e)))))
 
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful
   for communication with the outside world / within hierarchies where a subsystem
   has its own switchboard."
-  [app put-fn self switchboard-id]
-  (swap! app assoc-in [:components switchboard-id] self)
-  (swap! app assoc-in [:switchboard-id] switchboard-id))
+  [{:keys [cmp-state msg-payload cmp-id]}]
+  (swap! cmp-state assoc-in [:components cmp-id] msg-payload)
+  (swap! cmp-state assoc-in [:switchboard-id] cmp-id))
 
 (defn mk-state
   "Create initial state atom for switchboard component."
   [put-fn]
   (atom {:components {} :subs #{} :taps #{} :fh-taps #{}}))
 
-(defn send-to
-  "Send message to the specified component."
-  [app [dest-id msg]]
-  (let [dest-comp (dest-id (:components @app))]
+(defn route-handler
+  [{:keys [cmp-state put-fn msg msg-payload cmp-id] :as handler-args}]
+  (let [{:keys [from to only]} msg-payload
+        handled-messages (keys (:handler-map (to (:components @cmp-state))))
+        msg-types (flatten (if only [only] (vec handled-messages)))]
+    (doseq [msg-type (flatten [msg-types])]
+      (subscribe cmp-state put-fn [from :out-pub] msg-type [to :in-chan]))))
+
+(defn route-all-handler
+  [{:keys [cmp-state put-fn msg-payload] :as handler-args}]
+  (let [{:keys [from to]} msg-payload]
+    (tap-components cmp-state put-fn [from to])))
+
+(defn attach-to-firehose
+  [{:keys [cmp-state put-fn msg-payload cmp-id]}]
+  (tap-switchboard-firehose cmp-state put-fn msg-payload cmp-id))
+
+(defn observe-state
+  [{:keys [cmp-state put-fn msg-payload]}]
+  (let [{:keys [from to]} msg-payload]
+    (subscribe-comp-state cmp-state put-fn [from to])))
+
+(defn send
+  [{:keys [cmp-state msg-payload]}]
+  (let [{:keys [to msg]} msg-payload
+        dest-comp (to (:components @cmp-state))]
     (put! (:in-chan dest-comp) msg)))
 
-(defn all-msgs-handler
-  "Handle incoming messages: process / add to application state."
-  [{:keys [cmp-state put-fn msg cmp-id]}]
-  (match msg
-         [:cmd/self-register self] (self-register cmp-state put-fn self cmp-id)
-         [:cmd/wire-comp cmp] (wire-comp cmp-state put-fn cmp cmp-id)
-         [:cmd/make-log-comp id] (make-log-comp cmp-state put-fn id)
-         [:cmd/send-to env] (send-to cmp-state env)
-         [:cmd/sub-comp-state from-to] (subscribe-comp-state cmp-state put-fn from-to)
-         [:cmd/sub-comp-state from to] (subscribe-comp-state cmp-state put-fn [from to])
-         [:cmd/sub-comp sources dest] (subscribe-comp cmp-state put-fn sources dest)
-         [:cmd/sub-comp cmp1 cmp2 :all] (tap-components cmp-state put-fn [[cmp1] cmp2])
-         [:cmd/sub-comp-2 cmp1 cmp2 :all] (tap-components-bidirectional cmp-state put-fn cmp1 cmp2)
-         [:cmd/sub-comp cmp1 cmp2 :app-state] (subscribe-comp-state cmp-state put-fn [cmp1 cmp2])
-         [:cmd/sub-comp cmp1 cmp2 m] (subscribe-comp-unidirectional cmp-state put-fn cmp1 cmp2 m)
-         [:cmd/sub-comp-2 cmp1 cmp2 m] (subscribe-comp-bidirectional cmp-state put-fn cmp1 cmp2 m)
-         [:cmd/tap-comp from-to] (tap-components cmp-state put-fn from-to)
-         [:cmd/tap-sw-firehose to] (tap-switchboard-firehose cmp-state put-fn to cmp-id)
-         [:cmd/tap-comp-2 cmp1 cmp2] (tap-components-bidirectional cmp-state put-fn cmp1 cmp2)
-         :else (prn "unknown msg in switchboard-in-loop" msg)))
+(defn make-log-comp
+  "Creates a log component."
+  [{:keys [cmp-state put-fn msg-payload]}]
+  (let [log-comp (l/component msg-payload)]
+    (swap! cmp-state assoc-in [:components msg-payload] log-comp)
+    (put-fn [:log/switchboard-init msg-payload])
+    log-comp))
 
 (def handler-map
-  {:all all-msgs-handler})
+  {:cmd/route              route-handler
+   :cmd/route-all          route-all-handler
+   :cmd/wire-comp          wire-comp
+   :cmd/attach-to-firehose attach-to-firehose
+   :cmd/self-register      self-register
+   :cmd/observe-state      observe-state
+   :cmd/send               send
+   :cmd/make-log-comp      make-log-comp})
 
 (defn component
   "Creates a switchboard component that wires individual components together into
@@ -145,13 +127,13 @@
   ([] (component :switchboard))
   ([switchboard-id]
    (println "Switchboard starting.")
-   (let [switchboard (comp/make-component {:cmp-id   switchboard-id
-                                           :state-fn mk-state
+   (let [switchboard (comp/make-component {:cmp-id      switchboard-id
+                                           :state-fn    mk-state
                                            :handler-map handler-map})
          sw-in-chan (:in-chan switchboard)]
      (put! sw-in-chan [:cmd/self-register switchboard])
      (put! sw-in-chan [:cmd/make-log-comp :log-cmp])
-     (put! sw-in-chan [:cmd/tap-comp [switchboard-id :log-cmp]])
+     (put! sw-in-chan [:cmd/route-all {:from switchboard-id :to :log-cmp}])
      switchboard)))
 
 (defn send-cmd

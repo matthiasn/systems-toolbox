@@ -17,7 +17,7 @@
                  [reagent "0.5.0"]
                  [incanter "1.5.6"]
                  [clj-time "0.9.0"]
-                 [org.clojure/clojurescript "0.0-3269"
+                 [org.clojure/clojurescript "0.0-3308"
                   :classifier "aot" :exclusions [org.clojure/tools.reader org.clojure/data.json]]
                  [org.clojure/tools.reader "0.9.2" :classifier "aot"]
                  [org.clojure/data.json "0.2.6" :classifier "aot"]]
@@ -35,7 +35,7 @@
                         :source-paths ["src/cljs"]
                         :compiler {:output-dir "resources/public/js/build/"
                                    :output-to "resources/public/js/build/example.js"
-                                   ; :optimizations :advanced
+                                   ;:optimizations :advanced
                                    :optimizations :simple
                                    ;:source-map "resources/public/js/build/example.js.map"
                                    }}]})

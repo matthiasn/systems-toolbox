@@ -54,29 +54,28 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [{:keys [cmp-state handler-map put-fn cfg cmp-id firehose-chan] :as cmp-map} chan-key]
-  (when handler-map
-    (let [chan (make-chan-w-buf (chan-key cfg))]
-      (go-loop []
-        (let [msg (<! chan)
-              msg-meta (-> (merge (meta msg) {})
-                           (assoc-in, [:cmp-seq] cmp-id)    ; TODO: replace by actual sequence
-                           (assoc-in, [cmp-id :in-timestamp] (now)))
-              [msg-type msg-payload] msg
-              handler-fn (msg-type handler-map)
-              all-msgs-handler-fn (:all handler-map)
-              msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
-                                      :msg-type    msg-type
-                                      :msg-meta    msg-meta
-                                      :msg-payload msg-payload})]
-          (when-not (= "firehose" (namespace msg-type))
-            (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
-          (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
-          (when handler-fn (handler-fn msg-map))
-          (when all-msgs-handler-fn (all-msgs-handler-fn msg-map))
-          (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
-          (recur)))
-      {chan-key chan})))
+  [{:keys [handler-map all-msgs-handler put-fn cfg cmp-id firehose-chan] :as cmp-map} cmp-state chan-key]
+  (let [chan (make-chan-w-buf (chan-key cfg))]
+    (go-loop []
+      (let [msg (<! chan)
+            msg-meta (-> (merge (meta msg) {})
+                         (assoc-in, [:cmp-seq] cmp-id)      ; TODO: replace by actual sequence
+                         (assoc-in, [cmp-id :in-timestamp] (now)))
+            [msg-type msg-payload] msg
+            handler-fn (msg-type handler-map)
+            msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
+                                    :msg-type    msg-type
+                                    :msg-meta    msg-meta
+                                    :msg-payload msg-payload
+                                    :cmp-state   cmp-state})]
+        (when-not (= "firehose" (namespace msg-type))
+          (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
+        (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
+        (when handler-fn (handler-fn msg-map))
+        (when all-msgs-handler (all-msgs-handler msg-map))
+        (when (= chan-key :sliding-in-chan) (<! (timeout (:throttle-ms cfg))))
+        (recur)))
+    {chan-key chan}))
 
 (defn make-component
   "Creates a component with attached in-chan, out-chan, sliding-in-chan and sliding-out-chan.
@@ -88,7 +87,7 @@
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
   state snapshots from other components."
-  [{:keys [cmp-id state-fn handler handler-map state-pub-handler opts]}]
+  [{:keys [cmp-id state-fn handler-map all-msgs-handler state-pub-handler opts]}]
   (let [cfg (merge component-defaults opts)
         out-chan (make-chan-w-buf (:out-chan cfg))
         firehose-chan (make-chan-w-buf (:firehose-chan cfg))
@@ -106,16 +105,16 @@
         state (if state-fn (state-fn put-fn) (atom {}))
         watch-state (if-let [watch (:watch cfg)] (watch state) state)
         changed (atom true)
-        cmp-map {:out-mult          out-mult
-                 :firehose-chan     firehose-chan
-                 :firehose-mult     firehose-mult
-                 :out-pub           (pub out-pub-chan first)
-                 :state-pub         (pub sliding-out-chan first)
-                 :cmp-id            cmp-id
-                 :handler-map       handler-map
-                 :cmp-state         state
-                 :put-fn            put-fn
-                 :cfg               cfg
+        cmp-map {:out-mult      out-mult
+                 :firehose-chan firehose-chan
+                 :firehose-mult firehose-mult
+                 :out-pub       (pub out-pub-chan first)
+                 :state-pub     (pub sliding-out-chan first)
+                 :cmp-id        cmp-id
+                 :handler-map   handler-map
+                 :all-msgs-handler all-msgs-handler
+                 :put-fn        put-fn
+                 :cfg           cfg
                  :state-snapshot-fn (fn [] @watch-state)}]
     (tap out-mult out-pub-chan)
 
@@ -142,7 +141,5 @@
         (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e))))
 
     (merge cmp-map
-           (if handler-map
-             (msg-handler-loop2 cmp-map :in-chan)
-             (msg-handler-loop state handler put-fn cfg cmp-id :in-chan firehose-chan))
+           (msg-handler-loop2 cmp-map state :in-chan)
            (msg-handler-loop state state-pub-handler put-fn cfg cmp-id :sliding-in-chan firehose-chan))))

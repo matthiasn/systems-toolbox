@@ -66,5 +66,5 @@
   [cmp-id index-page-fn port]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn (mk-state index-page-fn port)
-                        :handler-map {:all all-msgs-handler}
+                        :all-msgs-handler all-msgs-handler
                         :opts     {:watch :connected-uids}}))
