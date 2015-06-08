@@ -70,19 +70,12 @@
       app)))
 
 (defn recv-jvm-stats
-  ""
-  [app stats]
-  (swap! app assoc :readings (conj (:readings @app) stats)))
-
-(defn in-handler
-  "Handle incoming messages: process / add to application state."
-  [app put-fn msg]
-  (match msg
-         [:stats/jvm stats] (recv-jvm-stats app stats)
-         :else (println "Unmatched event:" msg)))
+  "Handle incoming JVM stats by adding those to the component state."
+  [{:keys [cmp-state msg-payload]}]
+  (swap! cmp-state assoc :readings (conj (:readings @cmp-state) msg-payload)))
 
 (defn component
   [cmp-id dom-id]
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn (mk-state dom-id)
-                        :handler  in-handler}))
+                        :handler-map {:stats/jvm recv-jvm-stats}}))

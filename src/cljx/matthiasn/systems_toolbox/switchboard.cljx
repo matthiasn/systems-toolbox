@@ -105,10 +105,9 @@
   (swap! app assoc-in [:switchboard-id] switchboard-id))
 
 (defn mk-state
-  "Return clean initial component state atom."
+  "Create initial state atom for switchboard component."
   [put-fn]
-  (let [app (atom {:components {} :subs #{} :taps #{} :fh-taps #{}})]
-    app))
+  (atom {:components {} :subs #{} :taps #{} :fh-taps #{}}))
 
 (defn send-to
   "Send message to the specified component."
@@ -116,27 +115,29 @@
   (let [dest-comp (dest-id (:components @app))]
     (put! (:in-chan dest-comp) msg)))
 
-(defn in-handler
+(defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
-  [app put-fn msg]
-  (let [switchboard-id (:cmp-seq (meta msg))]
-    (match msg
-           [:cmd/self-register            self] (self-register app put-fn self switchboard-id)
-           [:cmd/wire-comp                 cmp] (wire-comp app put-fn cmp switchboard-id)
-           [:cmd/make-log-comp          cmp-id] (make-log-comp app put-fn cmp-id)
-           [:cmd/send-to                   env] (send-to app env)
-           [:cmd/sub-comp-state        from-to] (subscribe-comp-state app put-fn from-to)
-           [:cmd/sub-comp-state        from to] (subscribe-comp-state app put-fn [from to])
-           [:cmd/sub-comp         sources dest] (subscribe-comp app put-fn sources dest)
-           [:cmd/sub-comp       cmp1 cmp2 :all] (tap-components app put-fn [[cmp1] cmp2])
-           [:cmd/sub-comp-2     cmp1 cmp2 :all] (tap-components-bidirectional app put-fn cmp1 cmp2)
-           [:cmd/sub-comp cmp1 cmp2 :app-state] (subscribe-comp-state app put-fn [cmp1 cmp2])
-           [:cmd/sub-comp          cmp1 cmp2 m] (subscribe-comp-unidirectional app put-fn cmp1 cmp2 m)
-           [:cmd/sub-comp-2        cmp1 cmp2 m] (subscribe-comp-bidirectional app put-fn cmp1 cmp2 m)
-           [:cmd/tap-comp              from-to] (tap-components app put-fn from-to)
-           [:cmd/tap-sw-firehose            to] (tap-switchboard-firehose app put-fn to switchboard-id)
-           [:cmd/tap-comp-2          cmp1 cmp2] (tap-components-bidirectional app put-fn cmp1 cmp2)
-           :else (prn "unknown msg in switchboard-in-loop" msg))))
+  [{:keys [cmp-state put-fn msg cmp-id]}]
+  (match msg
+         [:cmd/self-register self] (self-register cmp-state put-fn self cmp-id)
+         [:cmd/wire-comp cmp] (wire-comp cmp-state put-fn cmp cmp-id)
+         [:cmd/make-log-comp id] (make-log-comp cmp-state put-fn id)
+         [:cmd/send-to env] (send-to cmp-state env)
+         [:cmd/sub-comp-state from-to] (subscribe-comp-state cmp-state put-fn from-to)
+         [:cmd/sub-comp-state from to] (subscribe-comp-state cmp-state put-fn [from to])
+         [:cmd/sub-comp sources dest] (subscribe-comp cmp-state put-fn sources dest)
+         [:cmd/sub-comp cmp1 cmp2 :all] (tap-components cmp-state put-fn [[cmp1] cmp2])
+         [:cmd/sub-comp-2 cmp1 cmp2 :all] (tap-components-bidirectional cmp-state put-fn cmp1 cmp2)
+         [:cmd/sub-comp cmp1 cmp2 :app-state] (subscribe-comp-state cmp-state put-fn [cmp1 cmp2])
+         [:cmd/sub-comp cmp1 cmp2 m] (subscribe-comp-unidirectional cmp-state put-fn cmp1 cmp2 m)
+         [:cmd/sub-comp-2 cmp1 cmp2 m] (subscribe-comp-bidirectional cmp-state put-fn cmp1 cmp2 m)
+         [:cmd/tap-comp from-to] (tap-components cmp-state put-fn from-to)
+         [:cmd/tap-sw-firehose to] (tap-switchboard-firehose cmp-state put-fn to cmp-id)
+         [:cmd/tap-comp-2 cmp1 cmp2] (tap-components-bidirectional cmp-state put-fn cmp1 cmp2)
+         :else (prn "unknown msg in switchboard-in-loop" msg)))
+
+(def handler-map
+  {:all all-msgs-handler})
 
 (defn component
   "Creates a switchboard component that wires individual components together into
@@ -146,7 +147,7 @@
    (println "Switchboard starting.")
    (let [switchboard (comp/make-component {:cmp-id   switchboard-id
                                            :state-fn mk-state
-                                           :handler  in-handler})
+                                           :handler-map handler-map})
          sw-in-chan (:in-chan switchboard)]
      (put! sw-in-chan [:cmd/self-register switchboard])
      (put! sw-in-chan [:cmd/make-log-comp :log-cmp])

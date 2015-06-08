@@ -1,7 +1,6 @@
 (ns matthiasn.systems-toolbox.ui.observe-messages
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
   (:require [reagent.core :as r :refer [atom]]
-            [cljs.core.match :refer-macros [match]]
             [matthiasn.systems-toolbox.component :as comp]
             [matthiasn.systems-toolbox.helpers :refer [by-id now]]))
 
@@ -30,13 +29,13 @@
       (r/render-component [messages-view app] (by-id dom-id))
       app)))
 
-(defn in-handler
+(defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
-  [app put-fn msg]
-  (swap! app assoc :messages (conj (:messages @app) [(now) (:from (meta msg)) msg])))
+  [{:keys [cmp-state msg]}]
+  (swap! cmp-state assoc :messages (conj (:messages @cmp-state) [(now) (:from (meta msg)) msg])))
 
 (defn component
   [cmp-id dom-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn (mk-state dom-id)
-                        :handler  in-handler}))
+  (comp/make-component {:cmp-id      cmp-id
+                        :state-fn    (mk-state dom-id)
+                        :handler-map {:all all-msgs-handler}}))
