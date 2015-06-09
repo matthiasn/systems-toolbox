@@ -7,14 +7,14 @@
   "Return clean initial component state atom."
   [view-fn dom-id init-state put-fn]
   (let [local (if init-state
-              (atom init-state)
-              (atom {}))
+                (atom init-state)
+                (atom {}))
         observed (atom {})
         cmd (fn ([& r] (fn [e] (.stopPropagation e) (put-fn (into [] r)))))]
     (r/render-component [view-fn {:observed observed
-                                  :local local
-                                  :put-fn put-fn
-                                  :cmd cmd}]
+                                  :local    local
+                                  :put-fn   put-fn
+                                  :cmd      cmd}]
                         (by-id dom-id))
     {:local local :observed observed}))
 
@@ -25,8 +25,8 @@
 
 (defn component
   [{:keys [cmp-id view-fn dom-id initial-state cfg]}]
-   (let [mk-state (partial init view-fn dom-id initial-state)]
-     (comp/make-component {:cmp-id   cmp-id
-                           :state-fn mk-state
-                           :state-pub-handler state-pub-handler
-                           :opts (merge cfg {:watch :local})})))
+  (let [mk-state (partial init view-fn dom-id initial-state)]
+    (comp/make-component {:cmp-id            cmp-id
+                          :state-fn          mk-state
+                          :state-pub-handler state-pub-handler
+                          :opts              (merge cfg {:watch :local})})))

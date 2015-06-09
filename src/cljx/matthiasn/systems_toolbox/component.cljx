@@ -66,7 +66,7 @@
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
   state snapshots from other components."
-  [{:keys [cmp-id state-fn state-pub-handler opts] :as cmp-conf}]
+  [{:keys [cmp-id state-fn opts] :as cmp-conf}]
   (let [cfg (merge component-defaults opts)
         out-chan (make-chan-w-buf (:out-chan cfg))
         firehose-chan (make-chan-w-buf (:firehose-chan cfg))

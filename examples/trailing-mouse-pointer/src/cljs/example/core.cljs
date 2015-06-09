@@ -31,6 +31,4 @@
    [:cmd/observe-state {:from :client/switchboard :to :client/force-cmp}]
 
    ;; Finally, wire firehose with all messages into the force-layout component.
-   [:cmd/attach-to-firehose :client/force-cmp]
-
-   ])
+   [:cmd/attach-to-firehose :client/force-cmp]])

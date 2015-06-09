@@ -81,5 +81,4 @@
   [cmp-id]
   (r/component {:cmp-id        cmp-id
                 :view-fn       mouse-view
-                :dom-id        "mouse"
-                :initial-state {}}))
+                :dom-id        "mouse"}))
