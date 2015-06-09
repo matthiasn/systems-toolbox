@@ -1,6 +1,7 @@
 (ns example.force
   (:require [reagent.core :as r :refer [atom]]
             [cljs.pprint :as pp]
+            [clojure.set :as s]
             [matthiasn.systems-toolbox.component :as comp]
             [matthiasn.systems-toolbox.helpers :refer [by-id request-animation-frame]]
             [cljs.core.match :refer-macros [match]]))
@@ -10,35 +11,19 @@
 
 (defn nodes-fn
   [nodes-list]
-  (map (fn [k] {:name (if (namespace k)
-                        (str (namespace k) "/" (name k))
-                        (name k))
-                :key k :group 1 :x (r) :y (r) :last-received (now)})
-                   nodes-list))
+  (map (fn [k] {:name (if (namespace k) (str (namespace k) "/" (name k)) (name k))
+                :key  k :group 1 :x (r) :y (r) :last-received (now)})
+       nodes-list))
 
 (defn nodes-map-fn
   [nodes]
-  (into {} (map-indexed (fn [idx itm] [(:key itm) (merge itm {:idx idx })])
+  (into {} (map-indexed (fn [idx itm] [(:key itm) (merge itm {:idx idx})])
                         nodes)))
 
-(def links-vec [{:source :client/ws-cmp :target :client/switchboard :value 6}
-                {:source :client/ws-cmp :target :client/mouse-cmp :value 1}
-                {:source :client/store-cmp :target :client/mouse-cmp :value 1}
-                {:source :client/ws-cmp :target :client/store-cmp :value 1}
-                {:source :client/store-cmp :target :client/histogram-cmp :value 1}
-                {:source :client/ws-cmp :target :client/jvmstats-cmp :value 1}
-                {:source :client/ws-cmp :target :client/switchboard :value 1}
-                {:source :client/store-cmp :target :client/switchboard :value 1}
-                {:source :client/log-cmp :target :client/switchboard :value 1}
-                {:source :client/mouse-cmp :target :client/switchboard :value 1}
-                {:source :client/jvmstats-cmp :target :client/switchboard :value 1}
-                {:source :client/force-cmp :target :client/switchboard :value 1}
-                {:source :client/histogram-cmp :target :client/switchboard :value 1}])
-
 (defn links-fn
-  [nodes-map]
-  (into [] (map (fn [m] {:source (:idx ((:source m) nodes-map))
-                         :target (:idx ((:target m) nodes-map))}) links-vec)))
+  [nodes-map links]
+  (into [] (map (fn [m] {:source (:idx ((:from m) nodes-map))
+                         :target (:idx ((:to m) nodes-map))}) links)))
 
 (def foci [{:x 150 :y 150} {:x 350 :y 250}])
 
@@ -73,7 +58,7 @@
   [app]
   (let [state @app
         nodes-js (clj->js (:nodes state))
-        links-js (clj->js (:links state))
+        links-js (clj->js (:d3-links state))
         svg (-> js/d3
                 (.select "#d3")
                 (.append "svg"))
@@ -109,29 +94,25 @@
   "Renders SVG with an area in which components of a system are shown as a visual representation. These
   visual representations aim at helping in observing a running system."
   [app put-fn]
-  (let [nodes-map (:nodes-map @app)]
+  (let [nodes-map (:nodes-map @app)
+        links (:links @app)]
     [:div
      [:svg {:width "100%" :viewBox "0 0 1000 1000"}
       [:g
-       (for [m links-vec]
-         ^{:key (str "force-link-" m)}
-         [:line.link {:stroke "#BBB" :stroke-width "3px"
-                      :x1     (:x ((:source m) nodes-map))
-                      :x2     (:x ((:target m) nodes-map))
-                      :y1     (:y ((:source m) nodes-map))
-                      :y2     (:y ((:target m) nodes-map))}])
+       (for [l links]
+         ^{:key (str "force-link-" l)}
+         [:line.link {:stroke (condp = (:type l)
+                                :sub "#0F0"
+                                :tap "#00F"
+                                :fh-tap "#F00")
+                      :stroke-width "3px"
+                      :x1     (:x ((:from l) nodes-map))
+                      :x2     (:x ((:to l) nodes-map))
+                      :y1     (:y ((:from l) nodes-map))
+                      :y2     (:y ((:to l) nodes-map))}])
        (for [[k v] nodes-map]
          ^{:key (str "force-node-" k)}
-         [cmp-node app v k])]]
-     [:div (str "Components: " (keys (:components (:switchboard-state @app))))]
-     [:div (str "Nodes: " (str (:nodes @app)))]
-     [:div (str "Nodes2: " (str (:nodes2 @app)))]
-     [:div (str "Nodes-Map: " (str (:nodes-map @app)))]
-     [:div (str "Nodes-Map2: " (str (:nodes-map2 @app)))]
-     [:div (str "Links: " (str (:links @app)))]
-     [:div (str "Links2: " (str (:links2 @app)))]
-     [:div (str "Subscriptions: " (:subs (:switchboard-state @app)))]
-     [:div (str "Taps: " (:taps (:switchboard-state @app)))]]))
+         [cmp-node app v k])]]]))
 
 (defn mk-state
   "Return clean initial component state atom."
@@ -150,22 +131,30 @@
   "Creates a handler function for collecting stats about messages and display inside the for"
   [ts-key count-key]
   (fn
-    [{:keys [cmp-state msg-payload]}]
-    (let [cmp-id (:cmp-id msg-payload)]
-      (swap! cmp-state assoc-in [:nodes-map cmp-id ts-key] (now))
-      (swap! cmp-state update-in [:nodes-map cmp-id count-key] #(inc (or % 0))))))
+    [{:keys [cmp-state msg-payload cmp-id]}]
+    (let [other-id (:cmp-id msg-payload)]
+      (swap! cmp-state assoc-in [:nodes-map other-id ts-key] (now))
+      (swap! cmp-state update-in [:nodes-map other-id count-key] #(inc (or % 0)))
+      (swap! cmp-state assoc-in [:nodes-map cmp-id :last-rx] (now))
+      (swap! cmp-state update-in [:nodes-map cmp-id :rx-count] #(inc (or % 0))))))
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
   [{:keys [cmp-state msg-payload]}]
   (swap! cmp-state assoc :switchboard-state msg-payload)
   (when-not (:layout-done @cmp-state)
-    (let [nodes (nodes-fn (keys (:components (:switchboard-state @cmp-state))))
+    (let [switchboard-state (:switchboard-state @cmp-state)
+          nodes (nodes-fn (keys (:components switchboard-state)))
           nodes-map (nodes-map-fn nodes)
-          links (links-fn nodes-map)]
+          subscriptions-set (:subs switchboard-state)
+          taps-set (:taps switchboard-state)
+          fh-taps-set (:fh-taps switchboard-state)
+          links (s/union subscriptions-set taps-set fh-taps-set)
+          d3-links (links-fn nodes-map links)]
       (swap! cmp-state assoc :nodes nodes)
       (swap! cmp-state assoc :nodes-map nodes-map)
       (swap! cmp-state assoc :links links)
+      (swap! cmp-state assoc :d3-links d3-links)
       (render-d3-force cmp-state)
       (swap! cmp-state assoc :layout-done true))))
 
@@ -174,5 +163,7 @@
   (comp/make-component {:cmp-id            cmp-id
                         :state-fn          mk-state
                         :handler-map       {:firehose/cmp-put  (count-msg :last-tx :tx-count)
-                                            :firehose/cmp-recv (count-msg :last-rx :rx-count)}
+                                            ;:firehose/cmp-publish-state (count-msg :last-tx :tx-count)
+                                            :firehose/cmp-recv (count-msg :last-rx :rx-count)
+                                            :firehose/cmp-recv-state (count-msg :last-rx :rx-count)}
                         :state-pub-handler state-pub-handler}))

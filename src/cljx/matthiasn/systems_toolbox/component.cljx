@@ -46,6 +46,8 @@
                                     :cmp-state   cmp-state})]
         (when (= chan-key :sliding-in-chan)
           (state-pub-handler msg-map)
+          (when-not (= "firehose" (namespace msg-type))
+            (put! firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
           (<! (timeout (:throttle-ms cfg))))
         (when (= chan-key :in-chan)
           (when-not (= "firehose" (namespace msg-type))

@@ -16,6 +16,7 @@
           firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))]
       (put-fn [:log/switchboard-wire cmp-id-to-wire])
       (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp)
+      (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
       (tap (:firehose-mult cmp) firehose-chan))))
 
 (defn subscribe
@@ -25,7 +26,7 @@
         sub-comp (to-cmp (:components @app))]
     (sub (from-pub pub-comp) msg-type (to-chan sub-comp))
     (put-fn [:log/switchboard-sub (str from-cmp " -[" msg-type "]-> " to-cmp)])
-    (swap! app update-in [:subs] conj {:from from-cmp :to to-cmp :msg-type msg-type})))
+    (swap! app update-in [:subs] conj {:from from-cmp :to to-cmp :msg-type msg-type :type :sub})))
 
 (defn subscribe-comp-state
   "Subscribe component to a specified publisher."
@@ -40,13 +41,12 @@
     (let [mult-comp (from (:components @app))
           tap-comp (to (:components @app))
           err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " from " -> " to " - " %)])]
-      (try
-        (do
-          (tap (:out-mult mult-comp) (:in-chan tap-comp))
-          (put-fn [:log/switchboard-tap (str from " -> " to)])
-          (swap! app update-in [:taps] conj [from to]))
-        #+clj (catch Exception e (err-put (.getMessage e)))
-        #+cljs (catch js/Object e (err-put e))))))
+      (try (do
+             (tap (:out-mult mult-comp) (:in-chan tap-comp))
+             (put-fn [:log/switchboard-tap (str from " -> " to)])
+             (swap! app update-in [:taps] conj {:from from :to to :type :tap}))
+           #+clj (catch Exception e (err-put (.getMessage e)))
+           #+cljs (catch js/Object e (err-put e))))))
 
 (defn tap-switchboard-firehose
   "Tap the switchboard firehose into a component observing it."
@@ -54,13 +54,12 @@
   (let [sw-firehose-mult (:firehose-mult (switchboard-id (:components @app)))
         to-comp (to (:components @app))
         err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " switchboard-id " -> " to " - " %)])]
-    (try
-      (do
-        (tap sw-firehose-mult (:in-chan to-comp))
-        (put-fn [:log/switchboard-firehose-tap (str "Switchboard Firehose -> " to)])
-        (swap! app update-in [:fh-taps] conj [switchboard-id to]))
-      #+clj (catch Exception e (err-put (.getMessage e)))
-      #+cljs (catch js/Object e (err-put e)))))
+    (try (do
+           (tap sw-firehose-mult (:in-chan to-comp))
+           (put-fn [:log/switchboard-firehose-tap (str "Switchboard Firehose -> " to)])
+           (swap! app update-in [:fh-taps] conj {:from switchboard-id :to to :type :fh-tap}))
+         #+clj (catch Exception e (err-put (.getMessage e)))
+         #+cljs (catch js/Object e (err-put e)))))
 
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful
