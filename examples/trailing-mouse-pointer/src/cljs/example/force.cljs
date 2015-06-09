@@ -3,8 +3,7 @@
             [cljs.pprint :as pp]
             [clojure.set :as s]
             [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.helpers :refer [by-id request-animation-frame]]
-            [cljs.core.match :refer-macros [match]]))
+            [matthiasn.systems-toolbox.helpers :refer [by-id request-animation-frame]]))
 
 (defn now [] (.getTime (js/Date.)))
 (defn r [] (.random js/Math))
@@ -163,7 +162,8 @@
   (comp/make-component {:cmp-id            cmp-id
                         :state-fn          mk-state
                         :handler-map       {:firehose/cmp-put  (count-msg :last-tx :tx-count)
-                                            ;:firehose/cmp-publish-state (count-msg :last-tx :tx-count)
+                                            :firehose/cmp-publish-state (count-msg :last-tx :tx-count)
                                             :firehose/cmp-recv (count-msg :last-rx :rx-count)
                                             :firehose/cmp-recv-state (count-msg :last-rx :rx-count)}
-                        :state-pub-handler state-pub-handler}))
+                        :state-pub-handler state-pub-handler
+                        :opts {:snapshots-on-firehose false}}))

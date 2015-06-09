@@ -96,7 +96,7 @@
   (let [{:keys [from to]} msg-payload]
     (subscribe-comp-state cmp-state put-fn [from to])))
 
-(defn send
+(defn send-to
   [{:keys [cmp-state msg-payload]}]
   (let [{:keys [to msg]} msg-payload
         dest-comp (to (:components @cmp-state))]
@@ -117,7 +117,7 @@
    :cmd/attach-to-firehose attach-to-firehose
    :cmd/self-register      self-register
    :cmd/observe-state      observe-state
-   :cmd/send               send
+   :cmd/send               send-to
    :cmd/make-log-comp      make-log-comp})
 
 (defn component

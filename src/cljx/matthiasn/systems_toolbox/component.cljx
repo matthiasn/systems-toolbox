@@ -22,7 +22,8 @@
 
 (def component-defaults
   {:in-chan  [:buffer 1] :sliding-in-chan [:sliding 1] :throttle-ms 1
-   :out-chan [:buffer 1] :sliding-out-chan [:sliding 1] :firehose-chan [:buffer 1]})
+   :out-chan [:buffer 1] :sliding-out-chan [:sliding 1] :firehose-chan [:buffer 1]
+   :snapshots-on-firehose true})
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -99,12 +100,18 @@
             (add-watch watch-state
                        :watcher
                        (fn [_ _ _ new-state]
-                         (put! sliding-out-chan (with-meta [:app-state new-state] {:from cmp-id}))))
+                         (let [snapshot-msg (with-meta [:app-state new-state] {:from cmp-id})]
+                           (put! sliding-out-chan snapshot-msg)
+                           (when (:snapshots-on-firehose cfg)
+                             (put! firehose-chan [:firehose/cmp-publish-state {:cmp-id cmp-id :msg snapshot-msg}])))))
             (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
     #+cljs (letfn [(step []
                          (request-animation-frame step)
                          (when @changed
-                           (put! sliding-out-chan (with-meta [:app-state @watch-state] {:from cmp-id}))
+                           (let [snapshot-msg (with-meta [:app-state @watch-state] {:from cmp-id})]
+                             (put! sliding-out-chan snapshot-msg)
+                             (when (:snapshots-on-firehose cfg)
+                               (put! firehose-chan [:firehose/cmp-publish-state {:cmp-id cmp-id :msg snapshot-msg}])))
                            (swap! changed not)))]
              (request-animation-frame step)
              (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
