@@ -7,13 +7,7 @@
 
 (defn now [] (.getTime (js/Date.)))
 
-(def nodes [
-            ;{:name "server/switchboard" :group 0 :x 250 :y 250 :last-received (now)}
-            ;{:name "server/ws-cmp" :group 0 :x 400 :y 250 :last-received (now)}
-            ;{:name "server/metrics-cmp" :group 0 :x 150 :y 150 :last-received (now)}
-            ;{:name "server/scheduler-cmp" :group 0 :x 150 :y 450 :last-received (now)}
-            ;{:name "server/ptr-cmp" :group 0 :x 150 :y 350 :last-received (now)}
-            {:name "client/ws-cmp" :group 1 :x 600 :y 250 :last-received (now)}
+(def nodes [{:name "client/ws-cmp" :group 1 :x 600 :y 250 :last-received (now)}
             {:name "client/switchboard" :group 1 :x 750 :y 250 :last-received (now)}
             {:name "client/mouse-cmp" :group 1 :x 800 :y 150 :last-received (now)}
             {:name "client/store-cmp" :group 1 :x 800 :y 400 :last-received (now)}
@@ -21,43 +15,20 @@
             {:name "client/histogram-cmp" :group 1 :x 800 :y 350 :last-received (now)}
             {:name "client/jvmstats-cmp" :group 1 :x 800 :y 550 :last-received (now)}])
 
-;(def nodes (for [[k v] nodes-map] (merge v {:name (str (namespace k) "/" (name k))})))
-
 (def nodes-map (into {} (map-indexed (fn [idx itm] [(keyword (:name itm)) (merge itm {:idx idx})]) nodes)))
 
-(def links-vec [
-                ;{:source :server/ws-cmp :target :server/switchboard :value 1}
-                ;{:source :server/ws-cmp :target :client/ws-cmp :value 8}
-                ;{:source :server/switchboard :target :server/ptr-cmp :value 8}
-                ;{:source :server/switchboard :target :server/scheduler-cmp :value 8}
-                ;{:source :server/metrics-cmp :target :server/switchboard :value 10}
-
-                {:source :client/ws-cmp :target :client/switchboard :value 6}
-
-                ;{:source :client/switchboard :target :client/mouse-cmp :value 1}
+(def links-vec [{:source :client/ws-cmp :target :client/switchboard :value 6}
                 {:source :client/ws-cmp :target :client/mouse-cmp :value 1}
                 {:source :client/store-cmp :target :client/mouse-cmp :value 1}
-
-                ;{:source :client/switchboard :target :client/store-cmp :value 1}
                 {:source :client/ws-cmp :target :client/store-cmp :value 1}
-
-                ;{:source :client/switchboard :target :client/scheduler-cmp :value 1}
-
-                ;{:source :client/histogram-cmp :target :client/switchboard :value 1}
                 {:source :client/store-cmp :target :client/histogram-cmp :value 1}
-
-                ;{:source :client/switchboard :target :client/jvmstats-cmp :value 1}
                 {:source :client/ws-cmp :target :client/jvmstats-cmp :value 1}
-
                 {:source :client/ws-cmp :target :client/switchboard :value 1}
                 {:source :client/store-cmp :target :client/switchboard :value 1}
                 {:source :client/mouse-cmp :target :client/switchboard :value 1}
                 {:source :client/jvmstats-cmp :target :client/switchboard :value 1}
-
                 {:source :client/force-cmp :target :client/switchboard :value 1}
-                {:source :client/histogram-cmp :target :client/switchboard :value 1}
-
-                ])
+                {:source :client/histogram-cmp :target :client/switchboard :value 1}])
 
 (def links (into [] (map (fn [m] {:source (:idx ((:source m) nodes-map))
                                   :target (:idx ((:target m) nodes-map))}) links-vec)))
@@ -90,26 +61,6 @@
        [:rect {:x     -54 :y 5 :width 10 :height 10 :rx 1 :ry 1 :fill :orangered
                :style {:opacity (let [opacity (/ (max 0 (- 250 ms-since-rx)) 250)]
                                   opacity)}}]])))
-
-(defn force-view
-  "Renders SVG with an area in which components of a system are shown as a visual representation. These
-  visual representations aim at helping in observing a running system."
-  [app put-fn]
-  (let [nodes-map (:nodes-map @app)
-        nodes (map :cmp-id (-> @app (:switchboard-state) (:components)))]
-    [:div
-     [:svg {:width "100%" :viewBox "0 0 1000 1000"}
-      [:g
-       (for [m links-vec]
-         ^{:key (str "force-link-" m)}
-         [:line.link {:stroke "#BBB" :stroke-width "3px"
-                      :x1     (:x ((:source m) nodes-map))
-                      :x2     (:x ((:target m) nodes-map))
-                      :y1     (:y ((:source m) nodes-map))
-                      :y2     (:y ((:target m) nodes-map))}])
-       (for [[k v] nodes-map]
-         ^{:key (str "force-node-" k)}
-         [cmp-node app v k])]]]))
 
 (defn render-d3-force
   [app]
@@ -147,12 +98,33 @@
                                                    (swap! app assoc-in [:nodes-map k :y] y))
                                                  "")))))))))
 
+(defn force-view
+  "Renders SVG with an area in which components of a system are shown as a visual representation. These
+  visual representations aim at helping in observing a running system."
+  [app put-fn]
+  (let [nodes-map (:nodes-map @app)]
+    [:div
+     [:svg {:width "100%" :viewBox "0 0 1000 1000"}
+      [:g
+       (for [m links-vec]
+         ^{:key (str "force-link-" m)}
+         [:line.link {:stroke "#BBB" :stroke-width "3px"
+                      :x1     (:x ((:source m) nodes-map))
+                      :x2     (:x ((:target m) nodes-map))
+                      :y1     (:y ((:source m) nodes-map))
+                      :y2     (:y ((:target m) nodes-map))}])
+       (for [[k v] nodes-map]
+         ^{:key (str "force-node-" k)}
+         [cmp-node app v k])]]
+     [:div (str "Components: " (keys (:components (:switchboard-state @app))))]
+     [:div (str "Subscriptions: " (:subs (:switchboard-state @app)))]
+     [:div (str "Taps: " (:taps (:switchboard-state @app)))]]))
+
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (let [app (atom {:nodes nodes :links links :nodes-map nodes-map :time (now)})
+  (let [app (atom {:nodes nodes :links links :nodes-map nodes-map :time (now) :layout-done false})
         force-elem (by-id "force")]
-    (render-d3-force app)
     (r/render-component [force-view app put-fn force-elem] force-elem)
     (letfn [(step []
                   (request-animation-frame step)
@@ -172,7 +144,10 @@
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
   [{:keys [cmp-state msg-payload]}]
-  (swap! cmp-state assoc :switchboard-state msg-payload))
+  (swap! cmp-state assoc :switchboard-state msg-payload)
+  (when-not (:layout-done @cmp-state)
+    (render-d3-force cmp-state)
+    (swap! cmp-state assoc :layout-done true)))
 
 (defn component
   [cmp-id]
