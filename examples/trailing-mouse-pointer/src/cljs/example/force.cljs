@@ -6,16 +6,20 @@
             [cljs.core.match :refer-macros [match]]))
 
 (defn now [] (.getTime (js/Date.)))
+(defn r [] (.random js/Math))
 
-(def nodes [{:name "client/ws-cmp" :group 1 :x 600 :y 250 :last-received (now)}
-            {:name "client/switchboard" :group 1 :x 750 :y 250 :last-received (now)}
-            {:name "client/mouse-cmp" :group 1 :x 800 :y 150 :last-received (now)}
-            {:name "client/store-cmp" :group 1 :x 800 :y 400 :last-received (now)}
-            {:name "client/force-cmp" :group 1 :x 800 :y 50 :last-received (now)}
-            {:name "client/histogram-cmp" :group 1 :x 800 :y 350 :last-received (now)}
-            {:name "client/jvmstats-cmp" :group 1 :x 800 :y 550 :last-received (now)}])
+(defn nodes-fn
+  [nodes-list]
+  (map (fn [k] {:name (if (namespace k)
+                        (str (namespace k) "/" (name k))
+                        (name k))
+                :key k :group 1 :x (r) :y (r) :last-received (now)})
+                   nodes-list))
 
-(def nodes-map (into {} (map-indexed (fn [idx itm] [(keyword (:name itm)) (merge itm {:idx idx})]) nodes)))
+(defn nodes-map-fn
+  [nodes]
+  (into {} (map-indexed (fn [idx itm] [(:key itm) (merge itm {:idx idx })])
+                        nodes)))
 
 (def links-vec [{:source :client/ws-cmp :target :client/switchboard :value 6}
                 {:source :client/ws-cmp :target :client/mouse-cmp :value 1}
@@ -25,13 +29,16 @@
                 {:source :client/ws-cmp :target :client/jvmstats-cmp :value 1}
                 {:source :client/ws-cmp :target :client/switchboard :value 1}
                 {:source :client/store-cmp :target :client/switchboard :value 1}
+                {:source :client/log-cmp :target :client/switchboard :value 1}
                 {:source :client/mouse-cmp :target :client/switchboard :value 1}
                 {:source :client/jvmstats-cmp :target :client/switchboard :value 1}
                 {:source :client/force-cmp :target :client/switchboard :value 1}
                 {:source :client/histogram-cmp :target :client/switchboard :value 1}])
 
-(def links (into [] (map (fn [m] {:source (:idx ((:source m) nodes-map))
-                                  :target (:idx ((:target m) nodes-map))}) links-vec)))
+(defn links-fn
+  [nodes-map]
+  (into [] (map (fn [m] {:source (:idx ((:source m) nodes-map))
+                         :target (:idx ((:target m) nodes-map))}) links-vec)))
 
 (def foci [{:x 150 :y 150} {:x 350 :y 250}])
 
@@ -74,8 +81,8 @@
                   .-layout
                   (.force)
                   ;(.gravity 0.05)
-                  (.distance 140)
-                  (.charge -7000)
+                  (.distance 150)
+                  (.charge -10000)
                   (.size (clj->js [900 900])))
         node (-> svg
                  (.selectAll ".node")
@@ -117,13 +124,20 @@
          ^{:key (str "force-node-" k)}
          [cmp-node app v k])]]
      [:div (str "Components: " (keys (:components (:switchboard-state @app))))]
+     [:div (str "Nodes: " (str (:nodes @app)))]
+     [:div (str "Nodes2: " (str (:nodes2 @app)))]
+     [:div (str "Nodes-Map: " (str (:nodes-map @app)))]
+     [:div (str "Nodes-Map2: " (str (:nodes-map2 @app)))]
+     [:div (str "Links: " (str (:links @app)))]
+     [:div (str "Links2: " (str (:links2 @app)))]
      [:div (str "Subscriptions: " (:subs (:switchboard-state @app)))]
      [:div (str "Taps: " (:taps (:switchboard-state @app)))]]))
 
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (let [app (atom {:nodes nodes :links links :nodes-map nodes-map :time (now) :layout-done false})
+  (let [app (atom {:time        (now)
+                   :layout-done false})
         force-elem (by-id "force")]
     (r/render-component [force-view app put-fn force-elem] force-elem)
     (letfn [(step []
@@ -146,13 +160,19 @@
   [{:keys [cmp-state msg-payload]}]
   (swap! cmp-state assoc :switchboard-state msg-payload)
   (when-not (:layout-done @cmp-state)
-    (render-d3-force cmp-state)
-    (swap! cmp-state assoc :layout-done true)))
+    (let [nodes (nodes-fn (keys (:components (:switchboard-state @cmp-state))))
+          nodes-map (nodes-map-fn nodes)
+          links (links-fn nodes-map)]
+      (swap! cmp-state assoc :nodes nodes)
+      (swap! cmp-state assoc :nodes-map nodes-map)
+      (swap! cmp-state assoc :links links)
+      (render-d3-force cmp-state)
+      (swap! cmp-state assoc :layout-done true))))
 
 (defn component
   [cmp-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn mk-state
-                        :handler-map {:firehose/cmp-put (count-msg :last-tx :tx-count)
-                                      :firehose/cmp-recv (count-msg :last-rx :rx-count)}
+  (comp/make-component {:cmp-id            cmp-id
+                        :state-fn          mk-state
+                        :handler-map       {:firehose/cmp-put  (count-msg :last-tx :tx-count)
+                                            :firehose/cmp-recv (count-msg :last-rx :rx-count)}
                         :state-pub-handler state-pub-handler}))

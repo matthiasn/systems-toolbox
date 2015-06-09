@@ -130,10 +130,14 @@
    (let [switchboard (comp/make-component {:cmp-id      switchboard-id
                                            :state-fn    mk-state
                                            :handler-map handler-map})
-         sw-in-chan (:in-chan switchboard)]
+         sw-in-chan (:in-chan switchboard)
+         switchboard-namespace (namespace switchboard-id)
+         log-cmp-id (if switchboard-namespace
+                      (keyword switchboard-namespace "log-cmp")
+                      :log-cmp)]
      (put! sw-in-chan [:cmd/self-register switchboard])
-     (put! sw-in-chan [:cmd/make-log-comp :log-cmp])
-     (put! sw-in-chan [:cmd/route-all {:from switchboard-id :to :log-cmp}])
+     (put! sw-in-chan [:cmd/make-log-comp log-cmp-id])
+     (put! sw-in-chan [:cmd/route-all {:from switchboard-id :to log-cmp-id}])
      switchboard)))
 
 (defn send-cmd
