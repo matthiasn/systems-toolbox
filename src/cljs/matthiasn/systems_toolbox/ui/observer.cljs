@@ -11,7 +11,7 @@
 (defn nodes-fn
   [nodes-list]
   (map (fn [k] {:name (if (namespace k) (str (namespace k) "/" (name k)) (name k))
-                :key  k :group 1 :x (r) :y (r) :last-received (now)})
+                :key  k :group 1 :x (+ (* 800 (r)) 100) :y (+ (* 800 (r)) 100) :last-received (now)})
        nodes-list))
 
 (defn nodes-map-fn
