@@ -1,4 +1,4 @@
-(ns example.force
+(ns matthiasn.systems-toolbox.ui.observer
   (:require [reagent.core :as r :refer [atom]]
             [cljs.pprint :as pp]
             [clojure.set :as s]
@@ -115,16 +115,18 @@
 
 (defn mk-state
   "Return clean initial component state atom."
-  [put-fn]
-  (let [app (atom {:time        (now)
-                   :layout-done false})
-        force-elem (by-id "force")]
-    (r/render-component [force-view app put-fn force-elem] force-elem)
-    (letfn [(step []
-                  (request-animation-frame step)
-                  (swap! app assoc :now (now)))]
-      (request-animation-frame step))
-    app))
+  [dom-id]
+  (fn
+    [put-fn]
+    (let [app (atom {:time        (now)
+                     :layout-done false})
+          force-elem (by-id dom-id)]
+      (r/render-component [force-view app put-fn force-elem] force-elem)
+      (letfn [(step []
+                    (request-animation-frame step)
+                    (swap! app assoc :now (now)))]
+        (request-animation-frame step))
+      app)))
 
 (defn count-msg
   "Creates a handler function for collecting stats about messages and display inside the for"
@@ -158,9 +160,9 @@
       (swap! cmp-state assoc :layout-done true))))
 
 (defn component
-  [cmp-id]
+  [cmp-id dom-id]
   (comp/make-component {:cmp-id            cmp-id
-                        :state-fn          mk-state
+                        :state-fn          (mk-state dom-id)
                         :handler-map       {:firehose/cmp-put  (count-msg :last-tx :tx-count)
                                             :firehose/cmp-publish-state (count-msg :last-tx :tx-count)
                                             :firehose/cmp-recv (count-msg :last-rx :rx-count)

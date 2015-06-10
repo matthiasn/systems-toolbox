@@ -57,7 +57,7 @@
        [:div.content [:div.l-box-lrg.pure-g
                       [:div.pure-u-1.pure-u-md-1-3 [:div#mouse]]
                       [:div.pure-u-1.pure-u-md-1-6 [:div]]
-                      [:div.pure-u-1.pure-u-md-1-2 [:div#force]]]]
+                      [:div.pure-u-1.pure-u-md-1-2 [:div#observer]]]]
        [:div.content [:div.l-box-lrg [:div#histograms]]]
        [:div.content
         [:div.l-box-lrg
