@@ -125,7 +125,7 @@
   a communicating system."
   ([] (component :switchboard))
   ([switchboard-id]
-   (println "Switchboard starting.")
+    ;(println "Switchboard starting.")
    (let [switchboard (comp/make-component {:cmp-id      switchboard-id
                                            :state-fn    mk-state
                                            :handler-map handler-map})

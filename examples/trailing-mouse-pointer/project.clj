@@ -11,16 +11,12 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5"]
                  [clj-pid "0.1.1"]
-                 [matthiasn/systems-toolbox "0.2.1-SNAPSHOT"
-                  :exclusions [reagent org.clojure/clojure org.clojure/clojurescript]]
+                 [matthiasn/systems-toolbox "0.2.1-SNAPSHOT"]
 ;                 [reagent "0.5.0" :exclusions [cljsjs/react]]
                  [reagent "0.5.0"]
                  [incanter "1.5.6"]
                  [clj-time "0.9.0"]
-                 [org.clojure/clojurescript "0.0-3308"
-                  :classifier "aot" :exclusions [org.clojure/tools.reader org.clojure/data.json]]
-                 [org.clojure/tools.reader "0.9.2" :classifier "aot"]
-                 [org.clojure/data.json "0.2.6" :classifier "aot"]]
+                 [org.clojure/clojurescript "0.0-3308"]]
 
   :source-paths ["src/clj/"]
 

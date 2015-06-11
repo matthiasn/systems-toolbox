@@ -6,18 +6,15 @@
 
   :source-paths ["src/clj" "src/cljs" "target/generated/src/clj" "target/generated/src/cljs"]
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-3308"
-                  :classifier "aot" :exclusions [org.clojure/tools.reader org.clojure/data.json]]
-                 [org.clojure/tools.reader "0.9.2" :classifier "aot"]
-                 [org.clojure/data.json "0.2.6" :classifier "aot"]
+  :dependencies [[org.clojure/clojure "1.7.0-RC1"]
+                 [org.clojure/clojurescript "0.0-3308"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [reagent "0.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [com.taoensso/sente "1.4.1"]
+                 [com.taoensso/sente "1.5.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]
-                 [com.cognitect/transit-clj "0.8.271"]
-                 [com.cognitect/transit-cljs "0.8.207"]
+                 [com.cognitect/transit-clj "0.8.275"]
+                 [com.cognitect/transit-cljs "0.8.220"]
                  [compojure "1.3.4"]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]

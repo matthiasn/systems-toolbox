@@ -39,7 +39,8 @@
   [app put-fn msg]
   (match msg
          [:app-state snapshot] (recv-snapshot app (:from (meta msg)) snapshot)
-         :else (println "Unmatched event:" msg)))
+         :else ()                                             ;(println "Unmatched event:" msg)
+         ))
 
 (defn component
   [cmp-id dom-id]

@@ -29,5 +29,4 @@
   (r/component {:cmp-id        cmp-id
                 :view-fn       histograms-view
                 :dom-id        "histograms"
-                :initial-state {}
                 :cfg           {:throttle-ms 100}}))
