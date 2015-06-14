@@ -3,7 +3,8 @@
             [cljs.pprint :as pp]
             [clojure.set :as s]
             [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.helpers :refer [by-id request-animation-frame]]))
+            [matthiasn.systems-toolbox.helpers :refer [by-id request-animation-frame]]
+            [cljsjs.d3]))
 
 (defn now [] (.getTime (js/Date.)))
 (defn r [] (.random js/Math))

@@ -29,9 +29,8 @@
 
   :cljsbuild {:builds [{:id "release"
                         :source-paths ["src/cljs"]
-                        :compiler {:output-dir "resources/public/js/build/"
-                                   :output-to "resources/public/js/build/example.js"
-                                   ;:optimizations :advanced
-                                   :optimizations :simple
+                        :compiler {:optimizations :advanced
+                                   ;:optimizations :simple
                                    ;:source-map "resources/public/js/build/example.js.map"
-                                   }}]})
+                                   :output-dir "resources/public/js/build/"
+                                   :output-to "resources/public/js/build/example.js"}}]})

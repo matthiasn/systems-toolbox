@@ -73,6 +73,4 @@
        [:div.content
         [:div.l-box-lrg
          [:div#d3]]]]
-      ;[:script {:src "https://fb.me/react-with-addons-0.13.2.js"}]
-      [:script {:src "/bower_components/d3/d3.min.js"}]
       [:script {:src "/js/build/example.js"}]]]))
