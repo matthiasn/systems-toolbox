@@ -72,5 +72,5 @@
          [:div#snapshots.pure-u-1.pure-u-md-1-2]]]
        [:div.content
         [:div.l-box-lrg
-         [:div#d3]]]]
+         [:div#observer]]]]
       [:script {:src "/js/build/example.js"}]]]))

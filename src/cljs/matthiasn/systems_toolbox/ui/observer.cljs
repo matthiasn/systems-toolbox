@@ -1,6 +1,5 @@
 (ns matthiasn.systems-toolbox.ui.observer
   (:require [reagent.core :as r :refer [atom]]
-            [cljs.pprint :as pp]
             [clojure.set :as s]
             [matthiasn.systems-toolbox.component :as comp]
             [matthiasn.systems-toolbox.helpers :refer [by-id request-animation-frame]]
@@ -12,7 +11,10 @@
 (defn nodes-fn
   [nodes-list]
   (map (fn [k] {:name (if (namespace k) (str (namespace k) "/" (name k)) (name k))
-                :key  k :group 1 :x (+ (* 800 (r)) 100) :y (+ (* 800 (r)) 100) :last-received (now)})
+                :key  k :group 1
+                :x    (if (= k :client/switchboard) 500 (+ (* 800 (r)) 100))
+                :y    (if (= k :client/switchboard) 500 (+ (* 800 (r)) 100))
+                :last-received (now)})
        nodes-list))
 
 (defn nodes-map-fn
@@ -54,21 +56,50 @@
                :style {:opacity (let [opacity (/ (max 0 (- 250 ms-since-rx)) 250)]
                                   opacity)}}]])))
 
-(defn render-d3-force
-  [app]
+(defn in-interval?
+  [lower n upper]
+  (and (>= n lower) (<= n upper)))
+
+(defn tick-fn
+  [app node]
   (let [state @app
+        force-cfg (:force-cfg state)
+        fixed-nodes (:fixed-nodes force-cfg)]
+  (fn [e]
+    (let [k (* .1 (.-alpha e))]
+      (-> node
+          (.attr "transform" (fn [d]
+                               (let [x (.-x d)
+                                     y (.-y d)
+                                     k (keyword (.-name d))]
+                                 (if (contains? fixed-nodes k)
+                                   (do
+                                     (swap! app assoc-in [:nodes-map k :x] (:x (k fixed-nodes)))
+                                     (swap! app assoc-in [:nodes-map k :y] (:y (k fixed-nodes))))
+                                   (do
+                                     (when (in-interval? 100 x 900)
+                                       (swap! app assoc-in [:nodes-map k :x] x))
+                                     (when (in-interval? 100 y 900)
+                                       (swap! app assoc-in [:nodes-map k :y] y)))))
+                               "")))))))
+
+(defn render-d3-force
+  [app dom-id]
+  (let [state @app
+        force-cfg (:force-cfg state)
         nodes-js (clj->js (:nodes state))
         links-js (clj->js (:d3-links state))
         svg (-> js/d3
-                (.select "#d3")
+                (.select (str "#" dom-id))
                 (.append "svg"))
         force (-> js/d3
                   .-layout
                   (.force)
                   ;(.gravity 0.05)
-                  (.distance 150)
-                  (.charge -10000)
-                  (.size (clj->js [900 900])))
+                  (.linkDistance (:link-distance force-cfg))
+                  ;(.chargeDistance (:charge-distance force-cfg))
+                  (.charge (:charge force-cfg))
+                  (.size (clj->js [(:width force-cfg) (:height force-cfg)])))
         node (-> svg
                  (.selectAll ".node")
                  (.data nodes-js)
@@ -79,16 +110,7 @@
         (.links links-js)
         (.start))
     (-> force
-        (.on "tick" (fn [e]
-                      (let [k (* .1 (.-alpha e))]
-                        (-> node
-                            (.attr "transform" (fn [d]
-                                                 (let [x (.-x d)
-                                                       y (.-y d)
-                                                       k (keyword (.-name d))]
-                                                   (swap! app assoc-in [:nodes-map k :x] x)
-                                                   (swap! app assoc-in [:nodes-map k :y] y))
-                                                 "")))))))))
+        (.on "tick" (tick-fn app node)))))
 
 (defn force-view
   "Renders SVG with an area in which components of a system are shown as a visual representation. These
@@ -116,11 +138,12 @@
 
 (defn mk-state
   "Return clean initial component state atom."
-  [dom-id]
+  [dom-id force-cfg]
   (fn
     [put-fn]
     (let [app (atom {:time        (now)
-                     :layout-done false})
+                     :layout-done false
+                     :force-cfg force-cfg})
           force-elem (by-id dom-id)]
       (r/render-component [force-view app put-fn force-elem] force-elem)
       (letfn [(step []
@@ -142,31 +165,33 @@
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."
-  [{:keys [cmp-state msg-payload]}]
-  (swap! cmp-state assoc :switchboard-state msg-payload)
-  (when-not (:layout-done @cmp-state)
-    (let [switchboard-state (:switchboard-state @cmp-state)
-          nodes (nodes-fn (keys (:components switchboard-state)))
-          nodes-map (nodes-map-fn nodes)
-          subscriptions-set (:subs switchboard-state)
-          taps-set (:taps switchboard-state)
-          fh-taps-set (:fh-taps switchboard-state)
-          links (s/union subscriptions-set taps-set fh-taps-set)
-          d3-links (links-fn nodes-map links)]
-      (swap! cmp-state assoc :nodes nodes)
-      (swap! cmp-state assoc :nodes-map nodes-map)
-      (swap! cmp-state assoc :links links)
-      (swap! cmp-state assoc :d3-links d3-links)
-      (render-d3-force cmp-state)
-      (swap! cmp-state assoc :layout-done true))))
+  [dom-id]
+  (fn
+    [{:keys [cmp-state msg-payload]}]
+    (swap! cmp-state assoc :switchboard-state msg-payload)
+    (when-not (:layout-done @cmp-state)
+      (let [switchboard-state (:switchboard-state @cmp-state)
+            nodes (nodes-fn (keys (:components switchboard-state)))
+            nodes-map (nodes-map-fn nodes)
+            subscriptions-set (:subs switchboard-state)
+            taps-set (:taps switchboard-state)
+            fh-taps-set (:fh-taps switchboard-state)
+            links (s/union subscriptions-set taps-set fh-taps-set)
+            d3-links (links-fn nodes-map links)]
+        (swap! cmp-state assoc :nodes nodes)
+        (swap! cmp-state assoc :nodes-map nodes-map)
+        (swap! cmp-state assoc :links links)
+        (swap! cmp-state assoc :d3-links d3-links)
+        (render-d3-force cmp-state dom-id)
+        (swap! cmp-state assoc :layout-done true)))))
 
 (defn component
-  [cmp-id dom-id]
+  [cmp-id dom-id force-cfg]
   (comp/make-component {:cmp-id            cmp-id
-                        :state-fn          (mk-state dom-id)
-                        :handler-map       {:firehose/cmp-put  (count-msg :last-tx :tx-count)
+                        :state-fn          (mk-state dom-id force-cfg)
+                        :handler-map       {:firehose/cmp-put           (count-msg :last-tx :tx-count)
                                             :firehose/cmp-publish-state (count-msg :last-tx :tx-count)
-                                            :firehose/cmp-recv (count-msg :last-rx :rx-count)
-                                            :firehose/cmp-recv-state (count-msg :last-rx :rx-count)}
-                        :state-pub-handler state-pub-handler
-                        :opts {:snapshots-on-firehose false}}))
+                                            :firehose/cmp-recv          (count-msg :last-rx :rx-count)
+                                            :firehose/cmp-recv-state    (count-msg :last-rx :rx-count)}
+                        :state-pub-handler (state-pub-handler dom-id)
+                        :opts              {:snapshots-on-firehose false}}))

@@ -1,6 +1,6 @@
 (ns matthiasn.systems-toolbox.component
   #+clj (:gen-class)
-  #+cljs (:require-macros [cljs.core.async.macros :refer [go-loop]])
+  #+cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]])
   (:require
     #+clj [clojure.core.match :refer [match]]
     #+cljs [cljs.core.match :refer-macros [match]]
@@ -33,30 +33,33 @@
   called to produce output."
   [{:keys [handler-map all-msgs-handler state-pub-handler put-fn cfg cmp-id firehose-chan] :as cmp-map} cmp-state chan-key]
   (let [chan (make-chan-w-buf (chan-key cfg))]
-    (go-loop []
-      (let [msg (<! chan)
-            msg-meta (-> (merge (meta msg) {})
-                         (assoc-in, [:cmp-seq] cmp-id)      ; TODO: replace by actual sequence
-                         (assoc-in, [cmp-id :in-timestamp] (now)))
-            [msg-type msg-payload] msg
-            handler-fn (msg-type handler-map)
-            msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
-                                    :msg-type    msg-type
-                                    :msg-meta    msg-meta
-                                    :msg-payload msg-payload
-                                    :cmp-state   cmp-state})]
-        (when (= chan-key :sliding-in-chan)
-          (state-pub-handler msg-map)
-          (when-not (= "firehose" (namespace msg-type))
-            (put! firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
-          (<! (timeout (:throttle-ms cfg))))
-        (when (= chan-key :in-chan)
-          (when-not (= "firehose" (namespace msg-type))
-            (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
-          (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
-          (when handler-fn (handler-fn msg-map))
-          (when all-msgs-handler (all-msgs-handler msg-map)))
-        (recur)))
+    (try
+      (go-loop []
+        (let [msg (<! chan)
+              msg-meta (-> (merge (meta msg) {})
+                           (assoc-in, [:cmp-seq] cmp-id)    ; TODO: replace by actual sequence
+                           (assoc-in, [cmp-id :in-timestamp] (now)))
+              [msg-type msg-payload] msg
+              handler-fn (msg-type handler-map)
+              msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
+                                      :msg-type    msg-type
+                                      :msg-meta    msg-meta
+                                      :msg-payload msg-payload
+                                      :cmp-state   cmp-state})]
+          (when (= chan-key :sliding-in-chan)
+            (state-pub-handler msg-map)
+            (when-not (= "firehose" (namespace msg-type))
+              (put! firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
+            (<! (timeout (:throttle-ms cfg))))
+          (when (= chan-key :in-chan)
+            (when-not (= "firehose" (namespace msg-type))
+              (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
+            (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
+            (when handler-fn (handler-fn msg-map))
+            (when all-msgs-handler (all-msgs-handler msg-map)))
+          (recur)))
+     #+clj (catch Exception e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map))
+     #+cljs (catch js/Object e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map)))
     {chan-key chan}))
 
 (defn make-component
@@ -69,7 +72,7 @@
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
   state snapshots from other components."
-  [{:keys [cmp-id state-fn opts] :as cmp-conf}]
+  [{:keys [cmp-id state-fn state-pub-handler opts] :as cmp-conf}]
   (let [cfg (merge component-defaults opts)
         out-chan (make-chan-w-buf (:out-chan cfg))
         firehose-chan (make-chan-w-buf (:firehose-chan cfg))
