@@ -36,6 +36,7 @@
         msg-to-send (:message msg-payload)]
     (when scheduler-id (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
                        (put-fn [:log/info (str "Scheduling:" msg-payload)]))
+    (when (:initial msg-payload) (put-fn msg-to-send))
     (go-loop []
       (<! (timeout timout-ms))
       (let [state @cmp-state
