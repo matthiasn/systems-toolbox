@@ -130,9 +130,9 @@
        (for [l links]
          ^{:key (str "force-link-" l)}
          [:line.link {:stroke       (condp = (:type l)
-                                      :sub "#0F0"
-                                      :tap "#00F"
-                                      :fh-tap "#F00")
+                                      :sub "#00CC33"
+                                      :tap "#0033CC"
+                                      :fh-tap "#CC0033")
                       :stroke-width "3px"
                       :x1           (:x ((:from l) nodes-map))
                       :x2           (:x ((:to l) nodes-map))
