@@ -10,10 +10,10 @@
 
 (defn nodes-fn
   [nodes-list]
-  (map (fn [k] {:name (if (namespace k) (str (namespace k) "/" (name k)) (name k))
-                :key  k :group 1
-                :x    (if (= k :client/switchboard) 500 (+ (* 800 (r)) 100))
-                :y    (if (= k :client/switchboard) 500 (+ (* 800 (r)) 100))
+  (map (fn [k] {:name          (if (namespace k) (str (namespace k) "/" (name k)) (name k))
+                :key           k :group 1
+                :x             (if (= k :client/switchboard) 500 (+ (* 800 (r)) 100))
+                :y             (if (= k :client/switchboard) 500 (+ (* 800 (r)) 100))
                 :last-received (now)})
        nodes-list))
 
@@ -42,7 +42,13 @@
     (when x
       [:g {:transform (str "translate(" x "," y ")")
            :on-click  #(prn ((-> @app (:switchboard-state) (:components) (cmp-key) (:state-snapshot-fn))))}
-       [:rect {:x      -60 :y -25 :width 120 :height 50 :rx 5 :ry 5 :fill :white
+       [:rect {:x -60
+               :y -25
+               :width 120
+               :height 50
+               :rx 5
+               :ry 5
+               :fill :white
                :stroke (if (zero? grp) "#C55" "#5C5") :stroke-width "2px"}]
        [:text {:dy   "-.5em" :text-anchor :middle :text-rendering "geometricPrecision" :stroke :none
                :fill :black :font-size "11px" :style {:font-weight :bold}} (str cmp-key)]
@@ -65,23 +71,23 @@
   (let [state @app
         force-cfg (:force-cfg state)
         fixed-nodes (:fixed-nodes force-cfg)]
-  (fn [e]
-    (let [k (* .1 (.-alpha e))]
-      (-> node
-          (.attr "transform" (fn [d]
-                               (let [x (.-x d)
-                                     y (.-y d)
-                                     k (keyword (.-name d))]
-                                 (if (contains? fixed-nodes k)
-                                   (do
-                                     (swap! app assoc-in [:nodes-map k :x] (:x (k fixed-nodes)))
-                                     (swap! app assoc-in [:nodes-map k :y] (:y (k fixed-nodes))))
-                                   (do
-                                     (when (in-interval? 100 x 900)
-                                       (swap! app assoc-in [:nodes-map k :x] x))
-                                     (when (in-interval? 100 y 900)
-                                       (swap! app assoc-in [:nodes-map k :y] y)))))
-                               "")))))))
+    (fn [e]
+      (let [k (* .1 (.-alpha e))]
+        (-> node
+            (.attr "transform" (fn [d]
+                                 (let [x (.-x d)
+                                       y (.-y d)
+                                       k (keyword (.-name d))]
+                                   (if (contains? fixed-nodes k)
+                                     (do
+                                       (swap! app assoc-in [:nodes-map k :x] (:x (k fixed-nodes)))
+                                       (swap! app assoc-in [:nodes-map k :y] (:y (k fixed-nodes))))
+                                     (do
+                                       (when (in-interval? 100 x 900)
+                                         (swap! app assoc-in [:nodes-map k :x] x))
+                                       (when (in-interval? 100 y 900)
+                                         (swap! app assoc-in [:nodes-map k :y] y)))))
+                                 "")))))))
 
 (defn render-d3-force
   [app dom-id]
@@ -95,10 +101,10 @@
         force (-> js/d3
                   .-layout
                   (.force)
-                  ;(.gravity 0.05)
+                  (.gravity 0)
+                  (.charge (:charge force-cfg))
                   (.linkDistance (:link-distance force-cfg))
                   ;(.chargeDistance (:charge-distance force-cfg))
-                  (.charge (:charge force-cfg))
                   (.size (clj->js [(:width force-cfg) (:height force-cfg)])))
         node (-> svg
                  (.selectAll ".node")
@@ -123,15 +129,15 @@
       [:g
        (for [l links]
          ^{:key (str "force-link-" l)}
-         [:line.link {:stroke (condp = (:type l)
-                                :sub "#0F0"
-                                :tap "#00F"
-                                :fh-tap "#F00")
+         [:line.link {:stroke       (condp = (:type l)
+                                      :sub "#0F0"
+                                      :tap "#00F"
+                                      :fh-tap "#F00")
                       :stroke-width "3px"
-                      :x1     (:x ((:from l) nodes-map))
-                      :x2     (:x ((:to l) nodes-map))
-                      :y1     (:y ((:from l) nodes-map))
-                      :y2     (:y ((:to l) nodes-map))}])
+                      :x1           (:x ((:from l) nodes-map))
+                      :x2           (:x ((:to l) nodes-map))
+                      :y1           (:y ((:from l) nodes-map))
+                      :y2           (:y ((:to l) nodes-map))}])
        (for [[k v] nodes-map]
          ^{:key (str "force-node-" k)}
          [cmp-node app v k])]]]))
@@ -143,7 +149,7 @@
     [put-fn]
     (let [app (atom {:time        (now)
                      :layout-done false
-                     :force-cfg force-cfg})
+                     :force-cfg   force-cfg})
           force-elem (by-id dom-id)]
       (r/render-component [force-view app put-fn force-elem] force-elem)
       (letfn [(step []
