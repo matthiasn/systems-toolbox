@@ -6,7 +6,7 @@
 
   :source-paths ["src/clj" "src/cljs" "target/generated/src/clj" "target/generated/src/cljs"]
 
-  :dependencies [[org.clojure/clojure "1.7.0-RC1"]
+  :dependencies [[org.clojure/clojure "1.7.0-RC2"]
                  [org.clojure/clojurescript "0.0-3308"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [reagent "0.5.0"]
