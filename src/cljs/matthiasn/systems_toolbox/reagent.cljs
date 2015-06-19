@@ -24,9 +24,10 @@
   (reset! (:observed cmp-state) msg-payload))
 
 (defn component
-  [{:keys [cmp-id view-fn dom-id initial-state cfg]}]
+  [{:keys [cmp-id view-fn dom-id initial-state cfg handler-map]}]
   (let [mk-state (partial init view-fn dom-id initial-state)]
     (comp/make-component {:cmp-id            cmp-id
                           :state-fn          mk-state
+                          :handler-map       handler-map
                           :state-pub-handler state-pub-handler
                           :opts              (merge cfg {:watch :local})})))
