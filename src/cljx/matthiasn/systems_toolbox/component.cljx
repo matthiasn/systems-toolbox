@@ -21,9 +21,14 @@
          :else (prn "invalid: " config)))
 
 (def component-defaults
-  {:in-chan  [:buffer 1] :sliding-in-chan [:sliding 1] :throttle-ms 1
-   :out-chan [:buffer 1] :sliding-out-chan [:sliding 1] :firehose-chan [:buffer 1]
-   :snapshots-on-firehose true})
+  {:in-chan  [:buffer 1]
+   :sliding-in-chan [:sliding 1]
+   :throttle-ms 1
+   :out-chan [:buffer 1]
+   :sliding-out-chan [:sliding 1]
+   :firehose-chan [:buffer 1]
+   :snapshots-on-firehose true
+   :msgs-on-firehose true})
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -48,11 +53,11 @@
                                       :cmp-state   cmp-state})]
           (when (= chan-key :sliding-in-chan)
             (state-pub-handler msg-map)
-            (when-not (= "firehose" (namespace msg-type))
+            (when (and (:snapshots-on-firehose cfg) (not (= "firehose" (namespace msg-type))))
               (put! firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (<! (timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
-            (when-not (= "firehose" (namespace msg-type))
+            (when (and (:msgs-on-firehose cfg) (not (= "firehose" (namespace msg-type))))
               (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when handler-fn (handler-fn msg-map))
@@ -72,7 +77,7 @@
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
   state snapshots from other components."
-  [{:keys [cmp-id state-fn state-pub-handler opts] :as cmp-conf}]
+  [{:keys [cmp-id state-fn snapshot-xform-fn opts] :as cmp-conf}]
   (let [cfg (merge component-defaults opts)
         out-chan (make-chan-w-buf (:out-chan cfg))
         firehose-chan (make-chan-w-buf (:firehose-chan cfg))
@@ -84,7 +89,8 @@
                                     (assoc-in, [cmp-id :out-timestamp] (now)))
                        msg-w-meta (with-meta msg msg-meta)]
                    (put! out-chan msg-w-meta)
-                   (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}])))
+                   (when (:msgs-on-firehose cfg)
+                     (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}]))))
         out-mult (mult out-chan)
         firehose-mult (mult firehose-chan)
         state (if state-fn (state-fn put-fn) (atom {}))
@@ -103,18 +109,23 @@
             (add-watch watch-state
                        :watcher
                        (fn [_ _ _ new-state]
-                         (let [snapshot-msg (with-meta [:app-state new-state] {:from cmp-id})]
+                         (let [snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn new-state) new-state)
+                               snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
                            (put! sliding-out-chan snapshot-msg)
                            (when (:snapshots-on-firehose cfg)
-                             (put! firehose-chan [:firehose/cmp-publish-state {:cmp-id cmp-id :msg snapshot-msg}])))))
+                             (put! firehose-chan
+                                   [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))))
             (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
     #+cljs (letfn [(step []
                          (request-animation-frame step)
                          (when @changed
-                           (let [snapshot-msg (with-meta [:app-state @watch-state] {:from cmp-id})]
+                           (let [snapshot @watch-state
+                                 snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
+                                 snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
                              (put! sliding-out-chan snapshot-msg)
                              (when (:snapshots-on-firehose cfg)
-                               (put! firehose-chan [:firehose/cmp-publish-state {:cmp-id cmp-id :msg snapshot-msg}])))
+                               (put! firehose-chan
+                                     [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))
                            (swap! changed not)))]
              (request-animation-frame step)
              (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))

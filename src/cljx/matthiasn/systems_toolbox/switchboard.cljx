@@ -120,15 +120,22 @@
    :cmd/send               send-to
    :cmd/make-log-comp      make-log-comp})
 
+(defn xform-fn
+  "Transformer function for switchboard state snapshot. Allow serialization of snaphot for sending over WebSockets."
+  [m]
+  (let [xform (update-in m [:components] (fn [cmps] (into {} (map (fn [[k v]] [k k]) cmps))))]
+    xform))
+
 (defn component
   "Creates a switchboard component that wires individual components together into
   a communicating system."
   ([] (component :switchboard))
   ([switchboard-id]
-    ;(println "Switchboard starting.")
-   (let [switchboard (comp/make-component {:cmp-id      switchboard-id
-                                           :state-fn    mk-state
-                                           :handler-map handler-map})
+   (let [switchboard (comp/make-component {:cmp-id            switchboard-id
+                                           :state-fn          mk-state
+                                           :handler-map       handler-map
+                                           :opts              {:msgs-on-firehose false}
+                                           :snapshot-xform-fn xform-fn})
          sw-in-chan (:in-chan switchboard)
          switchboard-namespace (namespace switchboard-id)
          log-cmp-id (if switchboard-namespace

@@ -96,38 +96,43 @@
       app)))
 
 (defn count-msg
-  "Creates a handler function for collecting stats about messages and display inside the for"
+  "Creates a handler function for collecting stats about messages and and their display."
   [ts-key count-key]
   (fn
     [{:keys [cmp-state msg-payload cmp-id]}]
     (let [other-id (:cmp-id msg-payload)]
-      (swap! cmp-state assoc-in [:nodes-map other-id ts-key] (now))
-      (swap! cmp-state update-in [:nodes-map other-id count-key] #(inc (or % 0)))
-      (swap! cmp-state assoc-in [:nodes-map cmp-id :last-rx] (now))
-      (swap! cmp-state update-in [:nodes-map cmp-id :rx-count] #(inc (or % 0))))))
+      (when (:switchboard-state @cmp-state)
+        (swap! cmp-state assoc-in [:nodes-map other-id ts-key] (now))
+        (swap! cmp-state update-in [:nodes-map other-id count-key] #(inc (or % 0)))
+        (swap! cmp-state assoc-in [:nodes-map cmp-id :last-rx] (now))
+        (swap! cmp-state update-in [:nodes-map cmp-id :rx-count] #(inc (or % 0)))))))
 
-(defn state-pub-handler
-  "Handle incoming messages: process / add to application state."
-  [{:keys [cmp-state msg-payload]}]
-    (swap! cmp-state assoc :switchboard-state msg-payload)
-    (let [switchboard-state (:switchboard-state @cmp-state)
-          obs-cfg (:obs-cfg @cmp-state)
-          nodes-map (nodes-map-fn (keys (:components switchboard-state)) obs-cfg)
-          subscriptions-set (:subs switchboard-state)
-          taps-set (:taps switchboard-state)
-          fh-taps-set (:fh-taps switchboard-state)
-          links (s/union subscriptions-set taps-set fh-taps-set)]
-      (swap! cmp-state assoc :nodes-map nodes-map)
-      (swap! cmp-state assoc :links links)))
+(defn state-snapshot-handler
+  "Creates a handler function for component snapshot messages. Uses messages from switchboard for configuring UI."
+  [switchbrd-id]
+  (fn
+    [{:keys [cmp-state msg-payload] :as msg-map}]
+    (let [other-id (:cmp-id msg-payload)
+          count-fn (count-msg :last-rx :rx-count)]
+      (count-fn msg-map)
+      (when (= other-id switchbrd-id)
+        (let [switchboard-state (:snapshot msg-payload)
+              obs-cfg (:obs-cfg @cmp-state)
+              nodes-map (nodes-map-fn (keys (:components switchboard-state)) obs-cfg)
+              subscriptions-set (:subs switchboard-state)
+              taps-set (:taps switchboard-state)
+              fh-taps-set (:fh-taps switchboard-state)
+              links (s/union subscriptions-set taps-set fh-taps-set)]
+          (swap! cmp-state assoc :switchboard-state switchboard-state)
+          (swap! cmp-state assoc :nodes-map nodes-map)
+          (swap! cmp-state assoc :links links))))))
 
 (defn component
-  [cmp-id dom-id obs-cfg]
-
-  (comp/make-component {:cmp-id            cmp-id
-                        :state-fn          (mk-state dom-id obs-cfg)
-                        :handler-map       {:firehose/cmp-put           (count-msg :last-tx :tx-count)
-                                            :firehose/cmp-publish-state (count-msg :last-tx :tx-count)
-                                            :firehose/cmp-recv          (count-msg :last-rx :rx-count)
-                                            :firehose/cmp-recv-state    (count-msg :last-rx :rx-count)}
-                        :state-pub-handler state-pub-handler
-                        :opts              {:snapshots-on-firehose false}}))
+  [cmp-id dom-id switchbrd-id obs-cfg]
+  (comp/make-component {:cmp-id      cmp-id
+                        :state-fn    (mk-state dom-id obs-cfg)
+                        :handler-map {:firehose/cmp-put           (count-msg :last-tx :tx-count)
+                                      :firehose/cmp-publish-state (state-snapshot-handler switchbrd-id)
+                                      :firehose/cmp-recv          (count-msg :last-rx :rx-count)
+                                      :firehose/cmp-recv-state    (count-msg :last-rx :rx-count)}
+                        :opts        {:snapshots-on-firehose false}}))

@@ -16,4 +16,6 @@
   [cmp-id]
   (comp/make-component
     {:cmp-id  cmp-id
-     :all-msgs-handler all-msgs-handler}))
+     :all-msgs-handler all-msgs-handler
+     :msgs-on-firehose false
+     :snapshots-on-firehose false}))
