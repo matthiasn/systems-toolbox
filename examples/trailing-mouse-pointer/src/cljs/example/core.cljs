@@ -2,6 +2,7 @@
   (:require [example.store :as store]
             [example.ui-histograms :as hist]
             [example.ui-mouse-moves :as mouse]
+            [example.conf :as conf]
             [matthiasn.systems-toolbox.ui.observer :as obs]
             [matthiasn.systems-toolbox.switchboard :as sb]
             [matthiasn.systems-toolbox.sente :as sente]
@@ -20,14 +21,8 @@
    [:cmd/wire-comp (store/component :client/store-cmp)]     ; Data store component
    [:cmd/wire-comp (jvmstats/component :client/jvmstats-cmp "jvm-stats-frame")] ;  UI component: JVM stats
 
-   [:cmd/wire-comp (obs/component :client/observer-cmp "observer"
-                                  {:link-distance 280
-                                   :charge -5000
-                                   :width 1000
-                                   :height 1000
-                                   :fixed-nodes {:client/switchboard {:x 500 :y 200}
-                                                 :client/ws-cmp {:x 200 :y 200}
-                                                 :client/store-cmp {:x 500 :y 500}}})]
+   [:cmd/wire-comp (obs/component :client/observer-cmp conf/observer-cfg-map)]  ; UI component for observing system
+   [:cmd/attach-to-firehose :client/observer-cmp]
 
    ;; Then, messages of a given type are wired from one component to another.
    ;[:cmd/route {:from :client/mouse-cmp :to :client/ws-cmp :only :cmd/mouse-pos}]
