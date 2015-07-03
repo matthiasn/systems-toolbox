@@ -1,5 +1,6 @@
 (ns matthiasn.systems-toolbox.handler-utils
-  #+clj (:gen-class))
+  #?(:clj
+     (:gen-class)))
 
 (defn fwd-as
   "Creates a handler function that sends the payload of handled message as a new message type while discarding

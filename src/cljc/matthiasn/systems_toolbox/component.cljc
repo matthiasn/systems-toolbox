@@ -1,16 +1,16 @@
 (ns matthiasn.systems-toolbox.component
-  #+clj (:gen-class)
-  #+cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]])
+  #?(:clj (:gen-class))
+  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]))
   (:require
-    #+clj [clojure.core.match :refer [match]]
-    #+cljs [cljs.core.match :refer-macros [match]]
-    #+cljs [matthiasn.systems-toolbox.helpers :refer [request-animation-frame]]
-    #+clj [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
-    #+cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]]
-    #+clj [clojure.tools.logging :as log]))
+    #?(:clj  [clojure.core.match :refer [match]])
+    #?(:cljs [cljs.core.match :refer-macros [match]])
+    #?(:cljs [matthiasn.systems-toolbox.helpers :refer [request-animation-frame]])
+    #?(:clj  [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]])
+    #?(:cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
+    #?(:clj  [clojure.tools.logging :as log])))
 
-#+clj (defn now [] (System/currentTimeMillis))
-#+cljs (defn now [] (.getTime (js/Date.)))
+#?(:clj  (defn now [] (System/currentTimeMillis)))
+#?(:cljs (defn now [] (.getTime (js/Date.))))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -21,14 +21,14 @@
          :else (prn "invalid: " config)))
 
 (def component-defaults
-  {:in-chan  [:buffer 1]
-   :sliding-in-chan [:sliding 1]
-   :throttle-ms 1
-   :out-chan [:buffer 1]
-   :sliding-out-chan [:sliding 1]
-   :firehose-chan [:buffer 1]
+  {:in-chan               [:buffer 1]
+   :sliding-in-chan       [:sliding 1]
+   :throttle-ms           1
+   :out-chan              [:buffer 1]
+   :sliding-out-chan      [:sliding 1]
+   :firehose-chan         [:buffer 1]
    :snapshots-on-firehose true
-   :msgs-on-firehose true})
+   :msgs-on-firehose      true})
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -63,8 +63,8 @@
             (when handler-fn (handler-fn msg-map))
             (when all-msgs-handler (all-msgs-handler msg-map)))
           (recur)))
-     #+clj (catch Exception e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map))
-     #+cljs (catch js/Object e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map)))
+      #?(:clj (catch Exception e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map)))
+      #?(:cljs (catch js/Object e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map))))
     {chan-key chan}))
 
 (defn make-component
@@ -105,31 +105,33 @@
                                  :cfg               cfg
                                  :state-snapshot-fn (fn [] @watch-state)})]
     (tap out-mult out-pub-chan)
-    #+clj (try
-            (add-watch watch-state
-                       :watcher
-                       (fn [_ _ _ new-state]
-                         (let [snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn new-state) new-state)
-                               snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
-                           (put! sliding-out-chan snapshot-msg)
-                           (when (:snapshots-on-firehose cfg)
-                             (put! firehose-chan
-                                   [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))))
-            (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
-    #+cljs (letfn [(step []
-                         (request-animation-frame step)
-                         (when @changed
-                           (let [snapshot @watch-state
-                                 snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
-                                 snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
-                             (put! sliding-out-chan snapshot-msg)
-                             (when (:snapshots-on-firehose cfg)
-                               (put! firehose-chan
-                                     [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))
-                           (swap! changed not)))]
-             (request-animation-frame step)
-             (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
-                  (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e))))
+    #?(:clj
+       (try
+         (add-watch watch-state
+                    :watcher
+                    (fn [_ _ _ new-state]
+                      (let [snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn new-state) new-state)
+                            snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
+                        (put! sliding-out-chan snapshot-msg)
+                        (when (:snapshots-on-firehose cfg)
+                          (put! firehose-chan
+                                [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))))
+         (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e))))
+    #?(:cljs
+       (letfn [(step []
+                     (request-animation-frame step)
+                     (when @changed
+                       (let [snapshot @watch-state
+                             snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
+                             snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
+                         (put! sliding-out-chan snapshot-msg)
+                         (when (:snapshots-on-firehose cfg)
+                           (put! firehose-chan
+                                 [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))
+                       (swap! changed not)))]
+         (request-animation-frame step)
+         (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
+              (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e)))))
     (merge cmp-map
            (msg-handler-loop cmp-map state :in-chan)
            (msg-handler-loop cmp-map state :sliding-in-chan))))

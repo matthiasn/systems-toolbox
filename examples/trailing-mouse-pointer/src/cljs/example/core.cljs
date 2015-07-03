@@ -20,9 +20,7 @@
    [:cmd/wire-comp (mouse/component :client/mouse-cmp)]     ; UI component for capturing mouse moves
    [:cmd/wire-comp (store/component :client/store-cmp)]     ; Data store component
    [:cmd/wire-comp (jvmstats/component :client/jvmstats-cmp "jvm-stats-frame")] ;  UI component: JVM stats
-
    [:cmd/wire-comp (obs/component :client/observer-cmp conf/observer-cfg-map)]  ; UI component for observing system
-   [:cmd/attach-to-firehose :client/observer-cmp]
 
    ;; Then, messages of a given type are wired from one component to another.
    ;[:cmd/route {:from :client/mouse-cmp :to :client/ws-cmp :only :cmd/mouse-pos}]
@@ -31,7 +29,6 @@
    [:cmd/route {:from :client/ws-cmp :to :client/jvmstats-cmp}]
    [:cmd/observe-state {:from :client/store-cmp :to :client/histogram-cmp}]
    [:cmd/observe-state {:from :client/store-cmp :to :client/mouse-cmp}]
-   [:cmd/observe-state {:from :client/switchboard :to :client/observer-cmp}]
 
    ;; Finally, wire firehose with all messages into the observer component.
    [:cmd/attach-to-firehose :client/observer-cmp]])

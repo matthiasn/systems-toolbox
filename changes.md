@@ -1,3 +1,22 @@
+## v0.2.8 - July 3rd, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.8"]
+```
+
+* Reader conditionals instead of the now-deprecated CLJX
+
+
+## v0.2.7 - July 1st, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.7"]
+```
+
+* Clojure 1.7 final instead of release candidate
+* observer component tweaks
+
+
 ## v0.2.6 - June 24th, 2015
 
 ```clojure

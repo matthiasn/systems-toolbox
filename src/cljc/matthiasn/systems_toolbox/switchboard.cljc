@@ -1,10 +1,10 @@
 (ns matthiasn.systems-toolbox.switchboard
-  #+clj (:gen-class)
+  #?(:clj (:gen-class))
   (:require
-    #+clj [clojure.core.match :refer [match]]
-    #+cljs [cljs.core.match :refer-macros [match]]
-    #+clj [clojure.core.async :refer [put! sub tap]]
-    #+cljs [cljs.core.async :refer [put! sub tap]]
+    #?(:clj [clojure.core.match :refer [match]])
+    #?(:cljs [cljs.core.match :refer-macros [match]])
+    #?(:clj [clojure.core.async :refer [put! sub tap]])
+    #?(:cljs [cljs.core.async :refer [put! sub tap]])
     [matthiasn.systems-toolbox.component :as comp]
     [matthiasn.systems-toolbox.log :as l]))
 
@@ -45,8 +45,8 @@
              (tap (:out-mult mult-comp) (:in-chan tap-comp))
              (put-fn [:log/switchboard-tap (str from " -> " to)])
              (swap! app update-in [:taps] conj {:from from :to to :type :tap}))
-           #+clj (catch Exception e (err-put (.getMessage e)))
-           #+cljs (catch js/Object e (err-put e))))))
+           #?(:clj (catch Exception e (err-put (.getMessage e))))
+           #?(:cljs (catch js/Object e (err-put e)))))))
 
 (defn tap-switchboard-firehose
   "Tap the switchboard firehose into a component observing it."
@@ -58,8 +58,8 @@
            (tap sw-firehose-mult (:in-chan to-comp))
            (put-fn [:log/switchboard-firehose-tap (str "Switchboard Firehose -> " to)])
            (swap! app update-in [:fh-taps] conj {:from switchboard-id :to to :type :fh-tap}))
-         #+clj (catch Exception e (err-put (.getMessage e)))
-         #+cljs (catch js/Object e (err-put e)))))
+         #?(:clj (catch Exception e (err-put (.getMessage e))))
+         #?(:cljs (catch js/Object e (err-put e))))))
 
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful
