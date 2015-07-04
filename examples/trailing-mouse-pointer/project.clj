@@ -15,6 +15,7 @@
                  [reagent "0.5.0"]
                  [incanter "1.5.6"]
                  [clj-time "0.9.0"]
+                 [lein-figwheel "0.3.5"]
                  [org.clojure/clojurescript "0.0-3308"]]
 
   :source-paths ["src/clj/"]
@@ -24,12 +25,21 @@
   :main example.core
 
   :plugins [[lein-cljsbuild "1.0.6"]
+            [lein-figwheel "0.3.5"]
             [codox "0.8.10"]]
 
-  :cljsbuild {:builds [{:id "release"
-                        :source-paths ["src/cljs"]
-                        :compiler {:optimizations :advanced
-                                   ;:optimizations :simple
-                                   ;:source-map "resources/public/js/build/example.js.map"
+  :cljsbuild {:builds [{:id "dev"
+                        :source-paths ["src/cljs" "env/dev/cljs"]
+                        :figwheel true
+                        :compiler {:main "example.dev"
+                                   :asset-path "js/build"
+                                   :optimizations :none
                                    :output-dir "resources/public/js/build/"
-                                   :output-to "resources/public/js/build/example.js"}}]})
+                                   :output-to "resources/public/js/build/example.js"}}
+                       {:id "release"
+                        :source-paths ["src/cljs"]
+                        :figwheel true
+                        :compiler {:main "example.core"
+                                   :asset-path "js/build"
+                                   :output-to "resources/public/js/build/example.js"
+                                   :optimizations :advanced}}]})
