@@ -70,8 +70,8 @@
     (update-width)
     (aset js/window "onresize" update-width)
     [:div {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
-     [:svg {:width (:width @local) :height (:width @local)                 ;220
-            :style {:background-color :white}
+     [:svg {:width         (:width @local) :height (:width @local) ;220
+            :style         {:background-color :white}
             :on-mouse-move (mouse-move-ev-handler local put-fn (rc/current-component))
             :on-touch-move (touch-move-ev-handler local put-fn (rc/current-component))}
       (text-view state-snapshot pos (.toFixed mean 0) mn mx last-rt)
@@ -79,6 +79,6 @@
 
 (defn component
   [cmp-id]
-  (r/component {:cmp-id        cmp-id
-                :view-fn       mouse-view
-                :dom-id        "mouse"}))
+  (r/component {:cmp-id  cmp-id
+                :view-fn mouse-view
+                :dom-id  "mouse"}))

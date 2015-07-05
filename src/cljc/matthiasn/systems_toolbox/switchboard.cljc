@@ -13,11 +13,13 @@
   [{:keys [cmp-state put-fn msg-payload cmp-id]}]
   (doseq [cmp (flatten [msg-payload])]
     (let [cmp-id-to-wire (:cmp-id cmp)
-          firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))]
+          firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))
+          in-chan (:in-chan cmp)]
       (put-fn [:log/switchboard-wire cmp-id-to-wire])
       (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp)
       (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
-      (tap (:firehose-mult cmp) firehose-chan))))
+      (tap (:firehose-mult cmp) firehose-chan)
+      (put! in-chan [:cmd/publish-state]))))
 
 (defn subscribe
   "Subscribe component to a specified publisher."

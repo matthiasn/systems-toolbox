@@ -36,7 +36,8 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [{:keys [handler-map all-msgs-handler state-pub-handler put-fn cfg cmp-id firehose-chan] :as cmp-map} cmp-state chan-key]
+  [{:keys [handler-map all-msgs-handler state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn]
+    :as cmp-map} cmp-state chan-key]
   (let [chan (make-chan-w-buf (chan-key cfg))]
     (try
       (go-loop []
@@ -60,6 +61,7 @@
             (when (and (:msgs-on-firehose cfg) (not (= "firehose" (namespace msg-type))))
               (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
+            (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
             (when all-msgs-handler (all-msgs-handler msg-map)))
           (recur)))
@@ -96,42 +98,39 @@
         state (if state-fn (state-fn put-fn) (atom {}))
         watch-state (if-let [watch (:watch cfg)] (watch state) state)
         changed (atom true)
+        snapshot-publish-fn (fn []
+                              (let [snapshot @watch-state
+                                    snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
+                                    snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
+                                (put! sliding-out-chan snapshot-msg)
+                                (when (:snapshots-on-firehose cfg)
+                                  (put! firehose-chan
+                                        [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}]))))
         cmp-map (merge cmp-conf {:out-mult          out-mult
                                  :firehose-chan     firehose-chan
                                  :firehose-mult     firehose-mult
                                  :out-pub           (pub out-pub-chan first)
                                  :state-pub         (pub sliding-out-chan first)
+                                 :cmp-state         state
                                  :put-fn            put-fn
+                                 :snapshot-publish-fn  snapshot-publish-fn
                                  :cfg               cfg
                                  :state-snapshot-fn (fn [] @watch-state)})]
     (tap out-mult out-pub-chan)
     #?(:clj
        (try
-         (add-watch watch-state
-                    :watcher
-                    (fn [_ _ _ new-state]
-                      (let [snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn new-state) new-state)
-                            snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
-                        (put! sliding-out-chan snapshot-msg)
-                        (when (:snapshots-on-firehose cfg)
-                          (put! firehose-chan
-                                [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))))
+         (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
          (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e))))
     #?(:cljs
        (letfn [(step []
                      (request-animation-frame step)
                      (when @changed
-                       (let [snapshot @watch-state
-                             snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
-                             snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
-                         (put! sliding-out-chan snapshot-msg)
-                         (when (:snapshots-on-firehose cfg)
-                           (put! firehose-chan
-                                 [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))
+                       (snapshot-publish-fn)
                        (swap! changed not)))]
          (request-animation-frame step)
          (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
               (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e)))))
+    (snapshot-publish-fn)
     (merge cmp-map
            (msg-handler-loop cmp-map state :in-chan)
            (msg-handler-loop cmp-map state :sliding-in-chan))))

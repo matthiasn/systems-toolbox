@@ -4,6 +4,8 @@
             [matthiasn.systems-toolbox.helpers :refer [by-id]]
             [cljs.core.match :refer-macros [match]]))
 
+(defonce state (atom {:count 0 :rtt-times [] :network-times [] :server-proc-times []}))
+
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server."
   [{:keys [cmp-state msg]}]
@@ -23,10 +25,10 @@
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (atom {:count 0 :rtt-times [] :network-times [] :server-proc-times []}))
+  state)
 
 (defn component
   [cmp-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn mk-state
+  (comp/make-component {:cmp-id      cmp-id
+                        :state-fn    mk-state
                         :handler-map {:cmd/mouse-pos mouse-pos-from-server!}}))
