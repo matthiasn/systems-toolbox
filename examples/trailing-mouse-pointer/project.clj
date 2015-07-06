@@ -15,7 +15,6 @@
                  [reagent "0.5.0"]
                  [incanter "1.5.6"]
                  [clj-time "0.9.0"]
-                 [lein-figwheel "0.3.7"]
                  [org.clojure/clojurescript "0.0-3308"]]
 
   :source-paths ["src/clj/"]
@@ -27,6 +26,9 @@
   :plugins [[lein-cljsbuild "1.0.6"]
             [lein-figwheel "0.3.7"]
             [codox "0.8.10"]]
+
+  :figwheel {:server-port 3450
+             :css-dirs ["resources/public/css"]}
 
   :cljsbuild {:builds [{:id           "dev"
                         :source-paths ["src/cljs" "env/dev/cljs"]

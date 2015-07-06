@@ -8,7 +8,7 @@
   (c/init))
 
 (figwheel/watch-and-reload
-  :websocket-url "ws://localhost:3449/figwheel-ws"
+  :websocket-url "ws://localhost:3450/figwheel-ws"
   :jsload-callback jscb)
 
 (c/init)

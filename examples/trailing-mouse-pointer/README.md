@@ -2,15 +2,11 @@
 
 ## Usage
 
-Before the first usage, you need to compile the ClojureScript into a JavaScript file:
-
-    lein cljsbuild auto
-    
-You'll also want the **[Bower](http://bower.io)** dependencies:
+Before the first usage, you want to install the **[Bower](http://bower.io)** dependencies:
 
     bower install
 
-Once these steps are done, you can start the application as usual:
+Once this is done, you can start the application as usual:
 
     lein run
 
@@ -18,7 +14,13 @@ To automatically update the application as you make changes, open another termin
 
     lein figwheel
 
-Now, you can open **[http://localhost:8010/](http://localhost:8010/)** and start interacting with the application:
+Now, you can open **[http://localhost:8010/](http://localhost:8010/)** and start interacting with the application.
+
+Alternatively, for production, you use
+
+    lein cljsbuild auto release
+
+This will compile the ClojureScript into JavaScript using `:advanced` optimization.
 
 ## License
 
