@@ -14,6 +14,10 @@ Once these steps are done, you can start the application as usual:
 
     lein run
 
+To automatically update the application as you make changes, open another terminal:
+
+    lein figwheel
+
 Now, you can open **[http://localhost:8010/](http://localhost:8010/)** and start interacting with the application:
 
 ## License
