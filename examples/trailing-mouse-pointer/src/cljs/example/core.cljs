@@ -33,6 +33,6 @@
      [:cmd/observe-state {:from :client/store-cmp :to :client/mouse-cmp}]
 
      ;; Finally, wire firehose with all messages into the observer component.
-     [:cmd/attach-to-firehose :client/observer-cmp]])
-  )
+     [:cmd/attach-to-firehose :client/observer-cmp]]))
+
 (init)
