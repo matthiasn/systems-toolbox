@@ -1,3 +1,23 @@
+## v0.2.10 - July 6th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.10"]
+```
+
+* Better error handling and logging in message handler loops
+* Using aviso/pretty for exception logging in example
+
+
+## v0.2.9 - July 5th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.9"]
+```
+
+* Figwheel in example
+* Publish state snapshot on reload
+
+
 ## v0.2.8 - July 3rd, 2015
 
 ```clojure

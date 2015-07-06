@@ -2,15 +2,17 @@
   #?(:clj (:gen-class))
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]))
   (:require
-    #?(:clj  [clojure.core.match :refer [match]])
-    #?(:cljs [cljs.core.match :refer-macros [match]])
+    #?(:clj  [clojure.core.match :refer [match]]
+       :cljs [cljs.core.match :refer-macros [match]])
     #?(:cljs [matthiasn.systems-toolbox.helpers :refer [request-animation-frame]])
-    #?(:clj  [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]])
-    #?(:cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
-    #?(:clj  [clojure.tools.logging :as log])))
+    #?(:clj  [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
+       :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
+    #?(:clj  [clojure.tools.logging :as log])
+    #?(:clj  [clojure.pprint :as pp]
+       :cljs [cljs.pprint :as pp])))
 
-#?(:clj  (defn now [] (System/currentTimeMillis)))
-#?(:cljs (defn now [] (.getTime (js/Date.))))
+#?(:clj  (defn now [] (System/currentTimeMillis))
+   :cljs (defn now [] (.getTime (js/Date.))))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -37,21 +39,21 @@
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
   [{:keys [handler-map all-msgs-handler state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn]
-    :as cmp-map} cmp-state chan-key]
+    :as   cmp-map} cmp-state chan-key]
   (let [chan (make-chan-w-buf (chan-key cfg))]
-    (try
-      (go-loop []
-        (let [msg (<! chan)
-              msg-meta (-> (merge (meta msg) {})
-                           (assoc-in, [:cmp-seq] cmp-id)    ; TODO: replace by actual sequence
-                           (assoc-in, [cmp-id :in-timestamp] (now)))
-              [msg-type msg-payload] msg
-              handler-fn (msg-type handler-map)
-              msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
-                                      :msg-type    msg-type
-                                      :msg-meta    msg-meta
-                                      :msg-payload msg-payload
-                                      :cmp-state   cmp-state})]
+    (go-loop []
+      (let [msg (<! chan)
+            msg-meta (-> (merge (meta msg) {})
+                         (assoc-in, [:cmp-seq] cmp-id)      ; TODO: replace by actual sequence
+                         (assoc-in, [cmp-id :in-timestamp] (now)))
+            [msg-type msg-payload] msg
+            handler-fn (msg-type handler-map)
+            msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
+                                    :msg-type    msg-type
+                                    :msg-meta    msg-meta
+                                    :msg-payload msg-payload
+                                    :cmp-state   cmp-state})]
+        (try
           (when (= chan-key :sliding-in-chan)
             (state-pub-handler msg-map)
             (when (and (:snapshots-on-firehose cfg) (not (= "firehose" (namespace msg-type))))
@@ -64,9 +66,11 @@
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
             (when all-msgs-handler (all-msgs-handler msg-map)))
-          (recur)))
-      #?(:clj (catch Exception e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map)))
-      #?(:cljs (catch js/Object e (prn cmp-id "Exception in msg-handler-loop: " e cmp-map))))
+          #?(:clj  (catch Exception e (do (log/error e "Exception in" cmp-id "when receiving message:")
+                                          (pp/pprint msg)))
+             :cljs (catch js/Object e (do (.log js/console e (str "Exception in " cmp-id " when receiving message:"))
+                                          (pp/pprint msg)))))
+        (recur)))
     {chan-key chan}))
 
 (defn make-component
@@ -106,30 +110,28 @@
                                 (when (:snapshots-on-firehose cfg)
                                   (put! firehose-chan
                                         [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}]))))
-        cmp-map (merge cmp-conf {:out-mult          out-mult
-                                 :firehose-chan     firehose-chan
-                                 :firehose-mult     firehose-mult
-                                 :out-pub           (pub out-pub-chan first)
-                                 :state-pub         (pub sliding-out-chan first)
-                                 :cmp-state         state
-                                 :put-fn            put-fn
-                                 :snapshot-publish-fn  snapshot-publish-fn
-                                 :cfg               cfg
-                                 :state-snapshot-fn (fn [] @watch-state)})]
+        cmp-map (merge cmp-conf {:out-mult            out-mult
+                                 :firehose-chan       firehose-chan
+                                 :firehose-mult       firehose-mult
+                                 :out-pub             (pub out-pub-chan first)
+                                 :state-pub           (pub sliding-out-chan first)
+                                 :cmp-state           state
+                                 :put-fn              put-fn
+                                 :snapshot-publish-fn snapshot-publish-fn
+                                 :cfg                 cfg
+                                 :state-snapshot-fn   (fn [] @watch-state)})]
     (tap out-mult out-pub-chan)
-    #?(:clj
-       (try
-         (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
-         (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e))))
-    #?(:cljs
-       (letfn [(step []
-                     (request-animation-frame step)
-                     (when @changed
-                       (snapshot-publish-fn)
-                       (swap! changed not)))]
-         (request-animation-frame step)
-         (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
-              (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e)))))
+    #?(:clj  (try
+               (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
+               (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
+       :cljs (letfn [(step []
+                           (request-animation-frame step)
+                           (when @changed
+                             (snapshot-publish-fn)
+                             (swap! changed not)))]
+               (request-animation-frame step)
+               (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
+                    (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e)))))
     (snapshot-publish-fn)
     (merge cmp-map
            (msg-handler-loop cmp-map state :in-chan)

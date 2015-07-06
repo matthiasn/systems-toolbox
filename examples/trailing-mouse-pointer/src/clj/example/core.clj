@@ -9,7 +9,11 @@
     [example.pointer :as ptr]
     [clojure.tools.namespace.repl :refer [refresh]]
     [clojure.tools.logging :as log]
-    [clj-pid.core :as pid]))
+    [clj-pid.core :as pid]
+    [io.aviso.logging :as pretty]))
+
+(pretty/install-pretty-logging)
+(pretty/install-uncaught-exception-handler)
 
 (def switchboard (sb/component :server/switchboard))
 
