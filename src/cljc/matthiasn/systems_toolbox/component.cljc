@@ -123,7 +123,8 @@
     (tap out-mult out-pub-chan)
     #?(:clj  (try
                (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
-               (catch Exception e (log/error cmp-id "Exception attempting to watch atom:" watch-state e)))
+               (catch Exception e (do (log/error e "Exception in" cmp-id "when attempting to watch atom:")
+                                      (pp/pprint watch-state))))
        :cljs (letfn [(step []
                            (request-animation-frame step)
                            (when @changed
@@ -131,7 +132,9 @@
                              (swap! changed not)))]
                (request-animation-frame step)
                (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
-                    (catch js/Object e (prn cmp-id " Exception attempting to watch atom: " watch-state e)))))
+                    (catch js/Object e
+                      (do (.log js/console e (str "Exception in " cmp-id " when attempting to watch atom:"))
+                          (pp/pprint watch-state))))))
     (snapshot-publish-fn)
     (merge cmp-map
            (msg-handler-loop cmp-map state :in-chan)
