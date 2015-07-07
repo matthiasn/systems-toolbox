@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.2.10"
+(defproject matthiasn/systems-toolbox "0.2.11"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -8,14 +8,15 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "0.0-3308"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [org.ow2.asm/asm-all "4.2"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha" :exclusions [org.ow2.asm/asm-all]]
                  [reagent "0.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
                  [com.taoensso/sente "1.5.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [com.cognitect/transit-clj "0.8.275"]
                  [com.cognitect/transit-cljs "0.8.220"]
-                 [compojure "1.3.4"]
+                 [compojure "1.3.4" :exclusions [commons-codec]]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]
                  [matthiasn/http-kit "2.1.19"]]
