@@ -17,8 +17,7 @@
            [:chsk/state {:first-open? true}] (put-fn [:first-open true])
            [:chsk/recv payload] (put-fn (deserialize-meta payload))
            [:chsk/handshake _] ()
-           :else ()                                           ;(println "Unmatched event in WS component:" event)
-           )))
+           :else ())))
 
 (defn mk-state
   "Return clean initial component state atom."
@@ -42,4 +41,5 @@
   (comp/make-component {:cmp-id   cmp-id
                         :state-fn mk-state
                         :all-msgs-handler all-msgs-handler
-                        :opts     {:watch :state}}))
+                        :opts     {:watch :state
+                                   :reload-cmp false}}))

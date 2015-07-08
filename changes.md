@@ -1,3 +1,13 @@
+## v0.2.13 - July 8th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.13"]
+```
+
+* Reloadable components without modification, e.g. for use with Figwheel
+* Specify components that can't be reloaded, e.g. WebSockets connection component
+
+
 ## v0.2.10 - July 6th, 2015
 
 ```clojure

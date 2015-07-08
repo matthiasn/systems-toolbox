@@ -19,13 +19,10 @@
     (swap! cmp-state update-in [:server-proc-times] conj server-proc-time)
     (swap! cmp-state update-in [:network-times] conj network-time)))
 
-;; Preserve state across releads caused by Figwheel
-(defonce my-state (atom {:count 0 :rtt-times [] :network-times [] :server-proc-times []}))
-
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  my-state)
+  (atom {:count 0 :rtt-times [] :network-times [] :server-proc-times []}))
 
 (defn component
   [cmp-id]

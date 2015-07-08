@@ -30,7 +30,8 @@
    :sliding-out-chan      [:sliding 1]
    :firehose-chan         [:buffer 1]
    :snapshots-on-firehose true
-   :msgs-on-firehose      true})
+   :msgs-on-firehose      true
+   :reload-cmp            true})
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -116,6 +117,7 @@
                                  :out-pub             (pub out-pub-chan first)
                                  :state-pub           (pub sliding-out-chan first)
                                  :cmp-state           state
+                                 :watch-state         watch-state
                                  :put-fn              put-fn
                                  :snapshot-publish-fn snapshot-publish-fn
                                  :cfg                 cfg

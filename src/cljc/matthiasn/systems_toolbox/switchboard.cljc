@@ -3,23 +3,33 @@
   (:require
     #?(:clj [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj [clojure.core.async :refer [put! sub tap]]
-       :cljs [cljs.core.async :refer [put! sub tap]])
+    #?(:clj [clojure.core.async :refer [put! sub tap untap-all unsub-all]]
+       :cljs [cljs.core.async :refer [put! sub tap untap-all unsub-all]])
     [matthiasn.systems-toolbox.component :as comp]
     [matthiasn.systems-toolbox.log :as l]))
 
 (defn wire-comp
   "Wire existing and already instantiated component."
   [{:keys [cmp-state put-fn msg-payload cmp-id]}]
-  (doseq [cmp (flatten [msg-payload])]
-    (let [cmp-id-to-wire (:cmp-id cmp)
-          firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))
-          in-chan (:in-chan cmp)]
-      (put-fn [:log/switchboard-wire cmp-id-to-wire])
-      (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp)
-      (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
-      (tap (:firehose-mult cmp) firehose-chan)
-      (put! in-chan [:cmd/publish-state]))))
+  (let [switchbrd-snapshot @cmp-state]
+    (doseq [cmp (flatten [msg-payload])]
+      (let [cmp-id-to-wire (:cmp-id cmp)
+            firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))
+            in-chan (:in-chan cmp)
+            reload? (:reload-cmp (:cfg cmp))
+            prev-cmp (get-in switchbrd-snapshot [:components cmp-id-to-wire])]
+        (when reload?
+          (when-let [prev-state (:watch-state prev-cmp)]
+            (untap-all (:firehose-mult prev-cmp))
+            (unsub-all (:out-pub prev-cmp))
+            (unsub-all (:state-pub prev-cmp))
+            (reset! (:watch-state cmp) @prev-state)))
+        (when (or (not prev-cmp) reload?)
+          (put-fn [:log/switchboard-wire cmp-id-to-wire])
+          (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp))
+        (tap (:firehose-mult cmp) firehose-chan)
+        (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
+        (put! in-chan [:cmd/publish-state])))))
 
 (defn subscribe
   "Subscribe component to a specified publisher."

@@ -10,7 +10,7 @@
 
 (enable-console-print!)
 
-(def switchboard (sb/component :client/switchboard))
+(defonce switchboard (sb/component :client/switchboard))
 
 (defn init
   []
@@ -25,7 +25,6 @@
      [:cmd/wire-comp (obs/component :client/observer-cmp conf/observer-cfg-map)]  ; UI component for observing system
 
      ;; Then, messages of a given type are wired from one component to another.
-     ;[:cmd/route {:from :client/mouse-cmp :to :client/ws-cmp :only :cmd/mouse-pos}]
      [:cmd/route-all {:from :client/mouse-cmp :to :client/ws-cmp}]
      [:cmd/route {:from :client/ws-cmp :to :client/store-cmp}]
      [:cmd/route {:from :client/ws-cmp :to :client/jvmstats-cmp}]
