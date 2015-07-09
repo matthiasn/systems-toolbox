@@ -10,7 +10,7 @@
                 (atom init-state)
                 (atom {}))
         observed (atom {})
-        cmd (fn ([& r] (fn [e] (.stopPropagation e) (put-fn (into [] r)))))]
+        cmd (fn ([& r] (fn [e] (.stopPropagation e) (put-fn (vec r)))))]
     (r/render-component [view-fn {:observed observed
                                   :local    local
                                   :put-fn   put-fn

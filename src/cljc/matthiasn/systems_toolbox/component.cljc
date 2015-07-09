@@ -57,11 +57,11 @@
         (try
           (when (= chan-key :sliding-in-chan)
             (state-pub-handler msg-map)
-            (when (and (:snapshots-on-firehose cfg) (not (= "firehose" (namespace msg-type))))
+            (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put! firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (<! (timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
-            (when (and (:msgs-on-firehose cfg) (not (= "firehose" (namespace msg-type))))
+            (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))

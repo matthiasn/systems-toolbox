@@ -21,7 +21,7 @@
 
 (defn links-fn
   [nodes-map links]
-  (into [] (map (fn [m] {:source (:idx ((:from m) nodes-map))
+  (vec (map (fn [m] {:source (:idx ((:from m) nodes-map))
                          :target (:idx ((:to m) nodes-map))}) links)))
 
 (defn cmp-node

@@ -32,7 +32,7 @@
   (let [ws cmp-state
         state (:state ws)
         send-fn (:send-fn ws)
-        msg-w-ser-meta (-> (merge msg-meta {}) (assoc-in, [:sente-uid] (:uid @state)))]
+        msg-w-ser-meta (assoc-in (merge msg-meta {}) [:sente-uid] (:uid @state))]
     (send-fn [msg-type {:msg msg-payload :msg-meta msg-w-ser-meta}])))
 
 (defn component
