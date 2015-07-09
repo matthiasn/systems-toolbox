@@ -1,15 +1,21 @@
 (ns matthiasn.systems-toolbox.switchboard
   #?(:clj (:gen-class))
   (:require
-    #?(:clj [clojure.core.match :refer [match]]
+    #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj [clojure.core.async :refer [put! sub tap untap-all unsub-all]]
+    #?(:clj  [clojure.core.async :refer [put! sub tap untap-all unsub-all]]
        :cljs [cljs.core.async :refer [put! sub tap untap-all unsub-all]])
     [matthiasn.systems-toolbox.component :as comp]
     [matthiasn.systems-toolbox.log :as l]))
 
 (defn wire-comp
-  "Wire existing and already instantiated component."
+  "Wire existing and already instantiated component. Also capable of reloading component, e.g. when using Figwheel on
+  the client side. When a previous component with the same name exists, this function first of all unwires that previous
+  component by unsubscribing and untapping all connected channels. Then, the state of that previous component is
+  used in the new component in order to provide a smooth developer experience. When the either is no previous
+  component with the same name or the component ought to be reloaded, the previous one is replaced by the new one in the
+  switchboard state. Finally, the new component is tapped into the switchboard's firehose and the component is also
+  asked to publish its state once (also useful for Figwheel)."
   [{:keys [cmp-state put-fn msg-payload cmp-id]}]
   (let [switchbrd-snapshot @cmp-state]
     (doseq [cmp (flatten [msg-payload])]
@@ -18,15 +24,13 @@
             in-chan (:in-chan cmp)
             reload? (:reload-cmp (:cfg cmp))
             prev-cmp (get-in switchbrd-snapshot [:components cmp-id-to-wire])]
-        (when reload?
-          (when-let [prev-state (:watch-state prev-cmp)]
-            (untap-all (:firehose-mult prev-cmp))
-            (unsub-all (:out-pub prev-cmp))
-            (unsub-all (:state-pub prev-cmp))
-            (reset! (:watch-state cmp) @prev-state)))
-        (when (or (not prev-cmp) reload?)
-          (put-fn [:log/switchboard-wire cmp-id-to-wire])
-          (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp))
+        (when prev-cmp (untap-all (:firehose-mult prev-cmp))
+                       (unsub-all (:out-pub prev-cmp))
+                       (unsub-all (:state-pub prev-cmp))
+                       (let [prev-state (:watch-state prev-cmp)]
+                         (reset! (:watch-state cmp) @prev-state)))
+        (when (or (not prev-cmp) reload?) (put-fn [:log/switchboard-wire cmp-id-to-wire])
+                                          (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp))
         (tap (:firehose-mult cmp) firehose-chan)
         (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
         (put! in-chan [:cmd/publish-state])))))
@@ -100,6 +104,7 @@
     (tap-components cmp-state put-fn [from to])))
 
 (defn attach-to-firehose
+  "Attaches a component to firehose channel. For example for observational components."
   [{:keys [cmp-state put-fn msg-payload cmp-id]}]
   (tap-switchboard-firehose cmp-state put-fn msg-payload cmp-id))
 
