@@ -1,5 +1,7 @@
 # systems-toolbox
 
+[![Join the chat at https://gitter.im/matthiasn/systems-toolbox](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/matthiasn/systems-toolbox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Applications are systems; however, don't take my word for it. Let's see how an expert on **Systems Thinking** defines a system:
 
 > "A system isn't just any old collection of things. A system is an interconnected set of elements that is coherently organized in a way that achieves something. If you look at that definition closely for a minute, you can see that a system must consist of three kinds of things: elements, interconnections, and a function or purpose." - Meadows, Donatella H. (2008) Thinking in Systems: A Primer, Page 11
