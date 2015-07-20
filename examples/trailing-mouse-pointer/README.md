@@ -16,6 +16,12 @@ To automatically update the application as you make changes, open another termin
 
 Now, you can open **[http://localhost:8010/](http://localhost:8010/)** and start interacting with the application.
 
+You can then for example inspect the state of a component by using the following commands in the Figwheel REPL:
+
+    (require '[matthiasn.systems-toolbox.switchboard :as sb])
+    (require '[example.core :as c])
+    (sb/send-cmd c/switchboard [:cmd/print-cmp-state :client/histogram-cmp])
+
 Alternatively, for production, you use
 
     lein cljsbuild auto release

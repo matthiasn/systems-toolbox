@@ -33,8 +33,8 @@
   "Starts a loop for sending messages at set intervals."
   [{:keys [cmp-state put-fn msg-payload]}]
   (let [timout-ms (:timeout msg-payload)
-        scheduler-id (:id msg-payload)
-        msg-to-send (:message msg-payload)]
+        msg-to-send (:message msg-payload)
+        scheduler-id (or (:id msg-payload) (first msg-to-send))]
     (when scheduler-id (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
                        (put-fn [:log/info (str "Scheduling:" msg-payload)]))
     (when (:initial msg-payload) (put-fn msg-to-send))

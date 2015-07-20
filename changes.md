@@ -1,3 +1,14 @@
+## v0.2.16 - July 21st, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.16"]
+```
+
+* no requirement for scheduler id, default is the keyword in the first position inside message to be sent
+* switchboard prints component state for inspection when receiving [cmd/print-cmp-state cmp-id] message
+* simplification of and documentation for `route-handler`
+
+
 ## v0.2.15 - July 9th, 2015
 
 ```clojure

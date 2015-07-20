@@ -5,6 +5,8 @@
        :cljs [cljs.core.match :refer-macros [match]])
     #?(:clj  [clojure.core.async :refer [put! sub tap untap-all unsub-all]]
        :cljs [cljs.core.async :refer [put! sub tap untap-all unsub-all]])
+    #?(:clj  [clojure.pprint :as pp]
+       :cljs [cljs.pprint :as pp])
     [matthiasn.systems-toolbox.component :as comp]
     [matthiasn.systems-toolbox.log :as l]))
 
@@ -34,6 +36,13 @@
         (tap (:firehose-mult cmp) firehose-chan)
         (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
         (put! in-chan [:cmd/publish-state])))))
+
+(defn print-cmp-state
+  [{:keys [cmp-snapshot msg-payload]}]
+  (let [cmp (get-in cmp-snapshot [:components msg-payload])]
+    (if cmp
+      (pp/pprint cmp)
+      (prn "No such component, try something else."))))
 
 (defn subscribe
   "Subscribe component to a specified publisher."
@@ -91,11 +100,15 @@
   (atom {:components {} :subs #{} :taps #{} :fh-taps #{}}))
 
 (defn route-handler
-  [{:keys [cmp-state put-fn msg msg-payload cmp-id] :as handler-args}]
+  "Creates subscriptions between one component's out-pub and another component's in-chan.
+  Requires a map with at least the :from and :to keys.
+  Also, routing can be limited to message types specified under the :only keyword. Here, either
+  a single message type or a vector with multiple message types can be used."
+  [{:keys [cmp-state put-fn msg-payload]}]
   (let [{:keys [from to only]} msg-payload
         handled-messages (keys (:handler-map (to (:components @cmp-state))))
-        msg-types (flatten (if only [only] (vec handled-messages)))]
-    (doseq [msg-type (flatten [msg-types])]
+        msg-types (if only (flatten [only]) (vec handled-messages))]
+    (doseq [msg-type msg-types]
       (subscribe cmp-state put-fn [from :out-pub] msg-type [to :in-chan]))))
 
 (defn route-all-handler
@@ -135,7 +148,8 @@
    :cmd/self-register      self-register
    :cmd/observe-state      observe-state
    :cmd/send               send-to
-   :cmd/make-log-comp      make-log-comp})
+   :cmd/make-log-comp      make-log-comp
+   :cmd/print-cmp-state    print-cmp-state})
 
 (defn xform-fn
   "Transformer function for switchboard state snapshot. Allow serialization of snaphot for sending over WebSockets."
