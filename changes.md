@@ -1,3 +1,12 @@
+## v0.2.17 - July 23st, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.17"]
+```
+
+* View components can call init-fn on initialization. This can for example be useful when attaching a watcher to the local state atom.
+
+
 ## v0.2.16 - July 21st, 2015
 
 ```clojure
