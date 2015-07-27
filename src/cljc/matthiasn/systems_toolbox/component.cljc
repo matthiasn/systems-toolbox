@@ -9,7 +9,8 @@
        :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
     #?(:clj  [clojure.tools.logging :as log])
     #?(:clj  [clojure.pprint :as pp]
-       :cljs [cljs.pprint :as pp])))
+       :cljs [cljs.pprint :as pp])
+    #?(:cljs [cljs-uuid-utils.core :as uuid])))
 
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
@@ -33,6 +34,24 @@
    :msgs-on-firehose      true
    :reload-cmp            true})
 
+(defn add-to-msg-seq
+  "Function for adding the current component ID to the sequence that the message has traversed
+  thus far. Component IDs can be added either when the message enters or leaves a component.
+  There's a test to avoid conjoining the same ID twice in a row."
+  [msg-meta cmp-id]
+  (let [cmp-seq (vec (:cmp-seq msg-meta))]
+    (if (= (last cmp-seq) cmp-id)
+      msg-meta
+      (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id)))))
+
+(defn add-to-msg-seq2
+  "Function for adding the current component ID to the sequence that the message has traversed
+  thus far. Before the component ID in the seq, the direction of the message is recorded, which
+  should be either :in or :out."
+  [msg-meta cmp-id in-out]
+  (let [cmp-seq2 (vec (:cmp-seq2 msg-meta))]
+    (assoc-in msg-meta [:cmp-seq2] (conj cmp-seq2 in-out cmp-id))))
+
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
   configured according to cfg for the channel keyword. Then starts loop for taking messages
@@ -45,8 +64,9 @@
     (go-loop []
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
-                         (assoc-in, [:cmp-seq] cmp-id)      ; TODO: replace by actual sequence
-                         (assoc-in, [cmp-id :in-timestamp] (now)))
+                         (add-to-msg-seq cmp-id)
+                         (add-to-msg-seq2 cmp-id :in)
+                         (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
             msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
@@ -92,9 +112,13 @@
         sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
         put-fn (fn [msg]
                  (let [msg-meta (-> (merge (meta msg) {})
-                                    (assoc-in, [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
-                                    (assoc-in, [cmp-id :out-timestamp] (now)))
-                       msg-w-meta (with-meta msg msg-meta)]
+                                    (add-to-msg-seq cmp-id)
+                                    (add-to-msg-seq2 cmp-id :out)
+                                    (assoc-in [cmp-id :out-ts] (now)))
+                       msg-uuid (or (:uuid msg-meta)
+                                    #?(:clj (java.util.UUID/randomUUID)
+                                       :cljs (uuid/make-random-uuid)))
+                       msg-w-meta (with-meta msg (assoc-in msg-meta [:uuid] msg-uuid))]
                    (put! out-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
                      (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}]))))

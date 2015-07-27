@@ -1,3 +1,11 @@
+## v0.2.18 - July 27th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.18"]
+```
+
+* When a message is first emitted, a UUID is attached to the metadata, which allows tracking the message on its way through the system.
+* The full sequence of components that a message passes through is recorded on the metadata.
 
 
 ## v0.2.17 - July 23rd, 2015

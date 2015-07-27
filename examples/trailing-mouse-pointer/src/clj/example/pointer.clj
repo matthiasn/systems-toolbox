@@ -11,7 +11,7 @@
 (defn process-mouse-pos
   "Handler function for received mouse positions, increments counter and returns mouse position to sender."
   [{:keys [cmp-state msg put-fn]}]
-  (let [[_ params] msg
+  (let [[msg-type params] msg
         d1 (Math/round (dist/draw (stats/sample-normal 1000 :mean 15 :sd 6)))
         d2 (Math/round (dist/draw (stats/sample-normal 1000 :mean 150 :sd 1)))]
     (swap! cmp-state update-in [:count] inc)
