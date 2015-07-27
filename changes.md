@@ -1,4 +1,6 @@
-## v0.2.17 - July 23st, 2015
+
+
+## v0.2.17 - July 23rd, 2015
 
 ```clojure
 [matthiasn/systems-toolbox "0.2.17"]
