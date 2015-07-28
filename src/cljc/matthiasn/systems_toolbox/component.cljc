@@ -93,11 +93,17 @@
   It takes the initial state atom, the handler function for messages on in-chan, and the
   sliding-handler function, which handles messages on sliding-in-chan.
   By default, in-chan and out-chan have standard buffers of size one, whereas sliding-in-chan
-  and sliding-out-chan have sliding buffers of size one.
-  The buffer sizes can be configured.
+  and sliding-out-chan have sliding buffers of size one. The buffer sizes can be configured.
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
-  state snapshots from other components."
+  state snapshots from other components.
+  Components send messages by using the put-fn, which is provided to the component when
+  creating it's initial state, and then subsequently in every call to any of the handler
+  functions. On every message send, a unique correlation ID is attached to every message.
+  Also, messages are automatically assigned a tag, which is a unique ID that doesn't change
+  when a message flows through the system. This tag can also be assigned manually by
+  initially sending a message with the tag set on the metadata, as this tag will not be
+  touched by the library whenever it exists already."
   [{:keys [cmp-id state-fn snapshot-xform-fn opts] :as cmp-conf}]
   (let [cfg (merge component-defaults opts)
         out-chan (make-chan-w-buf (:out-chan cfg))
