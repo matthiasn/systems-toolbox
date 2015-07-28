@@ -15,6 +15,9 @@
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
 
+#?(:clj  (defn uuid [] (java.util.UUID/randomUUID))
+   :cljs (defn uuid []  (uuid/make-random-uuid)))
+
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
   [config]
@@ -44,14 +47,6 @@
       msg-meta
       (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id)))))
 
-(defn add-to-msg-seq2
-  "Function for adding the current component ID to the sequence that the message has traversed
-  thus far. Before the component ID in the seq, the direction of the message is recorded, which
-  should be either :in or :out."
-  [msg-meta cmp-id in-out]
-  (let [cmp-seq2 (vec (:cmp-seq2 msg-meta))]
-    (assoc-in msg-meta [:cmp-seq2] (conj cmp-seq2 in-out cmp-id))))
-
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
   configured according to cfg for the channel keyword. Then starts loop for taking messages
@@ -65,7 +60,6 @@
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
                          (add-to-msg-seq cmp-id)
-                         (add-to-msg-seq2 cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
@@ -113,12 +107,11 @@
         put-fn (fn [msg]
                  (let [msg-meta (-> (merge (meta msg) {})
                                     (add-to-msg-seq cmp-id)
-                                    (add-to-msg-seq2 cmp-id :out)
                                     (assoc-in [cmp-id :out-ts] (now)))
-                       msg-uuid (or (:uuid msg-meta)
-                                    #?(:clj (java.util.UUID/randomUUID)
-                                       :cljs (uuid/make-random-uuid)))
-                       msg-w-meta (with-meta msg (assoc-in msg-meta [:uuid] msg-uuid))]
+                       msg-uuid (uuid)
+                       corr-uuid (or (:corr-uuid msg-meta) (uuid))
+                       msg-w-meta (with-meta msg (merge msg-meta {:corr-uuid corr-uuid
+                                                                  :msg-uuid msg-uuid}))]
                    (put! out-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
                      (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}]))))
