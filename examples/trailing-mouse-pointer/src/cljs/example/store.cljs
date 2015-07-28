@@ -4,19 +4,27 @@
             [cljs.core.match :refer-macros [match]]))
 
 (defn mouse-pos-from-server!
-  "Handler function for mouse position messages received from server."
-  [{:keys [cmp-state msg]}]
-  (let [[_ pos] msg
-        ws-client-meta (:client/ws-cmp (meta msg))
-        rt-time (- (:out-timestamp ws-client-meta) (:in-timestamp ws-client-meta))
-        ws-server-meta (:server/ws-cmp (meta msg))
-        server-proc-time (- (:in-timestamp ws-server-meta) (:out-timestamp ws-server-meta))
-        network-time (- rt-time server-proc-time)
-        with-ts (assoc pos :rt-time rt-time)]
-    (swap! cmp-state assoc :from-server with-ts)
+  "Handler function for mouse position messages received from server. Here, we first determine the
+  round trip time (RTT) by subtracting the message creation timestamp from the timestamp when the
+  message is finally received by the store component.
+  Next, the server side processing time is determined. For this, we can use the timestamps from
+  when the ws-cmp on the server side emits a message coming from the client and when the processed
+  message is received back for delivery to the client.
+  Finally, the component state is updated with the new measurements. Here, we're modifying the
+  component state atom multiple times. One could also do this in a single transaction, should
+  this be a performance issue. It doesn't seem that way but could still be interesting to figure out."
+  [{:keys [cmp-state msg-payload msg-meta]}]
+  (let [mouse-out-ts (:out-ts (:client/mouse-cmp msg-meta))
+        store-in-ts (:in-ts (:client/store-cmp msg-meta))
+        rt-time (- store-in-ts mouse-out-ts)
+        srv-ws-meta (:server/ws-cmp msg-meta)
+        srv-proc-time (- (:in-ts srv-ws-meta) (:out-ts srv-ws-meta))
+        network-time (- rt-time srv-proc-time)
+        with-rtt (assoc msg-payload :rt-time rt-time)]
+    (swap! cmp-state assoc :from-server with-rtt)
     (swap! cmp-state update-in [:count] inc)
     (swap! cmp-state update-in [:rtt-times] conj rt-time)
-    (swap! cmp-state update-in [:server-proc-times] conj server-proc-time)
+    (swap! cmp-state update-in [:server-proc-times] conj srv-proc-time)
     (swap! cmp-state update-in [:network-times] conj network-time)))
 
 (defn mk-state

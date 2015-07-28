@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.2.17"
+(defproject matthiasn/systems-toolbox "0.2.18"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -19,6 +19,7 @@
                  [compojure "1.3.4" :exclusions [commons-codec]]
                  [ring "1.3.2"]
                  [ring/ring-defaults "0.1.5"]
+                 [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [matthiasn/http-kit "2.1.19"]]
 
   :plugins [[codox "0.8.8"]

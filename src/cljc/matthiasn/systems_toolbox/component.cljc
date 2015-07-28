@@ -9,10 +9,14 @@
        :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
     #?(:clj  [clojure.tools.logging :as log])
     #?(:clj  [clojure.pprint :as pp]
-       :cljs [cljs.pprint :as pp])))
+       :cljs [cljs.pprint :as pp])
+    #?(:cljs [cljs-uuid-utils.core :as uuid])))
 
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
+
+#?(:clj  (defn make-uuid [] (java.util.UUID/randomUUID))
+   :cljs (defn make-uuid []  (uuid/make-random-uuid)))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -33,6 +37,17 @@
    :msgs-on-firehose      true
    :reload-cmp            true})
 
+(defn add-to-msg-seq
+  "Function for adding the current component ID to the sequence that the message has traversed
+  thus far. The specified component IDs is either added when the cmp-seq is empty in the case
+  of an initial send or when the message is received by a component. This avoids recording
+  component IDs multiple times."
+  [msg-meta cmp-id in-out]
+  (let [cmp-seq (vec (:cmp-seq msg-meta))]
+    (if (or (empty? cmp-seq) (= in-out :in))
+      (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id))
+      msg-meta)))
+
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
   configured according to cfg for the channel keyword. Then starts loop for taking messages
@@ -45,8 +60,8 @@
     (go-loop []
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
-                         (assoc-in, [:cmp-seq] cmp-id)      ; TODO: replace by actual sequence
-                         (assoc-in, [cmp-id :in-timestamp] (now)))
+                         (add-to-msg-seq cmp-id :in)
+                         (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
             msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
@@ -79,11 +94,17 @@
   It takes the initial state atom, the handler function for messages on in-chan, and the
   sliding-handler function, which handles messages on sliding-in-chan.
   By default, in-chan and out-chan have standard buffers of size one, whereas sliding-in-chan
-  and sliding-out-chan have sliding buffers of size one.
-  The buffer sizes can be configured.
+  and sliding-out-chan have sliding buffers of size one. The buffer sizes can be configured.
   The sliding-channels are meant for events where only ever the latest version is of interest,
   such as mouse moves or published state snapshots in the case of UI components rendering
-  state snapshots from other components."
+  state snapshots from other components.
+  Components send messages by using the put-fn, which is provided to the component when
+  creating it's initial state, and then subsequently in every call to any of the handler
+  functions. On every message send, a unique correlation ID is attached to every message.
+  Also, messages are automatically assigned a tag, which is a unique ID that doesn't change
+  when a message flows through the system. This tag can also be assigned manually by
+  initially sending a message with the tag set on the metadata, as this tag will not be
+  touched by the library whenever it exists already."
   [{:keys [cmp-id state-fn snapshot-xform-fn opts] :as cmp-conf}]
   (let [cfg (merge component-defaults opts)
         out-chan (make-chan-w-buf (:out-chan cfg))
@@ -92,9 +113,11 @@
         sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
         put-fn (fn [msg]
                  (let [msg-meta (-> (merge (meta msg) {})
-                                    (assoc-in, [:cmp-seq] cmp-id) ; TODO: replace by actual sequence
-                                    (assoc-in, [cmp-id :out-timestamp] (now)))
-                       msg-w-meta (with-meta msg msg-meta)]
+                                    (add-to-msg-seq cmp-id :out)
+                                    (assoc-in [cmp-id :out-ts] (now)))
+                       corr-id (make-uuid)
+                       tag (or (:tag msg-meta) (make-uuid))
+                       msg-w-meta (with-meta msg (merge msg-meta {:corr-id corr-id :tag tag}))]
                    (put! out-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
                      (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}]))))
