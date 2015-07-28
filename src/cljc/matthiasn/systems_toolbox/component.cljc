@@ -15,8 +15,8 @@
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
 
-#?(:clj  (defn uuid [] (java.util.UUID/randomUUID))
-   :cljs (defn uuid []  (uuid/make-random-uuid)))
+#?(:clj  (defn make-uuid [] (java.util.UUID/randomUUID))
+   :cljs (defn make-uuid []  (uuid/make-random-uuid)))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -39,13 +39,14 @@
 
 (defn add-to-msg-seq
   "Function for adding the current component ID to the sequence that the message has traversed
-  thus far. Component IDs can be added either when the message enters or leaves a component.
-  There's a test to avoid conjoining the same ID twice in a row."
-  [msg-meta cmp-id]
+  thus far. The specified component IDs is either added when the cmp-seq is empty in the case
+  of an initial send or when the message is received by a component. This avoids recording
+  component IDs multiple times."
+  [msg-meta cmp-id in-out]
   (let [cmp-seq (vec (:cmp-seq msg-meta))]
-    (if (= (last cmp-seq) cmp-id)
-      msg-meta
-      (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id)))))
+    (if (or (empty? cmp-seq) (= in-out :in))
+      (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id))
+      msg-meta)))
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -59,7 +60,7 @@
     (go-loop []
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
-                         (add-to-msg-seq cmp-id)
+                         (add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
@@ -112,10 +113,10 @@
         sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
         put-fn (fn [msg]
                  (let [msg-meta (-> (merge (meta msg) {})
-                                    (add-to-msg-seq cmp-id)
+                                    (add-to-msg-seq cmp-id :out)
                                     (assoc-in [cmp-id :out-ts] (now)))
-                       corr-id (uuid)
-                       tag (or (:tag msg-meta) (uuid))
+                       corr-id (make-uuid)
+                       tag (or (:tag msg-meta) (make-uuid))
                        msg-w-meta (with-meta msg (merge msg-meta {:corr-id corr-id :tag tag}))]
                    (put! out-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
