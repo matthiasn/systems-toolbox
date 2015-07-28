@@ -108,10 +108,9 @@
                  (let [msg-meta (-> (merge (meta msg) {})
                                     (add-to-msg-seq cmp-id)
                                     (assoc-in [cmp-id :out-ts] (now)))
-                       msg-uuid (uuid)
-                       corr-uuid (or (:corr-uuid msg-meta) (uuid))
-                       msg-w-meta (with-meta msg (merge msg-meta {:corr-uuid corr-uuid
-                                                                  :msg-uuid msg-uuid}))]
+                       corr-id (uuid)
+                       tag (or (:tag msg-meta) (uuid))
+                       msg-w-meta (with-meta msg (merge msg-meta {:corr-id corr-id :tag tag}))]
                    (put! out-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
                      (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}]))))
