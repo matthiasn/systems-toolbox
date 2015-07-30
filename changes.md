@@ -1,4 +1,13 @@
-## v0.2.19
+## v0.2.20 - July 30th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.20"]
+```
+
+* Expose metadata explicitly in firehose messages
+
+
+## v0.2.19 - July 30th, 2015
 
 ```clojure
 [matthiasn/systems-toolbox "0.2.19"]

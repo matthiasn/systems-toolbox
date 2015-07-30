@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.2.19"
+(defproject matthiasn/systems-toolbox "0.2.20"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"

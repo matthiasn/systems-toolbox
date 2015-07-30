@@ -77,7 +77,9 @@
             (<! (timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg}]))
+              (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id
+                                                       :msg msg
+                                                       :msg-meta msg-meta}]))
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
@@ -117,10 +119,13 @@
                                     (assoc-in [cmp-id :out-ts] (now)))
                        corr-id (make-uuid)
                        tag (or (:tag msg-meta) (make-uuid))
-                       msg-w-meta (with-meta msg (merge msg-meta {:corr-id corr-id :tag tag}))]
+                       completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
+                       msg-w-meta (with-meta msg completed-meta)]
                    (put! out-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
-                     (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta}]))))
+                     (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
+                                                             :msg msg-w-meta
+                                                             :msg-meta completed-meta}]))))
         out-mult (mult out-chan)
         firehose-mult (mult firehose-chan)
         state (if state-fn (state-fn put-fn) (atom {}))
