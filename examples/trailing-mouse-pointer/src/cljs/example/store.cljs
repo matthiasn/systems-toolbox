@@ -1,7 +1,6 @@
 (ns example.store
   (:require [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.helpers :refer [by-id]]
-            [cljs.core.match :refer-macros [match]]))
+            [matthiasn.systems-toolbox.helpers :refer [by-id]]))
 
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server. Here, we first determine the

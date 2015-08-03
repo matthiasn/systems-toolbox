@@ -37,13 +37,24 @@
    :msgs-on-firehose      true
    :reload-cmp            true})
 
-(defn add-to-msg-seq
+#_(defn add-to-msg-seq
+  "Function for adding the current component ID to the sequence that the message has traversed
+  thus far. Component IDs can be added either when the message enters or leaves a component.
+  There's a test to avoid conjoining the same ID twice in a row."
+  [msg-meta cmp-id in-out]
+  (let [cmp-seq (vec (:cmp-seq msg-meta))]
+    (if (= (last cmp-seq) cmp-id)
+      msg-meta
+      (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id)))))
+
+#_(defn add-to-msg-seq
   "Function for adding the current component ID to the sequence that the message has traversed
   thus far. The specified component IDs is either added when the cmp-seq is empty in the case
   of an initial send or when the message is received by a component. This avoids recording
   component IDs multiple times."
   [msg-meta cmp-id in-out]
   (let [cmp-seq (vec (:cmp-seq msg-meta))]
+    ;(prn "cmp-seq" cmp-seq "cmp-id" cmp-id in-out)
     (if (or (empty? cmp-seq) (= in-out :in))
       (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id))
       msg-meta)))
@@ -60,7 +71,7 @@
     (go-loop []
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
-                         (add-to-msg-seq cmp-id :in)
+                         ;(add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
@@ -109,19 +120,20 @@
   touched by the library whenever it exists already."
   [{:keys [cmp-id state-fn snapshot-xform-fn opts] :as cmp-conf}]
   (let [cfg (merge component-defaults opts)
-        out-chan (make-chan-w-buf (:out-chan cfg))
+        put-chan (make-chan-w-buf (:out-chan cfg))          ; channel used in put-fn, not connected at first
+        out-chan (make-chan-w-buf (:out-chan cfg))          ; out-chan, all messages will land on mult and pub
         firehose-chan (make-chan-w-buf (:firehose-chan cfg))
         out-pub-chan (make-chan-w-buf (:out-chan cfg))
         sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
         put-fn (fn [msg]
                  (let [msg-meta (-> (merge (meta msg) {})
-                                    (add-to-msg-seq cmp-id :out)
+                                    ;(add-to-msg-seq cmp-id :out)
                                     (assoc-in [cmp-id :out-ts] (now)))
                        corr-id (make-uuid)
                        tag (or (:tag msg-meta) (make-uuid))
                        completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
                        msg-w-meta (with-meta msg completed-meta)]
-                   (put! out-chan msg-w-meta)
+                   (put! put-chan msg-w-meta)
                    (when (:msgs-on-firehose cfg)
                      (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
                                                              :msg msg-w-meta
@@ -139,6 +151,7 @@
                                 (when (:snapshots-on-firehose cfg)
                                   (put! firehose-chan
                                         [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}]))))
+        system-ready-fn (fn [] (pipe put-chan out-chan))    ; connect put-chan to out-chan when system wired
         cmp-map (merge cmp-conf {:out-mult            out-mult
                                  :firehose-chan       firehose-chan
                                  :firehose-mult       firehose-mult
@@ -147,6 +160,7 @@
                                  :cmp-state           state
                                  :watch-state         watch-state
                                  :put-fn              put-fn
+                                 :system-ready-fn     system-ready-fn
                                  :snapshot-publish-fn snapshot-publish-fn
                                  :cfg                 cfg
                                  :state-snapshot-fn   (fn [] @watch-state)})]

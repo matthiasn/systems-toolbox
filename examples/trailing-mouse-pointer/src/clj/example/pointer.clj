@@ -1,7 +1,6 @@
 (ns example.pointer
   (:gen-class)
   (:require
-    [clojure.core.match :refer [match]]
     [incanter.distributions :as dist]
     [incanter.stats :as stats]
     [matthiasn.systems-toolbox.component :as comp]))

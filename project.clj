@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.2.20"
+(defproject matthiasn/systems-toolbox "0.2.21"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -7,7 +7,7 @@
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "0.0-3308"]
+                 [org.clojure/clojurescript "1.7.28"]
                  [org.ow2.asm/asm-all "4.2"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha" :exclusions [org.ow2.asm/asm-all]]
                  [reagent "0.5.0"]

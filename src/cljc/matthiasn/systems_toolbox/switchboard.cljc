@@ -140,6 +140,14 @@
     (put-fn [:log/switchboard-init msg-payload])
     log-comp))
 
+(defn wire-all-out-channels
+  "Function for calling the system-ready-fn on each component, which will pipe the channel used by
+  the put-fn to the out-chan when the system is connected. Otherwise, messages sent before all
+  channels are wired would get lost."
+  [{:keys [cmp-state]}]
+  (doseq [[_ cmp] (:components @cmp-state)]
+    ((:system-ready-fn cmp))))
+
 (def handler-map
   {:cmd/route              route-handler
    :cmd/route-all          route-all-handler
@@ -149,7 +157,8 @@
    :cmd/observe-state      observe-state
    :cmd/send               send-to
    :cmd/make-log-comp      make-log-comp
-   :cmd/print-cmp-state    print-cmp-state})
+   :cmd/print-cmp-state    print-cmp-state
+   :status/system-ready    wire-all-out-channels})
 
 (defn xform-fn
   "Transformer function for switchboard state snapshot. Allow serialization of snaphot for sending over WebSockets."
@@ -185,4 +194,5 @@
 (defn send-mult-cmd
   "Send messages to the specified switchboard component."
   [switchboard cmds]
-  (doseq [cmd cmds] (put! (:in-chan switchboard) cmd)))
+  (doseq [cmd cmds] (put! (:in-chan switchboard) cmd))
+  (put! (:in-chan switchboard) [:status/system-ready]))
