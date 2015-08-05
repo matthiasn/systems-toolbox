@@ -163,7 +163,7 @@
 (defn xform-fn
   "Transformer function for switchboard state snapshot. Allow serialization of snaphot for sending over WebSockets."
   [m]
-  (let [xform (update-in m [:components] (fn [cmps] (into {} (map (fn [[k v]] [k k]) cmps))))]
+  (let [xform (update-in m [:components] (fn [cmps] (into {} (mapv (fn [[k v]] [k k]) cmps))))]
     xform))
 
 (defn component

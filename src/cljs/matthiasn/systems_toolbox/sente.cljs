@@ -38,8 +38,8 @@
 (defn component
   "Creates client-side WebSockets communication component."
   [cmp-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn mk-state
+  (comp/make-component {:cmp-id           cmp-id
+                        :state-fn         mk-state
                         :all-msgs-handler all-msgs-handler
-                        :opts     {:watch :state
-                                   :reload-cmp false}}))
+                        :opts             {:watch      :state
+                                           :reload-cmp false}}))
