@@ -1,3 +1,13 @@
+## v0.2.24 - August 6th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.24"]
+```
+
+* recording the sequence of handling components
+* dependency bumps
+
+
 ## v0.2.23 - August 6th, 2015
 
 ```clojure

@@ -37,17 +37,7 @@
    :msgs-on-firehose      true
    :reload-cmp            true})
 
-#_(defn add-to-msg-seq
-  "Function for adding the current component ID to the sequence that the message has traversed
-  thus far. Component IDs can be added either when the message enters or leaves a component.
-  There's a test to avoid conjoining the same ID twice in a row."
-  [msg-meta cmp-id in-out]
-  (let [cmp-seq (vec (:cmp-seq msg-meta))]
-    (if (= (last cmp-seq) cmp-id)
-      msg-meta
-      (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id)))))
-
-#_(defn add-to-msg-seq
+(defn add-to-msg-seq
   "Function for adding the current component ID to the sequence that the message has traversed
   thus far. The specified component IDs is either added when the cmp-seq is empty in the case
   of an initial send or when the message is received by a component. This avoids recording
@@ -71,7 +61,7 @@
     (go-loop []
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
-                         ;(add-to-msg-seq cmp-id :in)
+                         (add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
@@ -141,7 +131,7 @@
         ;; should be limited to what EDN or Transit can encode.
         put-fn (fn [msg]
                  (let [msg-meta (-> (merge (meta msg) {})
-                                    ;(add-to-msg-seq cmp-id :out)
+                                    (add-to-msg-seq cmp-id :out)
                                     (assoc-in [cmp-id :out-ts] (now)))
                        corr-id (make-uuid)
                        tag (or (:tag msg-meta) (make-uuid))
