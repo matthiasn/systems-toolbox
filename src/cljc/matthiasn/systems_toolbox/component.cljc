@@ -15,8 +15,8 @@
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
 
-#?(:clj  (defn make-uuid [] (java.util.UUID/randomUUID))
-   :cljs (defn make-uuid []  (uuid/make-random-uuid)))
+#?(:clj  (defn make-uuid [] (str (java.util.UUID/randomUUID)))
+   :cljs (defn make-uuid [] (str (uuid/make-random-uuid))))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."

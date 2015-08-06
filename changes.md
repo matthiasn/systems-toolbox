@@ -1,3 +1,30 @@
+## v0.2.23 - August 6th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.23"]
+```
+
+* UUIDs sent as strings
+
+
+## v0.2.22 - August 5th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.22"]
+```
+
+* Only non-firehose messages are wrapped when putting on firehose channel
+
+
+## v0.2.21 - August 4th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.21"]
+```
+
+* messages that are sent between component started and system completely wired are kept
+
+
 ## v0.2.20 - July 30th, 2015
 
 ```clojure
