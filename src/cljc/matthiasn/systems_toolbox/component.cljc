@@ -44,7 +44,6 @@
   component IDs multiple times."
   [msg-meta cmp-id in-out]
   (let [cmp-seq (vec (:cmp-seq msg-meta))]
-    ;(prn "cmp-seq" cmp-seq "cmp-id" cmp-id in-out)
     (if (or (empty? cmp-seq) (= in-out :in))
       (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id))
       msg-meta)))
@@ -55,8 +54,8 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [{:keys [handler-map all-msgs-handler state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn]
-    :as   cmp-map} cmp-state chan-key]
+  [{:keys [handler-map all-msgs-handler cmp-state state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn]
+    :as cmp-map} chan-key]
   (let [chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
       (let [msg (<! chan)
@@ -68,8 +67,7 @@
             msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
                                     :msg-type    msg-type
                                     :msg-meta    msg-meta
-                                    :msg-payload msg-payload
-                                    :cmp-state   cmp-state})]
+                                    :msg-payload msg-payload})]
         (try
           (when (= chan-key :sliding-in-chan)
             (state-pub-handler msg-map)
@@ -92,6 +90,87 @@
         (recur)))
     {chan-key chan}))
 
+(defn make-put-fn
+  "The put-fn is used inside each component for emitting messages to the outside world, from
+   the component's point of view. All the component needs to know is the type of the message.
+   Messages are vectors of two elements, where the first one is the type as a namespaced keyword
+   and the second one is the message payload, like this: [:some/msg-type {:some \"data\"}]
+   Message payloads are typically maps or vectors, but they can also be strings, primitive types
+   nil. As long as they are local, they can even be any type, e.g. a channel, but once we want
+   messages to traverse some message transport (WebSockets, some message queue), the types
+   should be limited to what EDN or Transit can encode.
+   Note that on component startup, this channel is not wired anywhere until the 'system-ready-fn'
+   (below) is called, which pipes this channel into the actual out-chan. Thus, components should
+   not try call more messages than fit in the buffer before the entire system is up."
+  [{:keys [cmp-id put-chan cfg firehose-chan]}]
+  (fn [msg]
+    (let [msg-meta (-> (merge (meta msg) {})
+                       (add-to-msg-seq cmp-id :out)
+                       (assoc-in [cmp-id :out-ts] (now)))
+          corr-id (make-uuid)
+          tag (or (:tag msg-meta) (make-uuid))
+          completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
+          msg-w-meta (with-meta msg completed-meta)
+          msg-type (first msg)
+          msg-from-firehose? (= "firehose" (namespace msg-type))]
+      (put! put-chan msg-w-meta)
+      ;; Not all components should emit firehose messages. For example, messages that process
+      ;; firehose messages should not do so again in order to avoid infinite messaging loops.
+      ;; This behavior can be configured when the component is fired up.
+      (when (:msgs-on-firehose cfg)
+        ;; Some components may emit firehose messages directly. One such example is the
+        ;; WebSockets component which can be used for relaying firehose messages, either
+        ;; from client to server or from server to client. In those cases, the emitted
+        ;; message should go on the firehose channel on the receiving end as such, not
+        ;; wrapped as other messages would (see the second case in the if-clause).
+        (if msg-from-firehose?
+          (put! firehose-chan msg-w-meta)
+          (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
+                                                  :msg msg-w-meta
+                                                  :msg-meta completed-meta}]))))))
+
+(defn make-snapshot-publish-fn
+  "Creates a function for publishing changes to the component state atom as snapshot messages,"
+  [{:keys [watch-state snapshot-xform-fn cmp-id sliding-out-chan cfg firehose-chan]}]
+  (fn []
+    (let [snapshot @watch-state
+          snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
+          snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
+      (put! sliding-out-chan snapshot-msg)
+      (when (:snapshots-on-firehose cfg)
+        (put! firehose-chan
+              [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))))
+
+(defn detect-changes
+  "Detect changes to the component state atom and then publish a snapshot using the
+  'snapshot-publish-fn'."
+  [{:keys [watch-state cmp-id snapshot-publish-fn]}]
+  #?(:clj  (try
+             (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
+             (catch Exception e (do (log/error e "Exception in" cmp-id "when attempting to watch atom:")
+                                    (pp/pprint watch-state))))
+     :cljs (let [changed (atom true)]
+             (letfn [(step []
+                           (request-animation-frame step)
+                           (when @changed
+                             (snapshot-publish-fn)
+                             (swap! changed not)))]
+               (request-animation-frame step)
+               (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
+                    (catch js/Object e
+                      (do (.log js/console e (str "Exception in " cmp-id " when attempting to watch atom:"))
+                          (pp/pprint watch-state))))))))
+
+(defn make-system-ready-fn
+  "This function is called by the switchboard that wired this component when all other
+  components are up and the channels between them connected. At this point, messages that
+  were accumulated on the 'put-chan' buffer since startup are released. Also, the
+  component state is published."
+  [{:keys [put-chan out-chan snapshot-publish-fn]}]
+   (fn []
+     (pipe put-chan out-chan)
+     (snapshot-publish-fn)))
+
 (defn make-component
   "Creates a component with attached in-chan, out-chan, sliding-in-chan and sliding-out-chan.
   It takes the initial state atom, the handler function for messages on in-chan, and the
@@ -107,115 +186,34 @@
   Also, messages are automatically assigned a tag, which is a unique ID that doesn't change
   when a message flows through the system. This tag can also be assigned manually by
   initially sending a message with the tag set on the metadata, as this tag will not be
-  touched by the library whenever it exists already."
-  [{:keys [cmp-id state-fn snapshot-xform-fn opts] :as cmp-conf}]
-  (let [
-        ;; The configuration of a component comes from merging the component defaults with
-        ;; the opts map that is passed on component creation the :opts key. The order
-        ;; of the merge operation allows overwriting the default settings.
-        cfg (merge component-defaults opts)
-
-        put-chan (make-chan-w-buf (:out-chan cfg))          ; channel used in put-fn, not connected at first
-        out-chan (make-chan-w-buf (:out-chan cfg))          ; out-chan, all messages will land on mult and pub
-        firehose-chan (make-chan-w-buf (:firehose-chan cfg))
+  touched by the library whenever it exists already.
+  The configuration of a component comes from merging the component defaults with the opts
+  map that is passed on component creation the :opts key. The order of the merge operation
+  allows overwriting the default settings."
+  [{:keys [state-fn opts] :as cmp-conf}]
+  (let [cfg (merge component-defaults opts)
         out-pub-chan (make-chan-w-buf (:out-chan cfg))
-        sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))
-
-        ;; The put-fn is used inside each component for emitting messages to the outside world, from
-        ;; the component's point of view. All the component needs to know is the type of the message.
-        ;; Messages are vectors of two elements, where the first one is the type as a namespaced keyword
-        ;; and the second one is the message payload, like this: [:some/msg-type {:some "data"}]
-        ;; Message payloads are typically maps or vectors, but they can also be strings, primitive types
-        ;; nil. As long as they are local, they can even be any type, e.g. a channel, but once we want
-        ;; messages to traverse some message transport (WebSockets, some message queue), the types
-        ;; should be limited to what EDN or Transit can encode.
-        put-fn (fn [msg]
-                 (let [msg-meta (-> (merge (meta msg) {})
-                                    (add-to-msg-seq cmp-id :out)
-                                    (assoc-in [cmp-id :out-ts] (now)))
-                       corr-id (make-uuid)
-                       tag (or (:tag msg-meta) (make-uuid))
-                       completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
-                       msg-w-meta (with-meta msg completed-meta)
-                       msg-type (first msg)
-                       msg-from-firehose? (= "firehose" (namespace msg-type))]
-
-                   ;; The main job of the 'put-fn' is to put messages on an outgoing channel, to be
-                   ;; consumed elsewhere. The messages are put onto the put-chan. Note that on
-                   ;; component startup, this channel is not wired anywhere until the 'system-ready-fn'
-                   ;; (below) is called, which pipes this channel into the actual out-chan. Thus, components
-                   ;; should not try call more messages than fit in the buffer before the entire
-                   ;; system is up.
-                   (put! put-chan msg-w-meta)
-
-                   ;; Not all components should emit firehose messages. For example, messages that process
-                   ;; firehose messages should not do so in order to avoid infinite messaging loops.
-                   ;; This behavior can be configured when the component is fired up.
-                   (when (:msgs-on-firehose cfg)
-
-                     ;; Some components may emit firehose messages directly. One such example is the
-                     ;; WebSockets component which can be used for relaying firehose messages, either
-                     ;; from client to server or from server to client. In those cases, the emitted
-                     ;; message should go on the firehose channel on the receiving end as such, not
-                     ;; wrapped as other messages would (see the second case in the if-clause).
-                     (if msg-from-firehose?
-                       (put! firehose-chan msg-w-meta)
-                       (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
-                                                               :msg msg-w-meta
-                                                               :msg-meta completed-meta}])))))
-        out-mult (mult out-chan)
-        firehose-mult (mult firehose-chan)
-        state (if state-fn (state-fn put-fn) (atom {}))
-        watch-state (if-let [watch (:watch cfg)] (watch state) state)
-
-        ;; This function is used below to publish changes to the component state atom in the form of
-        ;; snapshot messages.
-        snapshot-publish-fn (fn []
-                              (let [snapshot @watch-state
-                                    snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
-                                    snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
-                                (put! sliding-out-chan snapshot-msg)
-                                (when (:snapshots-on-firehose cfg)
-                                  (put! firehose-chan
-                                        [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}]))))
-
-        ;; This function is called by the switchboard that wired this component when all other
-        ;; components are up and the channels between them connected. At this point, messages
-        ;; that were accumulated on the 'put-chan' buffer since startup are released.
-        system-ready-fn (fn [] (pipe put-chan out-chan))
-
-        cmp-map (merge cmp-conf {:out-mult            out-mult
-                                 :firehose-chan       firehose-chan
-                                 :firehose-mult       firehose-mult
-                                 :out-pub             (pub out-pub-chan first)
-                                 :state-pub           (pub sliding-out-chan first)
-                                 :cmp-state           state
-                                 :watch-state         watch-state
-                                 :put-fn              put-fn
-                                 :system-ready-fn     system-ready-fn
-                                 :snapshot-publish-fn snapshot-publish-fn
-                                 :cfg                 cfg
-                                 :state-snapshot-fn   (fn [] @watch-state)})]
-    (tap out-mult out-pub-chan)
-
-    ;; Below, changes to the component state atom are detected and then published using the
-    ;; 'snapshot-publish-fn'.
-    #?(:clj  (try
-               (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
-               (catch Exception e (do (log/error e "Exception in" cmp-id "when attempting to watch atom:")
-                                      (pp/pprint watch-state))))
-       :cljs (let [changed (atom true)]
-               (letfn [(step []
-                             (request-animation-frame step)
-                             (when @changed
-                               (snapshot-publish-fn)
-                               (swap! changed not)))]
-                 (request-animation-frame step)
-                 (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
-                      (catch js/Object e
-                        (do (.log js/console e (str "Exception in " cmp-id " when attempting to watch atom:"))
-                            (pp/pprint watch-state)))))))
-    (snapshot-publish-fn)
+        cmp-map-1 (merge cmp-conf
+                         {:put-chan         (make-chan-w-buf (:out-chan cfg)) ; used in put-fn, not connected at first
+                          :out-chan         (make-chan-w-buf (:out-chan cfg)) ; outgoing chan, used in mult and pub
+                          :cfg              cfg
+                          :firehose-chan    (make-chan-w-buf (:firehose-chan cfg)) ; channel for publishing all messages
+                          :sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))}) ; chan for publishing snapshots
+        put-fn (make-put-fn cmp-map-1)
+        state (if state-fn (state-fn put-fn) (atom {}))     ; create state, either from state-fn or empty map
+        watch-state (if-let [watch (:watch cfg)] (watch state) state) ; watchable atom
+        cmp-map-2 (merge cmp-map-1 {:watch-state watch-state})
+        cmp-map-3 (merge cmp-map-2 {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map-2)})
+        cmp-map (merge cmp-map-3 {:out-mult          (mult (:out-chan cmp-map-3))
+                                  :firehose-mult     (mult (:firehose-chan cmp-map-3))
+                                  :out-pub           (pub out-pub-chan first)
+                                  :state-pub         (pub (:sliding-out-chan cmp-map-3) first)
+                                  :cmp-state         state
+                                  :put-fn            put-fn
+                                  :system-ready-fn   (make-system-ready-fn cmp-map-3)
+                                  :state-snapshot-fn (fn [] @watch-state)})]
+    (tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
+    (detect-changes cmp-map) ; publish snapshots when changes are detected
     (merge cmp-map
-           (msg-handler-loop cmp-map state :in-chan)
-           (msg-handler-loop cmp-map state :sliding-in-chan))))
+           (msg-handler-loop cmp-map :in-chan)
+           (msg-handler-loop cmp-map :sliding-in-chan))))
