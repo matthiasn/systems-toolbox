@@ -10,8 +10,8 @@
 (defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
   [{:keys [msg msg-meta]}]
-  #?(:clj (log/info msg-meta msg))
-  #?(:cljs (println "Log: " msg-meta " " msg)))
+  #?(:clj (log/info msg))
+  #?(:cljs (println "Log: " msg)))
 
 (defn component
   "Creates component for logging, which in this case does not need local state."

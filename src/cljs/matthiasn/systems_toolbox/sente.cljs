@@ -1,7 +1,8 @@
 (ns matthiasn.systems-toolbox.sente
   (:require [cljs.core.match :refer-macros [match]]
             [matthiasn.systems-toolbox.component :as comp]
-            [taoensso.sente :as sente :refer (cb-success?)]))
+            [taoensso.sente :as sente :refer (cb-success?)]
+            [taoensso.sente.packers.transit :as sente-transit]))
 
 (defn deserialize-meta
   [payload]
@@ -22,7 +23,8 @@
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (let [ws (sente/make-channel-socket! "/chsk" {:type :auto})]
+  (let [ws (sente/make-channel-socket! "/chsk" {:type :auto
+                                                :packer (sente-transit/get-flexi-packer :edn)})]
     (sente/start-chsk-router! (:ch-recv ws) (make-handler put-fn))
     ws))
 

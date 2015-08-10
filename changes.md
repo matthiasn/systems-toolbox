@@ -1,3 +1,22 @@
+## v0.2.26 - August 10th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.26"]
+```
+
+* Immutant-web instead of http-kit: as far as open source projects go, http-kit does not look very healthy.
+* Less logging: the log component is probably not very useful at all. There's no good reason not to use 'conventional' logging inside handler code. Being able to inspect input and output messages without recompile should greatly reduce the need for logging anyway.
+
+
+## v0.2.25 - August 8th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.25"]
+```
+
+* refactoring, more readable component namespace
+
+
 ## v0.2.24 - August 6th, 2015
 
 ```clojure

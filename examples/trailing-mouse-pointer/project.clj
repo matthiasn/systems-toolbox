@@ -6,16 +6,16 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.48"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [org.clojure/tools.namespace "0.2.10"]
-                 [ch.qos.logback/logback-classic "1.1.2"]
+                 [org.clojure/tools.namespace "0.2.11"]
+                 [ch.qos.logback/logback-classic "1.1.3"]
                  [hiccup "1.0.5"]
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5"]
                  [clj-pid "0.1.1"]
-                 [matthiasn/systems-toolbox "0.2.25"]
+                 [matthiasn/systems-toolbox "0.2.26"]
                  [reagent "0.5.0"]
                  [incanter "1.5.6"]
-                 [clj-time "0.9.0"]]
+                 [clj-time "0.10.0"]]
 
   :source-paths ["src/clj/"]
 
@@ -25,10 +25,10 @@
 
   :plugins [[lein-cljsbuild "1.0.6"]
             [lein-figwheel "0.3.7" :exclusions [org.clojure/clojure org.codehaus.plexus/plexus-utils]]
-            [codox "0.8.12" :exclusions [org.clojure/clojure]]]
+            [codox "0.8.13"]]
 
   :figwheel {:server-port 3450
-             :css-dirs ["resources/public/css"]}
+             :css-dirs    ["resources/public/css"]}
 
   :cljsbuild {:builds [{:id           "dev"
                         :source-paths ["src/cljs" "env/dev/cljs"]
