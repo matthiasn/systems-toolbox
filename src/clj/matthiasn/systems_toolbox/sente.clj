@@ -32,7 +32,7 @@
 
 (defn mk-state
   "Return clean initial component state atom."
-  [index-page-fn port]
+  [index-page-fn host port]
   (fn [put-fn]
     (let [ws (sente/make-channel-socket! sente-web-server-adapter {:user-id-fn user-id-fn
                                                                    :packer (sente-transit/get-flexi-packer :edn)})
@@ -45,8 +45,8 @@
                  (route/resources "/")
                  (route/not-found "Page not found"))
       (let [my-ring-handler (ring.middleware.defaults/wrap-defaults my-routes ring-defaults-config)
-            server (immutant/run my-ring-handler :port port)]
-        (log/info "Immutant-web is running on port" (:port server)))
+            server (immutant/run my-ring-handler :host host :port port)]
+        (log/info "Immutant-web is running on " (:host server) ":" (:port server)))
       (sente/start-chsk-router! ch-recv (make-handler ws put-fn))
       ws)))
 
@@ -65,8 +65,8 @@
 
 (defn component
   "Creates server-side WebSockets communication component."
-  [cmp-id index-page-fn port]
+  [cmp-id index-page-fn host port]
   (comp/make-component {:cmp-id           cmp-id
-                        :state-fn         (mk-state index-page-fn port)
+                        :state-fn         (mk-state index-page-fn host port)
                         :all-msgs-handler all-msgs-handler
                         :opts             {:watch :connected-uids}}))

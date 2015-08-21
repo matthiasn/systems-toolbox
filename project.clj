@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.2.26"
+(defproject matthiasn/systems-toolbox "0.2.27"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -7,8 +7,9 @@
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.48"]
-                 [org.ow2.asm/asm-all "4.2"]
+                 [org.clojure/clojurescript "1.7.107"]
+                 [org.ow2.asm/asm-all "5.0.4"]
+                 [org.clojure/tools.analyzer.jvm "0.6.7"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha" :exclusions [org.ow2.asm/asm-all]]
                  [reagent "0.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
@@ -20,9 +21,9 @@
                  [ring "1.4.0"]
                  [ring/ring-defaults "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
-                 [org.immutant/web "2.0.2"]]
+                 [org.immutant/web "2.0.2" :exclusions [org.slf4j/slf4j-api]]]
 
-  :plugins [[codox "0.8.13"]
+  :plugins [[codox "0.8.13" :exclusions [org.clojure/clojure]]
             [lein-cljsbuild "1.0.6"]]
 
   :cljsbuild {:builds {:test
