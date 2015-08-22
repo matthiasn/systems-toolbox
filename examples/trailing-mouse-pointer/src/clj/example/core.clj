@@ -24,7 +24,7 @@
   (sb/send-mult-cmd
     switchboard  ;; Below, we're interacting with the switchboard component we just created above.
     [;; First of all, we instantiate and wire a couple fo different components.
-     [:cmd/wire-comp (sente/component   :server/ws-cmp index/index-page "0.0.0.0" 8010)]
+     [:cmd/wire-comp (sente/component   :server/ws-cmp index/index-page)]
      [:cmd/wire-comp (sched/component   :server/scheduler-cmp)]  ; Component for scheduling the dispatch of messages
      [:cmd/wire-comp (ptr/component     :server/ptr-cmp)]        ; Component for processing mouse moves
      [:cmd/wire-comp (metrics/component :server/metrics-cmp)]    ; Component for metrics and stats
