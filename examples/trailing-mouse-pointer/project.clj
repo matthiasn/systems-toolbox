@@ -12,7 +12,7 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.6" :exclusions [org.clojure/clojure]]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.2.28"]
+                 [matthiasn/systems-toolbox "0.2.29"]
                  [reagent "0.5.0"]
                  [incanter "1.5.6"]
                  [clj-time "0.11.0"]]
