@@ -9,13 +9,24 @@
   (let [[cmd-type {:keys [msg msg-meta]}] payload]
     (with-meta [cmd-type msg] msg-meta)))
 
+(defn handle-first-open
+  "After component is ready and before WS connection is established, there's a small window during
+  which another components might try to send something. Those messages would get lost, so they are
+  buffered in :buffered-msgs until connection is ready."
+  [put-fn ws]
+  (put-fn [:first-open true])
+  (let [{:keys [state send-fn]} ws
+        buffered-msgs (:buffered-msgs @state)]
+    (doall (map (partial send-fn) buffered-msgs))
+    (swap! state dissoc :buffered-msgs)))
+
 (defn make-handler
   "Create handler function for messages from WebSocket connection. Calls put-fn with received
    messages."
-  [put-fn]
+  [put-fn ws]
   (fn [{:keys [event]}]
     (match event
-           [:chsk/state {:first-open? true}] (put-fn [:first-open true])
+           [:chsk/state {:first-open? true}] (handle-first-open put-fn ws)
            [:chsk/recv payload] (put-fn (deserialize-meta payload))
            [:chsk/handshake _] ()
            :else ())))
@@ -25,17 +36,19 @@
   [put-fn]
   (let [ws (sente/make-channel-socket! "/chsk" {:type :auto
                                                 :packer (sente-transit/get-flexi-packer :edn)})]
-    (sente/start-chsk-router! (:ch-recv ws) (make-handler put-fn))
+    (sente/start-chsk-router! (:ch-recv ws) (make-handler put-fn ws))
+    (swap! (:state ws) assoc :buffered-msgs [])
     ws))
 
 (defn all-msgs-handler
   "Handle incoming messages: process / add to application state."
   [{:keys [cmp-state msg-type msg-meta msg-payload]}]
-  (let [ws cmp-state
-        state (:state ws)
-        send-fn (:send-fn ws)
-        msg-w-ser-meta (assoc-in (merge msg-meta {}) [:sente-uid] (:uid @state))]
-    (send-fn [msg-type {:msg msg-payload :msg-meta msg-w-ser-meta}])))
+  (let [{:keys [state send-fn]} cmp-state
+        msg-w-ser-meta (assoc-in (merge msg-meta {}) [:sente-uid] (:uid @state))
+        msg [msg-type {:msg msg-payload :msg-meta msg-w-ser-meta}]]
+    (if (:open? @state)
+      (send-fn msg)
+      (swap! cmp-state update-in [:state :buffered-msgs] conj msg))))
 
 (defn component
   "Creates client-side WebSockets communication component."
