@@ -4,16 +4,16 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.107"]
+                 [org.clojure/clojurescript "1.7.122"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [ch.qos.logback/logback-classic "1.1.3"]
                  [hiccup "1.0.5"]
                  [hiccup-bridge "1.0.1"]
-                 [garden "1.2.6" :exclusions [org.clojure/clojure]]
+                 [garden "1.2.5" :exclusions [org.clojure/clojure]]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.2.29"]
-                 [reagent "0.5.0"]
+                 [matthiasn/systems-toolbox "0.2.31"]
+                 [reagent "0.5.1"]
                  [incanter "1.5.6"]
                  [clj-time "0.11.0"]]
 
@@ -23,8 +23,8 @@
 
   :main example.core
 
-  :plugins [[lein-cljsbuild "1.0.6"]
-            [lein-figwheel "0.3.7" :exclusions [org.clojure/clojure org.codehaus.plexus/plexus-utils]]
+  :plugins [[lein-cljsbuild "1.1.0"]
+            [lein-figwheel "0.4.0" :exclusions [org.clojure/clojure org.codehaus.plexus/plexus-utils]]
             [codox "0.8.13"]]
 
   :figwheel {:server-port 3450

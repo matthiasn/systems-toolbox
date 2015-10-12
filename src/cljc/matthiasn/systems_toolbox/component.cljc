@@ -54,7 +54,8 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [{:keys [handler-map all-msgs-handler cmp-state state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn]
+  [{:keys [handler-map all-msgs-handler cmp-state state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn
+           unhandled-handler]
     :as cmp-map} chan-key]
   (let [chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
@@ -63,6 +64,7 @@
                          (add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
+            handler-map (merge {} handler-map)
             handler-fn (msg-type handler-map)
             msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
                                     :msg-type    msg-type
@@ -82,6 +84,8 @@
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
+            (when unhandled-handler
+              (when-not (contains? handler-map msg-type) (unhandled-handler msg-map)))
             (when all-msgs-handler (all-msgs-handler msg-map)))
           #?(:clj  (catch Exception e (do (log/error e "Exception in" cmp-id "when receiving message:")
                                           (pp/pprint msg)))

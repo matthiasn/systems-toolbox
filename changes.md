@@ -1,3 +1,44 @@
+## v0.2.31 - October 12th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.31"]
+```
+
+* unhandled handler: this function is called for each message that is not handled by another handler in the :handler-map of a component.
+
+
+## v0.2.30 - September 23rd, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.30"]
+
+* version bumps
+
+
+## v0.2.29 - August 29th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.29"]
+
+* Buffer WS messages until the connection is opened.
+
+
+## v0.2.28 - August 28th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.28"]
+
+* host and port configuration via environment variables (e.g. for use with Docker)
+
+
+## v0.2.27 - August 21st, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.2.27"]
+
+* dependency updates & web server options
+
+
 ## v0.2.26 - August 10th, 2015
 
 ```clojure
