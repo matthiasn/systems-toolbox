@@ -48,7 +48,7 @@
         msg [msg-type {:msg msg-payload :msg-meta msg-w-ser-meta}]]
     (if (:open? @state)
       (send-fn msg)
-      (swap! cmp-state update-in [:state :buffered-msgs] conj msg))))
+      (swap! state update-in [:buffered-msgs] conj msg))))
 
 (defn component
   "Creates client-side WebSockets communication component."
