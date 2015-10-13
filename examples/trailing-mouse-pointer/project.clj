@@ -12,14 +12,14 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5" :exclusions [org.clojure/clojure]]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.2.31"]
+                 [matthiasn/systems-toolbox "0.2.33"]
                  [reagent "0.5.1"]
                  [incanter "1.5.6"]
                  [clj-time "0.11.0"]]
 
   :source-paths ["src/clj/"]
 
-  :clean-targets ^{:protect false} ["resources/public/js/build/"]
+  :clean-targets ^{:protect false} ["resources/public/js/build/" "target/"]
 
   :main example.core
 

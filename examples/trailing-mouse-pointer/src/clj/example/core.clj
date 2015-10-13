@@ -31,7 +31,6 @@
 
      ;; Then, messages of a given type are wired from one component to another.
      [:cmd/route-all {:from :server/ptr-cmp :to :server/ws-cmp}]
-     [:cmd/route-all {:from :server/ptr-cmp :to :server/log-cmp}]
 
      [:cmd/route-all {:from :server/metrics-cmp :to :server/ws-cmp}]
      [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]

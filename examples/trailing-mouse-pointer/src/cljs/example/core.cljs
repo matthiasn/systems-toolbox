@@ -26,7 +26,6 @@
 
      ;; Then, messages of a given type are wired from one component to another.
      [:cmd/route-all {:from :client/mouse-cmp :to :client/ws-cmp}]
-     [:cmd/route-all {:from :client/mouse-cmp :to :client/log-cmp}]
 
      [:cmd/route {:from :client/ws-cmp :to :client/store-cmp}]
      [:cmd/route {:from :client/ws-cmp :to :client/jvmstats-cmp}]
