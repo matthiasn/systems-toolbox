@@ -2,8 +2,7 @@
   (:gen-class)
   (:require
     [incanter.distributions :as dist]
-    [incanter.stats :as stats]
-    [matthiasn.systems-toolbox.component :as comp]))
+    [incanter.stats :as stats]))
 
 (defn mk-state [_] (atom {:count 0}))
 
@@ -19,8 +18,8 @@
                                                      (assoc params :count (:count @cmp-state))] (meta msg))}])
     (put-fn (with-meta [:cmd/mouse-pos (assoc params :count (:count @cmp-state))] (meta msg)))))
 
-(defn component
+(defn cmp-map
   [cmp-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn mk-state
-                        :handler-map {:cmd/mouse-pos process-mouse-pos}}))
+  {:cmp-id      cmp-id
+   :state-fn    mk-state
+   :handler-map {:cmd/mouse-pos process-mouse-pos}})

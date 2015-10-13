@@ -24,9 +24,9 @@
      [histogram-view (hist/percentile-range network-times 95) "Network time t/ms (within 95th percentile)" "#66A9A5"]
      [histogram-view server-proc-times "Server processing time t/ms" "#F1684D"]]))
 
-(defn component
+(defn cmp-map
   [cmp-id]
-  (r/component {:cmp-id        cmp-id
-                :view-fn       histograms-view
-                :dom-id        "histograms"
-                :cfg           {:throttle-ms 100}}))
+  (r/cmp-map {:cmp-id  cmp-id
+              :view-fn histograms-view
+              :dom-id  "histograms"
+              :cfg     {:throttle-ms 100}}))

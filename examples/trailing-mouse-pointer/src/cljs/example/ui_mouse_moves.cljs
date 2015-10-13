@@ -77,8 +77,8 @@
       (text-view state-snapshot pos (.toFixed mean 0) mn mx last-rt)
       (trailing-circles state-snapshot local-state)]]))
 
-(defn component
+(defn cmp-map
   [cmp-id]
-  (r/component {:cmp-id  cmp-id
-                :view-fn mouse-view
-                :dom-id  "mouse"}))
+  (r/cmp-map {:cmp-id  cmp-id
+              :view-fn mouse-view
+              :dom-id  "mouse"}))

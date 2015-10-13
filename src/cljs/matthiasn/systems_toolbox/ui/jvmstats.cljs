@@ -74,8 +74,15 @@
   [{:keys [cmp-state msg-payload]}]
   (swap! cmp-state assoc :readings (conj (:readings @cmp-state) msg-payload)))
 
-(defn component
+(defn cmp-map
+  {:added "0.3.1"}
   [cmp-id dom-id]
-  (comp/make-component {:cmp-id   cmp-id
-                        :state-fn (mk-state dom-id)
-                        :handler-map {:stats/jvm recv-jvm-stats}}))
+  {:cmp-id           cmp-id
+   :state-fn (mk-state dom-id)
+   :handler-map {:stats/jvm recv-jvm-stats}
+   :opts             {:reload-cmp false}})
+
+(defn component
+  {:deprecated "0.3.1"}
+  [cmp-id dom-id]
+  (comp/make-component (cmp-map cmp-id dom-id)))

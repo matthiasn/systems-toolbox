@@ -29,9 +29,13 @@
   [{:keys [put-fn]}]
   (put-fn [:stats/jvm (system-utilization)]))
 
-(defn component
+(defn cmp-map
+  {:added "0.3.1"}
   [cmp-id]
-  (comp/make-component
-    {:cmp-id      cmp-id
-     :handler-map {:cmd/get-jvm-stats send-stats}}))
+  {:cmp-id      cmp-id
+   :handler-map {:cmd/get-jvm-stats send-stats}})
 
+(defn component
+  {:deprecated "0.3.1"}
+  [cmp-id]
+  (comp/make-component (cmp-map cmp-id)))

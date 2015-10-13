@@ -127,12 +127,19 @@
           (swap! cmp-state assoc :nodes-map nodes-map)
           (swap! cmp-state assoc :links links))))))
 
-(defn component
+(defn cmp-map
+  {:added "0.3.1"}
   [cmp-id obs-cfg]
-  (comp/make-component {:cmp-id      cmp-id
-                        :state-fn    (mk-state obs-cfg)
-                        :handler-map {:firehose/cmp-put           (count-msg :last-tx :tx-count)
-                                      :firehose/cmp-publish-state (state-snapshot-handler (:switchbrd-id obs-cfg))
-                                      :firehose/cmp-recv          (count-msg :last-rx :rx-count)
-                                      :firehose/cmp-recv-state    (count-msg :last-rx :rx-count)}
-                        :opts        {:snapshots-on-firehose false}}))
+  {:cmp-id      cmp-id
+   :state-fn    (mk-state obs-cfg)
+   :handler-map {:firehose/cmp-put           (count-msg :last-tx :tx-count)
+                 :firehose/cmp-publish-state (state-snapshot-handler (:switchbrd-id obs-cfg))
+                 :firehose/cmp-recv          (count-msg :last-rx :rx-count)
+                 :firehose/cmp-recv-state    (count-msg :last-rx :rx-count)}
+   :opts        {:snapshots-on-firehose false
+                 :reload-cmp false}})
+
+(defn component
+  {:deprecated "0.3.1"}
+  [cmp-id obs-cfg]
+  (comp/make-component (cmp-map cmp-id obs-cfg)))

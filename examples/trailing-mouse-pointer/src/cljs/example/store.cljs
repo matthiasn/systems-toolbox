@@ -1,6 +1,5 @@
 (ns example.store
-  (:require [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.helpers :refer [by-id]]))
+  (:require [matthiasn.systems-toolbox.helpers :refer [by-id]]))
 
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server. Here, we first determine the
@@ -31,8 +30,8 @@
   [put-fn]
   (atom {:count 0 :rtt-times [] :network-times [] :server-proc-times []}))
 
-(defn component
+(defn cmp-map
   [cmp-id]
-  (comp/make-component {:cmp-id      cmp-id
-                        :state-fn    mk-state
-                        :handler-map {:cmd/mouse-pos mouse-pos-from-server!}}))
+  {:cmp-id      cmp-id
+   :state-fn    mk-state
+   :handler-map {:cmd/mouse-pos mouse-pos-from-server!}})

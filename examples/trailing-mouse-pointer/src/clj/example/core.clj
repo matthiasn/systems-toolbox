@@ -24,10 +24,10 @@
   (sb/send-mult-cmd
     switchboard  ;; Below, we're interacting with the switchboard component we just created above.
     [;; First of all, we instantiate and wire a couple fo different components.
-     [:cmd/wire-comp (sente/component   :server/ws-cmp index/index-page)]
-     [:cmd/wire-comp (sched/component   :server/scheduler-cmp)]  ; Component for scheduling the dispatch of messages
-     [:cmd/wire-comp (ptr/component     :server/ptr-cmp)]        ; Component for processing mouse moves
-     [:cmd/wire-comp (metrics/component :server/metrics-cmp)]    ; Component for metrics and stats
+     [:cmd/wire-comp (sente/component :server/ws-cmp index/index-page)] ; WebSocket component
+     [:cmd/init-comp (sched/cmp-map   :server/scheduler-cmp)]  ; scheduling component
+     [:cmd/init-comp (ptr/cmp-map :server/ptr-cmp)]            ; component for processing mouse moves
+     [:cmd/init-comp (metrics/cmp-map :server/metrics-cmp)]    ; component for metrics and stats
 
      ;; Then, messages of a given type are wired from one component to another.
      [:cmd/route-all {:from :server/ptr-cmp :to :server/ws-cmp}]

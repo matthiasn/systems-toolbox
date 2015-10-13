@@ -50,9 +50,16 @@
               (swap! cmp-state update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
               (put-fn [:info/completed-timer scheduler-id]))))))))
 
-(defn component
+(defn cmp-map
+  {:added "0.3.1"}
   [cmp-id]
-  (comp/make-component {:cmp-id      cmp-id
-                        :state-fn    (fn [_] (atom {:active-timers {}}))
-                        :handler-map {:cmd/schedule-new    start-loop
-                                      :cmd/schedule-delete ()}}))
+  {:cmp-id      cmp-id
+   :state-fn    (fn [_] (atom {:active-timers {}}))
+   :handler-map {:cmd/schedule-new    start-loop
+                 :cmd/schedule-delete ()}
+   :opts        {:reload-cmp false}})
+
+(defn component
+  {:deprecated "0.3.1"}
+  [cmp-id]
+  (comp/make-component (cmp-map cmp-id)))

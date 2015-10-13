@@ -25,12 +25,18 @@
   [{:keys [cmp-state msg-payload]}]
   (reset! (:observed cmp-state) msg-payload))
 
-(defn component
+(defn cmp-map
+  {:added "0.3.1"}
   [{:keys [cmp-id view-fn lifecycle-callbacks dom-id initial-state init-fn cfg handler-map]}]
   (let [reagent-cmp-map (merge lifecycle-callbacks {:reagent-render view-fn})
         mk-state (partial init reagent-cmp-map dom-id initial-state init-fn)]
-    (comp/make-component {:cmp-id            cmp-id
+    {:cmp-id            cmp-id
                           :state-fn          mk-state
                           :handler-map       handler-map
                           :state-pub-handler state-pub-handler
-                          :opts              (merge cfg {:watch :local})})))
+                          :opts              (merge cfg {:watch :local})}))
+
+(defn component
+  [cmp]
+  {:deprecated "0.3.1"}
+  (comp/make-component (cmp-map cmp)))

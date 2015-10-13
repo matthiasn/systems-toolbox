@@ -66,10 +66,18 @@
       (doseq [uid (:any @connected-uids)]
         (chsk-send! uid msg-w-ser-meta)))))
 
-(defn component
-  "Creates server-side WebSockets communication component."
+(defn cmp-map
+  "Creates server-side WebSockets communication component map."
+  {:added "0.3.1"}
   [cmp-id index-page-fn]
-  (comp/make-component {:cmp-id           cmp-id
-                        :state-fn         (mk-state index-page-fn)
-                        :all-msgs-handler all-msgs-handler
-                        :opts             {:watch :connected-uids}}))
+  {:cmp-id           cmp-id
+   :state-fn         (mk-state index-page-fn)
+   :all-msgs-handler all-msgs-handler
+   :opts             {:watch :connected-uids}})
+
+(defn component
+  "Creates server-side WebSockets communication component map. Unlike in other components, this function is still
+  required when using the component as in the sample application, as the application would otherwise almost
+  immediately exit."
+  [cmp-id index-page-fn]
+  (comp/make-component (cmp-map cmp-id index-page-fn)))

@@ -1,3 +1,13 @@
+
+## v0.3.1 - October 13th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.1"]
+```
+
+* component initialization can now also be handled by the switchboard. See commit message and sample.
+
+
 ## v0.2.31 - October 12th, 2015
 
 ```clojure

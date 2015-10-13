@@ -50,11 +50,18 @@
       (send-fn msg)
       (swap! state update-in [:buffered-msgs] conj msg))))
 
-(defn component
-  "Creates client-side WebSockets communication component."
+(defn cmp-map
+  "Creates client-side WebSockets communication component"
+  {:added "0.3.1"}
   [cmp-id]
-  (comp/make-component {:cmp-id           cmp-id
-                        :state-fn         mk-state
-                        :all-msgs-handler all-msgs-handler
-                        :opts             {:watch      :state
-                                           :reload-cmp false}}))
+  {:cmp-id           cmp-id
+   :state-fn         mk-state
+   :all-msgs-handler all-msgs-handler
+   :opts             {:watch      :state
+                      :reload-cmp false}})
+
+(defn component
+  "DEPRECATED: Creates client-side WebSockets communication component."
+  {:deprecated "0.3.1"}
+  [cmp-id]
+  (comp/make-component (cmp-map cmp-id)))
