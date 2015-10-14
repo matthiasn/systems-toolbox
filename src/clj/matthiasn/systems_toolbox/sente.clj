@@ -73,7 +73,8 @@
   {:cmp-id           cmp-id
    :state-fn         (mk-state index-page-fn)
    :all-msgs-handler all-msgs-handler
-   :opts             {:watch :connected-uids}})
+   :opts             {:watch :connected-uids
+                      :snapshots-on-firehose false}})
 
 (defn component
   "Creates server-side WebSockets communication component map. Unlike in other components, this function is still

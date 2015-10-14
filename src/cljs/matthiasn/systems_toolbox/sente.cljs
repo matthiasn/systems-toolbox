@@ -58,7 +58,8 @@
    :state-fn         mk-state
    :all-msgs-handler all-msgs-handler
    :opts             {:watch      :state
-                      :reload-cmp false}})
+                      :reload-cmp false
+                      :snapshots-on-firehose false}})
 
 (defn component
   "DEPRECATED: Creates client-side WebSockets communication component."
