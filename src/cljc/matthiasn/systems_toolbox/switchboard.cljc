@@ -3,8 +3,8 @@
   (:require
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj  [clojure.core.async :refer [put! sub tap untap-all unsub-all]]
-       :cljs [cljs.core.async :refer [put! sub tap untap-all unsub-all]])
+    #?(:clj  [clojure.core.async :refer [put! chan pipe sub tap untap-all unsub-all]]
+       :cljs [cljs.core.async :refer [put! chan pipe sub tap untap-all unsub-all]])
     #?(:clj  [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
     [matthiasn.systems-toolbox.component :as comp]))
@@ -42,30 +42,29 @@
 
 (defn subscribe
   "Subscribe component to a specified publisher."
-  [app put-fn [from-cmp from-pub] msg-type [to-cmp to-chan]]
-  (let [pub-comp (from-cmp (:components @app))
-        sub-comp (to-cmp (:components @app))]
-    (sub (from-pub pub-comp) msg-type (to-chan sub-comp))
-    (swap! app update-in [:subs] conj {:from from-cmp :to to-cmp :msg-type msg-type :type :sub})))
+  [{:keys [cmp-state from to msg-type pred]}]
+  (let [app @cmp-state
+        [from-cmp from-pub] from
+        [to-cmp to-chan] to
+        pub-comp (from-cmp (:components app))
+        sub-comp (to-cmp (:components app))
+        target-chan (if pred
+                      (let [filtered-chan (chan 1 (filter pred))]
+                        (pipe filtered-chan (to-chan sub-comp))
+                        filtered-chan)
+                      (to-chan sub-comp))]
+    (sub (from-pub pub-comp) msg-type target-chan)
+    (swap! cmp-state update-in [:subs] conj {:from from-cmp :to to-cmp :msg-type msg-type :type :sub})))
 
 (defn subscribe-comp-state
   "Subscribe component to a specified publisher."
-  [app put-fn [from to]]
+  [{:keys [cmp-state put-fn from to]}]
   (doseq [t (flatten [to])]
-    (subscribe app put-fn [from :state-pub] :app-state [t :sliding-in-chan])))
-
-(defn tap-components
-  "Tap into a mult."
-  [app put-fn [from-cmps to]]
-  (doseq [from (flatten [from-cmps])]
-    (let [mult-comp (from (:components @app))
-          tap-comp (to (:components @app))
-          err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " from " -> " to " - " %)])]
-      (try (do
-             (tap (:out-mult mult-comp) (:in-chan tap-comp))
-             (swap! app update-in [:taps] conj {:from from :to to :type :tap}))
-           #?(:clj (catch Exception e (err-put (.getMessage e)))
-              :cljs (catch js/Object e (err-put e)))))))
+    (subscribe {:cmp-state cmp-state
+                :put-fn    put-fn
+                :from      [from :state-pub]
+                :msg-type  :app-state
+                :to        [t :sliding-in-chan]})))
 
 (defn tap-switchboard-firehose
   "Tap the switchboard firehose into a component observing it."
@@ -97,17 +96,36 @@
   Requires a map with at least the :from and :to keys.
   Also, routing can be limited to message types specified under the :only keyword. Here, either
   a single message type or a vector with multiple message types can be used."
-  [{:keys [cmp-state put-fn msg-payload]}]
-  (let [{:keys [from to only]} msg-payload
+  [{:keys [cmp-state msg-payload]}]
+  (let [{:keys [from to only pred]} msg-payload
         handled-messages (keys (:handler-map (to (:components @cmp-state))))
-        msg-types (if only (flatten [only]) (vec handled-messages))]
+        msg-types (if only
+                    (flatten [only])
+                    (vec handled-messages))]
     (doseq [msg-type msg-types]
-      (subscribe cmp-state put-fn [from :out-pub] msg-type [to :in-chan]))))
+      (subscribe {:cmp-state cmp-state
+                  :from [from :out-pub]
+                  :to [to :in-chan]
+                  :msg-type msg-type
+                  :pred pred}))))
 
 (defn route-all-handler
   [{:keys [cmp-state put-fn msg-payload]}]
-  (let [{:keys [from to]} msg-payload]
-    (tap-components cmp-state put-fn [from to])))
+  (let [{:keys [from to pred]} msg-payload]
+    (doseq [from (flatten [from])]
+      (let [mult-comp (from (:components @cmp-state))
+            tap-comp (to (:components @cmp-state))
+            err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " from " -> " to " - " %)])
+            target-chan (if pred
+                          (let [filtered-chan (chan 1 (filter pred))]
+                            (pipe filtered-chan (:in-chan tap-comp))
+                            filtered-chan)
+                          (:in-chan tap-comp))]
+        (try (do
+               (tap (:out-mult mult-comp) target-chan)
+               (swap! cmp-state update-in [:taps] conj {:from from :to to :type :tap}))
+             #?(:clj (catch Exception e (err-put (.getMessage e)))
+                :cljs (catch js/Object e (err-put e))))))))
 
 (defn attach-to-firehose
   "Attaches a component to firehose channel. For example for observational components."
@@ -117,7 +135,10 @@
 (defn observe-state
   [{:keys [cmp-state put-fn msg-payload]}]
   (let [{:keys [from to]} msg-payload]
-    (subscribe-comp-state cmp-state put-fn [from to])))
+    (subscribe-comp-state {:cmp-state cmp-state
+                           :put-fn    put-fn
+                           :from from
+                           :to to})))
 
 (defn send-to
   [{:keys [cmp-state msg-payload]}]

@@ -1,3 +1,11 @@
+## v0.3.6 - October 15th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.6"]
+```
+
+* optional message filtering via predicate function (see example)
+
 
 ## v0.3.1 - October 13th, 2015
 

@@ -37,7 +37,7 @@
   [app put-fn curr-cmp]
   (fn [ev]
     (let [rect (-> curr-cmp rc/dom-node .getBoundingClientRect)
-          pos {:x (- (.-clientX ev) (.-left rect)) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0)}]
+          pos {:x (.toFixed (- (.-clientX ev) (.-left rect)) 0) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0)}]
       (swap! app assoc :pos pos)
       (put-fn [:cmd/mouse-pos pos])
       (.stopPropagation ev))))
