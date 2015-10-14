@@ -172,5 +172,5 @@
 (defn send-mult-cmd
   "Send messages to the specified switchboard component."
   [switchboard cmds]
-  (doseq [cmd cmds] (put! (:in-chan switchboard) cmd))
+  (doseq [cmd cmds] (when cmd (put! (:in-chan switchboard) cmd)))
   (put! (:in-chan switchboard) [:status/system-ready]))
