@@ -1,3 +1,12 @@
+## v0.3.7 - October 26th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.7"]
+```
+
+* fix for exception when putting too many messages at once
+
+
 ## v0.3.6 - October 15th, 2015
 
 ```clojure
