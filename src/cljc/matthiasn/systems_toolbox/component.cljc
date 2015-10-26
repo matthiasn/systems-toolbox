@@ -5,7 +5,7 @@
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
     #?(:cljs [matthiasn.systems-toolbox.helpers :refer [request-animation-frame]])
-    #?(:clj  [clojure.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
+    #?(:clj  [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
        :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
     #?(:clj  [clojure.tools.logging :as log])
     #?(:clj  [clojure.pprint :as pp]
@@ -117,7 +117,9 @@
           msg-w-meta (with-meta msg completed-meta)
           msg-type (first msg)
           msg-from-firehose? (= "firehose" (namespace msg-type))]
-      (put! put-chan msg-w-meta)
+      #?(:clj  (>!! put-chan msg-w-meta)
+         :cljs (put! put-chan msg-w-meta))
+
       ;; Not all components should emit firehose messages. For example, messages that process
       ;; firehose messages should not do so again in order to avoid infinite messaging loops.
       ;; This behavior can be configured when the component is fired up.
