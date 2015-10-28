@@ -13,7 +13,7 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5" :exclusions [org.clojure/clojure]]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.3.7"]
+                 [matthiasn/systems-toolbox "0.3.8"]
                  [reagent "0.5.1"]
                  [incanter "1.5.6"]
                  [clj-time "0.11.0"]]
@@ -25,8 +25,8 @@
   :main example.core
 
   :plugins [[lein-cljsbuild "1.1.0"]
-            [lein-figwheel "0.4.0" :exclusions [org.clojure/clojure org.codehaus.plexus/plexus-utils]]
-            [codox "0.8.13"]]
+            [lein-figwheel "0.4.1" :exclusions [org.clojure/clojure org.codehaus.plexus/plexus-utils]]
+            [lein-codox "0.9.0"]]
 
   :figwheel {:server-port 3450
              :css-dirs    ["resources/public/css"]}

@@ -42,7 +42,6 @@
           {:keys [ch-recv ajax-get-or-ws-handshake-fn ajax-post-fn]} ws]
       (defroutes my-routes
                  (GET "/" [] (content-type (response (index-page-fn false)) "text/html"))
-                 (GET "/dev" [] (content-type (response (index-page-fn true)) "text/html"))
                  (GET "/chsk" req (ajax-get-or-ws-handshake-fn req))
                  (POST "/chsk" req (ajax-post-fn req))
                  (route/resources "/")

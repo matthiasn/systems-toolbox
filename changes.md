@@ -1,3 +1,12 @@
+## v0.3.8 - October 28th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.8"]
+```
+
+* version bumps, including core.async v0.2.371
+
+
 ## v0.3.7 - October 26th, 2015
 
 ```clojure
