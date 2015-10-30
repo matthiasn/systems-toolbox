@@ -1,3 +1,12 @@
+## v0.3.9 - October 30th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.9"]
+```
+
+* allow passing of middleware to the sente component, besides the index-page-fn
+
+
 ## v0.3.8 - October 28th, 2015
 
 ```clojure
