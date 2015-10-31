@@ -1,3 +1,12 @@
+## v0.3.10 - October 31st, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.10"]
+```
+
+* simplified component wiring
+
+
 ## v0.3.9 - October 30th, 2015
 
 ```clojure

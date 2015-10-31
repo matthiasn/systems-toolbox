@@ -97,17 +97,18 @@
   Also, routing can be limited to message types specified under the :only keyword. Here, either
   a single message type or a vector with multiple message types can be used."
   [{:keys [cmp-state msg-payload]}]
-  (let [{:keys [from to only pred]} msg-payload
-        handled-messages (keys (:handler-map (to (:components @cmp-state))))
-        msg-types (if only
-                    (flatten [only])
-                    (vec handled-messages))]
-    (doseq [msg-type msg-types]
-      (subscribe {:cmp-state cmp-state
-                  :from [from :out-pub]
-                  :to [to :in-chan]
-                  :msg-type msg-type
-                  :pred pred}))))
+  (let [{:keys [from to only pred]} msg-payload]
+    (doseq [frm (flatten [from])]
+      (let [handled-messages (keys (:handler-map (to (:components @cmp-state))))
+            msg-types (if only
+                        (flatten [only])
+                        (vec handled-messages))]
+        (doseq [msg-type msg-types]
+          (subscribe {:cmp-state cmp-state
+                      :from      [frm :out-pub]
+                      :to        [to :in-chan]
+                      :msg-type  msg-type
+                      :pred      pred}))))))
 
 (defn route-all-handler
   [{:keys [cmp-state put-fn msg-payload]}]
