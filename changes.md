@@ -1,3 +1,12 @@
+## v0.3.11 - November 9th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.11"]
+```
+
+* latest version of ClojureScript (much faster compiles)
+
+
 ## v0.3.10 - October 31st, 2015
 
 ```clojure
