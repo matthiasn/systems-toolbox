@@ -66,8 +66,8 @@
     (let [mx (apply max rtt-times)
           mn (apply min rtt-times)
           rng (- mx mn)
-          increment (cond (> rng 25000) 5000
-                          (> rng 10000) 2000
+          increment (cond (> rng 20000) 5000
+                          (> rng 8000) 2000
                           (> rng 3000) 1000
                           (> rng 1500) 500
                           (> rng 900) 200
