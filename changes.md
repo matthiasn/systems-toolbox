@@ -1,3 +1,12 @@
+## v0.3.12 - November 26th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.12"]
+```
+
+* more reasonable x-axis increments
+
+
 ## v0.3.11 - November 9th, 2015
 
 ```clojure
