@@ -60,21 +60,26 @@
                   [:path (merge path-defaults {:d (str "M" (+ x (* (- n mn) scale)) " " y "l 0 " 6)})])
      (for [n rng] ^{:key (str "xl" n)} [:text (merge x-axis-label {:x (+ x (* (- n mn) scale)) :y (+ y 20)}) n])]))
 
-(defn histogram-view
+(defn default-increment-fn
+  [rng]
+  (cond (> rng 20000) 5000
+        (> rng 8000) 2000
+        (> rng 3000) 1000
+        (> rng 1500) 500
+        (> rng 900) 200
+        (> rng 400) 100
+        (> rng 200) 50
+        (> rng 90) 20
+        :else 10))
+
+(defn histogram-view-fn
   "Renders a histogram for roundtrip times."
-  [rtt-times x y w h x-label color bin-cf max-bins]
+  [{:keys [rtt-times x y w h x-label color bin-cf max-bins increment-fn]}]
     (let [mx (apply max rtt-times)
           mn (apply min rtt-times)
           rng (- mx mn)
-          increment (cond (> rng 20000) 5000
-                          (> rng 8000) 2000
-                          (> rng 3000) 1000
-                          (> rng 1500) 500
-                          (> rng 900) 200
-                          (> rng 400) 100
-                          (> rng 200) 50
-                          (> rng 90) 20
-                          :else 10)
+          increment-fn (or increment-fn default-increment-fn)
+          increment (increment-fn rng)
           mx2 (round-up (or mx 100) increment)
           mn2 (round-down (or mn 0) increment)
           rng2 (- mx2 mn2)
@@ -101,3 +106,16 @@
        [:text (let [x-coord (- x 45) y-coord (- y (/ h 3)) rotate (str "rotate(270 " x-coord " " y-coord ")")]
                 (merge x-axis-label text-bold {:x x-coord :y y-coord :transform rotate})) "Frequencies"]
        (histogram-y-axis (- x 7) y h (or binned-freq-mx 10))]))
+
+(defn histogram-view
+  "Renders a histogram for roundtrip times."
+  [rtt-times x y w h x-label color bin-cf max-bins]
+  (histogram-view-fn {:rtt-times rtt-times
+                      :x x
+                      :y y
+                      :w w
+                      :h h
+                      :x-label x-label
+                      :color color
+                      :bin-cf bin-cf
+                      :max-bins max-bins}))

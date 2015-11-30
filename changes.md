@@ -1,3 +1,12 @@
+## v0.3.14 - November 30th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.14"]
+```
+
+* histogram more configurable
+
+
 ## v0.3.12 - November 26th, 2015
 
 ```clojure
