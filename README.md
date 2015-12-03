@@ -1,37 +1,60 @@
 # systems-toolbox
 
+Applications are systems. Systems are fascinating entities, and one of their characteristics is that we can observe them. Read more about that **[here](doc/systems-thinking.md)**.
+
 [![Join the chat at https://gitter.im/matthiasn/systems-toolbox](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/matthiasn/systems-toolbox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Applications are systems; however, don't take my word for it. Let's see how an expert on **Systems Thinking** defines a system:
 
-> "A system isn't just any old collection of things. A system is an interconnected set of elements that is coherently organized in a way that achieves something. If you look at that definition closely for a minute, you can see that a system must consist of three kinds of things: elements, interconnections, and a function or purpose." - Meadows, Donatella H. (2008) Thinking in Systems: A Primer, Page 11
+## Rationale
 
-This applies to every meaningful application I've ever written. How do we get closer to understanding such a system? Again, here's a quote:
+Some time ago, I wrote this toy application called **[BirdWatch](http://github.com/matthiasn/BirdWatch)**. After an initial version using **[Scala](http://www.scala-lang.org/)** on the server side and **[AngularJS](https://angularjs.org/)** on the client side, a next version then included a second client in **[React](https://facebook.github.io/react/)**.js, I fell in love with **[Clojure](http://clojure.org/)**. So I wrote the application again, this time with the backend written in Clojure and the frontend written in **[ClojureScript](https://github.com/clojure/clojurescript)**. It was the first application I had ever written in Clojure. While it worked well, it was a bit of an entangled mess (and hard to maintain). When I discovered Stuart Sierra's component library, I thought this could be a way to get more structure into my system. But it wasn't solving many of the problems that I had. Okay, it did provide structure, but it also added quite a bit of tedious code, boilerplate if you will. Maybe that was because I wanted components to communicate via **[core.async](https://github.com/clojure/core.async)**. Maybe I was just doing it wrong. Nonetheless, I didn't like it. I felt like I was writing the same old go blocks again and again, and I still didn't have an idea what went on the channels. I thought there must be a better way to do it, but I didn't find an existing library. Also, at the time, the component library only worked on the server side, whereas I thought that communicating subsystems are a universal thing, not only something that one finds on a server. So I thought, why not write a library that solves my problems, one that works on both client and server? Then came along a consulting gig that allowed me to explore the problem while we wrote a commercial application with it.
 
-> "The behavior of a system is its performance over time--its growth, stagnation, decline, oscillation, randomness, or evolution." - Meadows, Donatella H. (2008) Thinking in Systems: A Primer, Page 88
 
-Her remarks make sense. The code itself is just the blueprint for the system. Code is like the blueprint for a busy train station versus the actual train station. You won't see where, exactly, congestion will occur until you observe bottlenecks in the living system. We need to observe and monitor a running system to understand it better.
+## Assumptions
 
-At the same time, when writing applications using **[core.async](https://github.com/clojure/core.async)**, I find myself dealing with building blocks time and time again that have little to do with the observable logic. I've seen this with **[BirdWatch](https://github.com/matthiasn/BirdWatch)**, **[inspect](https://github.com/matthiasn/inspect)**, or also an **AngularJS markup to Hiccup conversion tool** (not published). I repeatedly wrote **[channels](http://clojure.github.io/core.async/#clojure.core.async/chan)** and **[go-loops](http://clojure.github.io/core.async/#clojure.core.async/go-loop)**. These are just incidental complexity and orthogonal to what the application is trying to solve.
+Unsurprisingly, the **systems-toolbox** library makes a few assumptions:
 
-Instead, there should be more high-level building blocks that only handle incoming messages and potentially emit messages, as well. If you think that I am referring to the **[actor model](http://en.wikipedia.org/wiki/Actor_model)**, not so fast. Yes, **actors** have desirable properties, but I don't like that they need to know where to send messages.
+* A system is made out of **subsystems**, which communicate by sending each other immutable messages via **[core.async](https://github.com/clojure/core.async)** channels, which conceptually can be seen as conveyor belts. You WILL have to either watch Rich Hickey's talk on this subject or read the transcript -- or both. Seriously, do that NOW.
 
-So here's my idea: there are message switchboards that connect to components because we wire them inside the switchboard logic and route messages depending on the kind of message. Other than a namespaced keyword that describes the payload (potentially while checking the compliance with a schema), the switchboards do not care about the payload at all.
+* Hey, welcome back, what did you think about the talk? I think the conveyor belt metaphor is fascinating and may well be more appropriate than in **[other places](http://www.jfs.tku.edu.tw/wp-content/uploads/2014/01/121-E01.pdf)** where it is apparently also used. Also, I feel the implementation is ready for production usage. However, I think one piece is missing, at least when you follow the metaphor. Let me explain. Say we have a factory or the luggage transportation system in an airport and there's indeed a conveyor belt. The decoupling that comes from using this mechanism (or any other queue, for that matter) is essential for larger systems that don't make you want to pull your hair out. There's one difference, though. The conveyor belt is observable, without interfering with it -- **[core.async](https://github.com/clojure/core.async)** is not.
 
-Switchboards then dispatch messages to the connected components. These components process messages, for example, by publishing a document to a database or answering a query or whatnot; or, such components could be additional, cascaded switchboards that, again, route messages to other components.
+* **Black boxes** aren't as useful as I used to think. The chances are that a portion of the taxes you pay goes into some very expensive contraptions such as CERNs **[Large Hadron Collider](http://home.cern/topics/large-hadron-collider)** that help us get a better understanding how particles interact, and rightfully so. In natural sciences, it is considered a good thing to look inside stuff (like atoms) and not stop just because someone tells you that you have to respect the borders of a black box. And yet in computer (science), we are supposed to accept that? Come on. When I come into a new project, I would like to look into all the parts of the system and see how they massage the data flowing through that very system. I do understand that implementation details of subsystems may not be important, but at least I need to understand what goes in and what goes out. And this is exactly where I think core.async falls short of the promise of building better systems. Why does the channel need to be a black box that I cannot inspect? I want to be able to see what goes onto a channel, and I want to see what is taken off a channel, just like we a can in the factory with the conveyor belt, without interfering with the system any more than necessary. Of course, everything I just mentioned only works in the realm of **functional programming**. Black boxes make a whole lot more sense when you need to protect mutable state inside objects.
 
-Message routing should be possible by matching namespaced keywords either exactly or with wildcard matches to allow for the utmost flexibility.
+* Subsystems or components wired by the **systems-toolbox** are observable, they emit all messages onto a **firehose** channel, including state changes, without requiring a single extra line of code. This firehose channel contains all the messages flowing through a system, just like the **[Twitter Firehose](https://dev.twitter.com/streaming/firehose)** contains all the tweets flowing through Twitter.
 
-I want to start and wire components at compile time. I also want to fire up components, wire them in a switchboard, disconnect them, or shut them down during run time. A system is a living thing, so I should be able to modify its behavior whenever I feel like it.
+* Subsystems can **send** and **receive** messages. These messages are like sending your tax declaration to the IRS. You expect a response at some point, but you don't know when. Or, to stay more on topic, these are like the messages one layer below TCP. When your computer sends a datagram out, you don't know yet if anyone will respond. Maybe, who knows. If not and a timeout is reached, you will have to deal with that. One might think of this as a limitation, but I have not found that to be the case yet when building actual applications with it. Any reliable transport out there is best just effort plus timeouts plus retries and an eventual exception.
 
-Also, observability needs to be an integral part of the system from the first moment on, not as an afterthought. As we can learn from the quote above, a system expresses a behavior over time. Since we want to leverage this behavior to get a better insight into the system, what could be of interest? I think waiting times until a message is getting processed and processing time for each message are suitable candidates, as well as the development of these metrics over time. Also, once we know how long it took to process an individual message, we may also want to know what the message itself was. The system should harvest these data points by default. We don't necessarily need to persist every message, but at least recent messages should be available for close inspection. The number of these depends on the available resources at any given point in time.
+* I like building systems with user interfaces. Therefore, this library also provides the building blocks for user interfaces. This part of the library is opinionated towards **[Reagent](https://github.com/reagent-project/reagent)**, as I like writing DOM subtrees in **[Hiccup](https://github.com/weavejester/hiccup)**. However, it should be simple to write building blocks for the other wrappers for React out there. If I had more time, I'd probably write those.
 
-Combine this with a built-in visualizer of the information flow. Since the structure of the application and its flow is nothing but data, we can take advantage of the **[SVG](http://en.wikipedia.org/wiki/Scalable_Vector_Graphics)** drawing capability of **[ReactJS](http://facebook.github.io/react/)** and **[Reagent](http://reagent-project.github.io)**. Any visualization always reflects the status quo of the structure of the system. When I fire up a new component at run time, this should be reflected immediately. Then, for each visualized component, there are gauges and charts that display how the components behave, both now and in the past. Also, the user interface displays incoming and outflowing data structures as desired.
 
-These observation tools should put us in an excellent place for understanding a running system by observing its behavior. Then, we can learn more about our systems, both under real load and under simulated load, and determine where, exactly, additional effort is well spent.
+## Examples
 
-Components could, for example, as already suggested, take care of database lookups. Also, they could provide a bi-directional connection between client and server over a WebSockets connection. Yet another kind of component could facilitate communication between two JVMs, e.g. using **[Kafka](http://kafka.apache.org)**, **[RabbitMQ](http://www.rabbitmq.com)**, **[Redis](http://redis.io)**, or **[HornetQ](http://hornetq.jboss.org)**.
+Right now, there are two example applications:
 
-Other components encapsulate application state and surrounding business logic. The only way to interact with the application state is via messages, where it is entirely up to the state handling logic how to deal with those messages. Inside, the state is kept in an atom but this atom is not freely passed around. Only the dereferenced application state is sent back to the connected switchboard when a change occurs.
+* There's an **[example project](https://github.com/matthiasn/systems-toolbox/tree/master/examples/trailing-mouse-pointer)** in this repository that visualizes WebSocket round trip delay by recording mouse moves and showing two circles at the latest mouse position. One of them is driven by a message that only makes a local round trip in the web application, and the other one is driven by a message that is sent to the server, counted and sent back to the client. Thus, you will see the delay introduced by the by the client-server-client round trip immediately when you move the mouse. Also, there are some histograms for visualizing where time is spent. There's a live example of this application **[here](http://systems-toolbox.matthiasnehlsen.com/)**.
 
-Other components can render the received data as HTML using ReactJS and Reagent and emit messages back to the Switchboard when the user clicks a button, or when any other kind of interaction with the UI occurs. The state handling components can then react to the event, or the switchboard forwards a query to the server; this totally depends on how we wire up the switchboard for the particular message type.
+![Example Screenshot](./doc/example.png)
+
+* Then, there's the toy example I mentioned above, **[BirdWatch](https://github.com/matthiasn/BirdWatch)**. This application provided the inspiration for this library. A running demo instance can be seen **[here](http://birdwatch2.matthiasnehlsen.com)**.
+
+![BirdWatch Screenshot](./doc/birdwatch.png)
+
+
+## Project maturity
+
+We use this project at my current consulting gig to build a system that spans both the browser and a backend.
+
+Also, applications built with it appear to be quite stable. At the time of this writing, the **[demo instance](http://birdwatch2.matthiasnehlsen.com)** of BirdWatch has been up and running for the past **2.887 hours** without problems, during which it processed more than **25 million** tweets. Funny that the resulting string for the uptime duration is slightly longer than anticipated:
+
+![2887h Uptime](./doc/2887h.png)
+
+Same thing when looking at the library's sample application, only that the uptime here has been longer still at the time of this writing, as you can see in the screenshot above.
+
+This project is quite young and APIs may still change. However, you can expect that minor version bumps do not break your existing system. .
+
+
+## License
+
+Copyright © 2015 Matthias Nehlsen
+
+Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.

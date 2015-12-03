@@ -36,7 +36,7 @@
         available-cpus (:available-cpus latest)
         s 1000 m (* 60 s) h (* 60 m) ; time units for uptime calculation
         uptime-str (when-let [upt (:uptime latest)]
-                     (str (floor (/ upt h)) "h" (floor (/ (rem upt h) m)) "m" (floor (/ (rem upt m) s)) "s"))
+                     (str (floor (/ upt h)) "h" (floor (/ (rem upt h) m)) "m"))
         gc-percentage (when latest (str " time " (.toFixed (* (/ (:gc-time latest) (:uptime latest)) 100) 2) "%"))
         w 3 gap 1 sparkline-h 16 ; bar width, height, and gap between bars
         chart-w 300 chart-h 44]  ; chart dimensions
