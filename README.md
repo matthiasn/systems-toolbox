@@ -44,7 +44,7 @@ Right now, there are two example applications:
 
 We use this project at my current consulting gig to build a system that spans both the browser and a backend.
 
-Also, applications built with it appear to be quite stable. At the time of this writing, the **[demo instance](http://birdwatch2.matthiasnehlsen.com)** of BirdWatch has been up and running for the past **2.887 hours** without problems, during which it processed more than **25 million** tweets. Funny that the resulting string for the uptime duration is slightly longer than anticipated:
+Also, applications built with it appear to be quite stable. At the time of this writing, the **[demo instance](http://birdwatch2.matthiasnehlsen.com)** of BirdWatch has been up and running for the past **2887 hours** without problems, during which it processed more than **25 million** tweets. Funny that the resulting string for the uptime duration is slightly longer than anticipated:
 
 ![2887h Uptime](./doc/2887h.png)
 
