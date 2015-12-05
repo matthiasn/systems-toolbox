@@ -1,3 +1,21 @@
+## v0.4.1 - December 5th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.1"]
+```
+
+* BREAKING: state-fn now needs to return a map, where the fresh component state is expected under the `:state` key. In addition, an optional `:shutdown-fn` can be specified, which will be called when the component is shutdown or restarted. This is for example useful when resources such as web servers or database connections need to be shut down.
+
+
+## v0.3.15 - December 3rd, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.3.15"]
+```
+
+* documentation; dependency upgrades; Clojure 1.8.0-RC3 in sample
+
+
 ## v0.3.14 - November 30th, 2015
 
 ```clojure

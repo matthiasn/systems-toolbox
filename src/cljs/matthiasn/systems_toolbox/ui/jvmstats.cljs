@@ -67,7 +67,7 @@
   (fn [put-fn]
     (let [app (atom {:readings []})]
       (r/render-component [reading-view app] (by-id dom-id))
-      app)))
+      {:state app})))
 
 (defn recv-jvm-stats
   "Handle incoming JVM stats by adding those to the component state."

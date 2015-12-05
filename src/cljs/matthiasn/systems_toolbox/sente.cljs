@@ -38,7 +38,7 @@
                                                 :packer (sente-transit/get-flexi-packer :edn)})]
     (sente/start-chsk-router! (:ch-recv ws) (make-handler put-fn ws))
     (swap! (:state ws) assoc :buffered-msgs [])
-    ws))
+    {:state ws}))
 
 (defn all-msgs-handler
   "Handle incoming messages: process / add to application state."

@@ -35,7 +35,7 @@
 
 (defn sente-comp-fn
   "Return clean initial component state atom."
-  [{:keys [index-page-fn middleware]} ]
+  [{:keys [index-page-fn middleware]}]
   (fn [put-fn]
     (let [ws (sente/make-channel-socket! sente-web-server-adapter {:user-id-fn user-id-fn
                                                                    :packer (sente-transit/get-flexi-packer :edn)})
@@ -49,9 +49,10 @@
       (let [ring-handler (rmd/wrap-defaults cmp-routes ring-defaults-config)
             wrapped-in-middleware (if middleware (middleware ring-handler) ring-handler)
             server (immutant/run wrapped-in-middleware :host host :port port)]
-        (log/info "Immutant-web is listening on port" port "on interface" host))
-      (sente/start-chsk-router! ch-recv (make-handler ws put-fn))
-      ws)))
+        (log/info "Immutant-web is listening on port" port "on interface" host)
+        (sente/start-chsk-router! ch-recv (make-handler ws put-fn))
+        {:state       ws
+         :shutdown-fn #(immutant/stop server)}))))
 
 (defn all-msgs-handler
   "Handle incoming messages: process / add to application state."

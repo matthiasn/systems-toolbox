@@ -18,7 +18,8 @@
                       :cmd      cmd}]
     (r/render-component [reagent-cmp view-cmp-map] (by-id dom-id))
     (when init-fn (init-fn view-cmp-map))
-    {:local local :observed observed}))
+    {:state {:local local
+             :observed observed}}))
 
 (defn state-pub-handler
   "Handle incoming messages: process / add to application state."

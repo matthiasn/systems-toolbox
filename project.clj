@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.3.15"
+(defproject matthiasn/systems-toolbox "0.4.1"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -8,7 +8,7 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/tools.reader "1.0.0-alpha1"]
-                 [org.clojure/clojurescript "1.7.189"]
+                 [org.clojure/clojurescript "1.7.170"]
                  [org.ow2.asm/asm-all "5.0.4"]
                  [org.clojure/core.async "0.2.374" :exclusions [org.clojure/tools.reader]]
                  [reagent "0.5.1"]

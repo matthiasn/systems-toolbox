@@ -54,7 +54,7 @@
   {:added "0.3.1"}
   [cmp-id]
   {:cmp-id      cmp-id
-   :state-fn    (fn [_] (atom {:active-timers {}}))
+   :state-fn    (fn [_] {:state (atom {:active-timers {}})})
    :handler-map {:cmd/schedule-new    start-loop
                  :cmd/schedule-delete ()}
    :opts        {:reload-cmp false}})

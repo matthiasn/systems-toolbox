@@ -28,7 +28,10 @@
 (defn mk-state
   "Return clean initial component state atom."
   [put-fn]
-  (atom {:count 0 :rtt-times [] :network-times [] :server-proc-times []}))
+  {:state (atom {:count 0
+                 :rtt-times []
+                 :network-times []
+                 :server-proc-times []})})
 
 (defn cmp-map
   [cmp-id]

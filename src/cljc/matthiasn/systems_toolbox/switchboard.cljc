@@ -25,16 +25,18 @@
       (doseq [cmp (flatten [msg-payload])]
         (let [cmp-id-to-wire (:cmp-id cmp)
               firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))
-              reload? (:reload-cmp (:cfg cmp))
+              reload? (:reload-cmp (merge comp/component-defaults (:opts cmp)))
               prev-cmp (get-in switchbrd-snapshot [:components cmp-id-to-wire])]
           (when (or (not prev-cmp) reload?)
+            (when prev-cmp (untap-all (:firehose-mult prev-cmp))
+                           (unsub-all (:out-pub prev-cmp))
+                           (unsub-all (:state-pub prev-cmp))
+                           (when-let [shutdown-fn (:shutdown-fn prev-cmp)]
+                             (shutdown-fn)))
             (let [cmp (if init? (comp/make-component cmp) cmp)
                   in-chan (:in-chan cmp)]
-              (when prev-cmp (untap-all (:firehose-mult prev-cmp))
-                             (unsub-all (:out-pub prev-cmp))
-                             (unsub-all (:state-pub prev-cmp))
-                             (let [prev-state (:watch-state prev-cmp)]
-                               (reset! (:watch-state cmp) @prev-state)))
+              (when-let [prev-state (:watch-state prev-cmp)]
+                (reset! (:watch-state cmp) @prev-state))
               (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp)
               (tap (:firehose-mult cmp) firehose-chan)
               (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
@@ -89,7 +91,10 @@
 (defn mk-state
   "Create initial state atom for switchboard component."
   [put-fn]
-  (atom {:components {} :subs #{} :taps #{} :fh-taps #{}}))
+  {:state (atom {:components {}
+                 :subs #{}
+                 :taps #{}
+                 :fh-taps #{}})})
 
 (defn route-handler
   "Creates subscriptions between one component's out-pub and another component's in-chan.
@@ -167,7 +172,7 @@
    :status/system-ready    wire-all-out-channels})
 
 (defn xform-fn
-  "Transformer function for switchboard state snapshot. Allow serialization of snaphot for sending over WebSockets."
+  "Transformer function for switchboard state snapshot. Allows serialization of snaphot for sending over WebSockets."
   [m]
   (let [xform (update-in m [:components] (fn [cmps] (into {} (mapv (fn [[k v]] [k k]) cmps))))]
     xform))

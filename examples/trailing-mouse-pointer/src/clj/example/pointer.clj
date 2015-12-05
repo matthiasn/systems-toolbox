@@ -4,7 +4,10 @@
     [incanter.distributions :as dist]
     [incanter.stats :as stats]))
 
-(defn mk-state [_] (atom {:count 0}))
+(defn mk-state
+  "Creates fresh component state."
+  [_]
+  {:state (atom {:count 0})})
 
 (defn process-mouse-pos
   "Handler function for received mouse positions, increments counter and returns mouse position to sender."

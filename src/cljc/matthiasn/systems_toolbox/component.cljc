@@ -206,7 +206,8 @@
                           :firehose-chan    (make-chan-w-buf (:firehose-chan cfg)) ; channel for publishing all messages
                           :sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))}) ; chan for publishing snapshots
         put-fn (make-put-fn cmp-map-1)
-        state (if state-fn (state-fn put-fn) (atom {}))     ; create state, either from state-fn or empty map
+        state-map (if state-fn (state-fn put-fn) {:state (atom {})}) ; create state, either from state-fn or empty map
+        state (:state state-map)
         watch-state (if-let [watch (:watch cfg)] (watch state) state) ; watchable atom
         cmp-map-2 (merge cmp-map-1 {:watch-state watch-state})
         cmp-map-3 (merge cmp-map-2 {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map-2)})
@@ -217,6 +218,7 @@
                                   :cmp-state         state
                                   :put-fn            put-fn
                                   :system-ready-fn   (make-system-ready-fn cmp-map-3)
+                                  :shutdown-fn       (:shutdown-fn state-map)
                                   :state-snapshot-fn (fn [] @watch-state)})]
     (tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
     (detect-changes cmp-map) ; publish snapshots when changes are detected

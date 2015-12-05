@@ -93,7 +93,7 @@
                     (request-animation-frame step)
                     (swap! app assoc :now (now)))]
         (request-animation-frame step))
-      app)))
+      {:state app})))
 
 (defn count-msg
   "Creates a handler function for collecting stats about messages and and their display."
