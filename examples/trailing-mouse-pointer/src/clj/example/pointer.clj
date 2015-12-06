@@ -4,7 +4,7 @@
     [incanter.distributions :as dist]
     [incanter.stats :as stats]))
 
-(defn mk-state
+(defn ptr-state-fn
   "Creates fresh component state."
   [_]
   {:state (atom {:count 0})})
@@ -24,5 +24,5 @@
 (defn cmp-map
   [cmp-id]
   {:cmp-id      cmp-id
-   :state-fn    mk-state
+   :state-fn    ptr-state-fn
    :handler-map {:cmd/mouse-pos process-mouse-pos}})

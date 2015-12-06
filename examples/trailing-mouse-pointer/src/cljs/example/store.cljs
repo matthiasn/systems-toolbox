@@ -25,7 +25,7 @@
     (swap! cmp-state update-in [:server-proc-times] conj srv-proc-time)
     (swap! cmp-state update-in [:network-times] conj network-time)))
 
-(defn mk-state
+(defn state-fn
   "Return clean initial component state atom."
   [put-fn]
   {:state (atom {:count 0
@@ -36,5 +36,5 @@
 (defn cmp-map
   [cmp-id]
   {:cmp-id      cmp-id
-   :state-fn    mk-state
+   :state-fn    state-fn
    :handler-map {:cmd/mouse-pos mouse-pos-from-server!}})
