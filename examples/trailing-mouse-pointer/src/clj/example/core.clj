@@ -26,9 +26,9 @@
 
       (require '[example.pointer :as ptr] :reload)
 
-  Then, calling this function again will restart the system while maintaining the application
-  state. In the UI, you can observe that the counter will have been retained, only the behavior
-  will now be different, as randomly delayed messages will be introduced."
+  Then, calling this function again will restart the system while maintaining the state of
+  individual subsystems. In the UI, you can observe that the counter will have been retained,
+  only the behavior will now be different, as randomly delayed messages will be introduced."
   []
   (sb/send-mult-cmd
     switchboard
@@ -51,7 +51,7 @@
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The system that is fired up when
-  start! is called proceeds in core.async's thread pool. Since we don't want the application to exit when
+  restart! is called proceeds in core.async's thread pool. Since we don't want the application to exit when
   just because the current thread is out of work, we just put it to sleep."
   [& args]
   (pid/save "example.pid")
