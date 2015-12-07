@@ -38,7 +38,13 @@
 (defn histogram-y-axis
   "Draws y-axis of a chart."
   [x y h mx]
-  (let [increment (cond (> mx 250) 100 (> mx 100) 50 (> mx 50) 20 (> mx 25) 10 :else 5)
+  (let [increment (cond (> mx 6000) 1000
+                        (> mx 3000) 500
+                        (> mx 1000) 250
+                        (> mx 250) 100
+                        (> mx 100) 50
+                        (> mx 50) 20
+                        (> mx 25) 10 :else 5)
         rng (range 0 (inc (round-up mx increment)) increment)
         scale (/ h (dec (count rng)))]
     [:g

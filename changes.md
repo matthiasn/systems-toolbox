@@ -1,3 +1,12 @@
+## v0.4.2 - December 7th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.2"]
+```
+
+* minor histogram improvements
+
+
 ## v0.4.1 - December 5th, 2015
 
 ```clojure
