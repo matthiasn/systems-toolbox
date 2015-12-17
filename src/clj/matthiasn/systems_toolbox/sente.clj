@@ -30,12 +30,14 @@
     (let [[cmd-type {:keys [msg msg-meta]}] event]
       (put-fn (with-meta [cmd-type msg] msg-meta)))))
 
-(def host (get (System/getenv) "HOST" "localhost"))
-(def port (get (System/getenv) "PORT" "8888"))
+(def default-host (get (System/getenv) "HOST" "localhost"))
+(def default-port (get (System/getenv) "PORT" "8888"))
 
 (defn sente-comp-fn
   "Return clean initial component state atom."
-  [{:keys [index-page-fn middleware]}]
+  [{:keys [index-page-fn middleware host port]
+    :or   {host default-host
+           port default-port}}]
   (fn [put-fn]
     (let [ws (sente/make-channel-socket! sente-web-server-adapter {:user-id-fn user-id-fn
                                                                    :packer (sente-transit/get-flexi-packer :edn)})
