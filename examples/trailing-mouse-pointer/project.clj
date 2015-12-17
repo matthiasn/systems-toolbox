@@ -3,8 +3,8 @@
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.8.0-RC3"]
-                 [org.clojure/clojurescript "1.7.189"]
+  :dependencies [[org.clojure/clojure "1.8.0-RC4"]
+                 [org.clojure/clojurescript "1.7.170"]
                  [org.clojure/core.async "0.2.374"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.11"]
@@ -13,8 +13,8 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5" :exclusions [org.clojure/clojure]]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.4.3"]
-                 [matthiasn/inspect "0.2.1"]
+                 [matthiasn/systems-toolbox "0.4.5"]
+                 [matthiasn/inspect-probe "0.2.1"]
                  [reagent "0.5.1"]
                  [incanter "1.5.6"]
                  [clj-time "0.11.0"]]

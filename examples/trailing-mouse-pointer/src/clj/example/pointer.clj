@@ -3,9 +3,8 @@
   (:require
     [incanter.distributions :as dist]
     [incanter.stats :as stats]
-    [matthiasn.inspect.probe :as p :refer [defn]]))
-
-(p/init)
+    ;[matthiasn.inspect-probe.probe :as p :refer [defn]]
+    ))
 
 (defn ptr-state-fn
   "Creates fresh component state."

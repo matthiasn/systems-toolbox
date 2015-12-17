@@ -1,3 +1,11 @@
+## v0.4.5 - December 17th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.5"]
+```
+
+* alternative sente config; version bumps
+
 ## v0.4.2 - December 7th, 2015
 
 ```clojure
