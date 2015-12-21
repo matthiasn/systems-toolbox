@@ -1,3 +1,11 @@
+## v0.4.6 - December 21st, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.6"]
+```
+
+* fn for sending message to single component
+
 ## v0.4.5 - December 17th, 2015
 
 ```clojure

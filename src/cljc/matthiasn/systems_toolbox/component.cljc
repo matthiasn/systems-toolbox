@@ -225,3 +225,8 @@
     (merge cmp-map
            (msg-handler-loop cmp-map :in-chan)
            (msg-handler-loop cmp-map :sliding-in-chan))))
+
+(defn send-msg
+  "Send message to the specified component."
+  [component msg]
+  (put! (:in-chan component) msg))
