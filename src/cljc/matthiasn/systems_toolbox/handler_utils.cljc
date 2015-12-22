@@ -11,6 +11,14 @@
     [{:keys [put-fn msg-payload]}]
     (put-fn [new-type msg-payload])))
 
+(defn fwd-as-w-meta
+  "Creates a handler function that sends the payload of the handled message as a new message type preserving
+  metadata of the original message."
+  [new-type]
+  (fn
+    [{:keys [put-fn msg-payload msg-meta]}]
+    (put-fn (with-meta [new-type msg-payload] msg-meta))))
+
 (defn run-handler
   "Runs another handler function with a new message and otherwise the same context."
   ([handler-key msg-payload msg-map]
