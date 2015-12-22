@@ -1,3 +1,12 @@
+## v0.4.7 - December 22nd, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.7"]
+```
+
+* allow user-specified state-pub-handler in views, for example for resetting state on logout
+
+
 ## v0.4.6 - December 21st, 2015
 
 ```clojure
@@ -6,6 +15,7 @@
 
 * fn for sending message to single component
 
+
 ## v0.4.5 - December 17th, 2015
 
 ```clojure
@@ -13,6 +23,7 @@
 ```
 
 * alternative sente config; version bumps
+
 
 ## v0.4.2 - December 7th, 2015
 
