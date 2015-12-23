@@ -1,3 +1,12 @@
+## v0.4.8 - December 22nd, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.8"]
+```
+
+* fwd-as-w-meta function from PR
+
+
 ## v0.4.7 - December 22nd, 2015
 
 ```clojure
