@@ -6,7 +6,7 @@
     [taoensso.nippy :as nippy]))
 
 (def kafka-address (get (System/getenv) "KAFKA_ADDRESS" "127.0.0.1:9092"))
-(def kafka-producer-id (get (System/getenv) "KAFKA_CLIENT_ID" "producer-cmp"))
+(def kafka-producer-id (get (System/getenv) "KAFKA_PRODUCER_ID" "producer-cmp"))
 
 (defn kafka-producer-state-fn
   "Returns initial component state function. Calling this function will return the
@@ -14,8 +14,9 @@
   [cfg]
   (fn
     [put-fn]
-    (let [prod (kp/producer {"bootstrap.servers" kafka-address
-                             "client-id"         kafka-producer-id}
+    (let [producer-id (or (:producer-id cfg) kafka-producer-id)
+          prod (kp/producer {"bootstrap.servers" kafka-address
+                             "client-id"         producer-id}
                             (kp/byte-array-serializer)
                             (kp/byte-array-serializer))]
       {:state (atom {:producer prod
