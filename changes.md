@@ -1,3 +1,12 @@
+## v0.4.9 - December 27th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.9"]
+```
+
+* Kafka producer and consumer components
+
+
 ## v0.4.8 - December 22nd, 2015
 
 ```clojure
