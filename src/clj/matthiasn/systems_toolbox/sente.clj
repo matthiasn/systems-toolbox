@@ -16,7 +16,7 @@
 (def ring-defaults-config (assoc-in rmd/site-defaults [:security :anti-forgery]
                                     {:read-token (fn [req] (-> req :params :csrf-token))}))
 
-(defn user-id-fn
+(defn random-user-id
   "generates unique ID for request"
   [req]
   (let [uid (str (java.util.UUID/randomUUID))]
@@ -35,8 +35,9 @@
 
 (defn sente-comp-fn
   "Return clean initial component state atom."
-  [{:keys [index-page-fn middleware host port]
-    :or   {host default-host
+  [{:keys [index-page-fn middleware user-id-fn host port]
+    :or   {user-id-fn random-user-id
+           host default-host
            port default-port}}]
   (fn [put-fn]
     (let [ws (sente/make-channel-socket! sente-web-server-adapter {:user-id-fn user-id-fn
