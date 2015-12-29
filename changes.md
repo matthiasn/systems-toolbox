@@ -1,3 +1,12 @@
+## v0.4.10 - December 29th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.10"]
+```
+
+* allow specifying a user-id-fn for sente (from PR)
+
+
 ## v0.4.9 - December 27th, 2015
 
 ```clojure
