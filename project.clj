@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.4.10"
+(defproject matthiasn/systems-toolbox "0.4.11"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -23,8 +23,6 @@
                  [ring/ring-defaults "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [org.jboss.logging/jboss-logging "3.3.0.Final"]
-                 [clj-kafka "0.3.4"]
-                 [com.taoensso/nippy "2.11.0-beta1"]
                  [org.immutant/web "2.1.1" :exclusions [org.jboss.logging/jboss-logging org.slf4j/slf4j-api]]]
 
   :plugins [[lein-codox "0.9.1" :exclusions [org.clojure/clojure]]

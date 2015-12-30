@@ -1,3 +1,12 @@
+## v0.4.11 - December 30th, 2015
+
+```clojure
+[matthiasn/systems-toolbox "0.4.11"]
+```
+
+* Kafka consumer and producer moved from systems-toolbox into separate repo
+
+
 ## v0.4.10 - December 29th, 2015
 
 ```clojure
