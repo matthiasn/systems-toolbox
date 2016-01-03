@@ -1,3 +1,12 @@
+## v0.5.1 - January 3rd, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.1"]
+```
+
+* Sente and Reagent/UI components moved into separate repos
+
+
 ## v0.4.11 - December 30th, 2015
 
 ```clojure

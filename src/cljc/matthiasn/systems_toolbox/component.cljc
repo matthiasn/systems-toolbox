@@ -4,7 +4,6 @@
   (:require
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:cljs [matthiasn.systems-toolbox.helpers :refer [request-animation-frame]])
     #?(:clj  [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
        :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
     #?(:clj  [clojure.tools.logging :as log])
@@ -17,6 +16,13 @@
 
 #?(:clj  (defn make-uuid [] (str (java.util.UUID/randomUUID)))
    :cljs (defn make-uuid [] (str (uuid/make-random-uuid))))
+
+#?(:cljs (def request-animation-frame
+           (or (.-requestAnimationFrame js/window)
+               (.-webkitRequestAnimationFrame js/window)
+               (.-mozRequestAnimationFrame js/window)
+               (.-msRequestAnimationFrame js/window)
+               (fn [callback] (js/setTimeout callback 17)))))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -80,7 +86,8 @@
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id
                                                        :msg msg
-                                                       :msg-meta msg-meta}]))
+                                                       :msg-meta msg-meta
+                                                       :ts (now)}]))
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
@@ -133,7 +140,8 @@
           (put! firehose-chan msg-w-meta)
           (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
                                                   :msg msg-w-meta
-                                                  :msg-meta completed-meta}]))))))
+                                                  :msg-meta completed-meta
+                                                  :ts (now)}]))))))
 
 (defn make-snapshot-publish-fn
   "Creates a function for publishing changes to the component state atom as snapshot messages,"
@@ -141,11 +149,15 @@
   (fn []
     (let [snapshot @watch-state
           snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
-          snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})]
+          snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})
+          state-firehose-chan (chan (sliding-buffer 1))]
+      (pipe state-firehose-chan firehose-chan)
       (put! sliding-out-chan snapshot-msg)
       (when (:snapshots-on-firehose cfg)
-        (put! firehose-chan
-              [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform}])))))
+        (put! state-firehose-chan
+              [:firehose/cmp-publish-state {:cmp-id cmp-id
+                                            :snapshot snapshot-xform
+                                            :ts (now)}])))))
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the
