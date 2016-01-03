@@ -1,5 +1,4 @@
-(ns example.store
-  (:require [matthiasn.systems-toolbox.helpers :refer [by-id]]))
+(ns example.store)
 
 (defn mouse-pos-from-server!
   "Handler function for mouse position messages received from server. Here, we first determine the

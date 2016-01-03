@@ -1,6 +1,6 @@
 (ns example.ui-histograms
-  (:require [matthiasn.systems-toolbox.reagent :as r]
-            [matthiasn.systems-toolbox.ui.histogram :as hist]
+  (:require [matthiasn.systems-toolbox-ui.reagent :as r]
+            [matthiasn.systems-toolbox-ui.charts.histogram :as hist]
             [cljs.pprint :as pp]))
 
 (defn histogram-view

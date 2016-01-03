@@ -1,7 +1,7 @@
 (ns example.ui-mouse-moves
   (:require [reagent.core :as rc]
-            [matthiasn.systems-toolbox.reagent :as r]
-            [matthiasn.systems-toolbox.helpers :refer [by-id]]))
+            [matthiasn.systems-toolbox-ui.reagent :as r]
+            [matthiasn.systems-toolbox-ui.helpers :refer [by-id]]))
 
 (def circle-defaults {:fill "rgba(255,0,0,0.1)" :stroke "black" :stroke-width 2 :r 15})
 (def text-default {:stroke "none" :fill "black" :style {:font-size 12}})

@@ -3,10 +3,10 @@
             [example.ui-histograms :as hist]
             [example.ui-mouse-moves :as mouse]
             [example.conf :as conf]
-            [matthiasn.systems-toolbox.ui.observer :as obs]
+            [matthiasn.systems-toolbox-ui.charts.observer :as obs]
             [matthiasn.systems-toolbox.switchboard :as sb]
-            [matthiasn.systems-toolbox.sente :as sente]
-            [matthiasn.systems-toolbox.ui.jvmstats :as jvmstats]))
+            [matthiasn.systems-toolbox-sente.sente :as sente]
+            [matthiasn.systems-toolbox-metrics.jvmstats :as jvmstats]))
 
 (enable-console-print!)
 

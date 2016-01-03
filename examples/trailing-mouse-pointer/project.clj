@@ -1,4 +1,4 @@
-(defproject matthiasn/trailing-mouse-pointer "0.1.0-SNAPSHOT"
+(defproject matthiasn/trailing-mouse-pointer "0.5.1-SNAPSHOT"
   :description "Sample application built with systems-toolbox library"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -13,8 +13,10 @@
                  [hiccup-bridge "1.0.1"]
                  [garden "1.2.5" :exclusions [org.clojure/clojure]]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.4.5"]
-                 [matthiasn/inspect-probe "0.2.1"]
+                 [matthiasn/systems-toolbox "0.5.1"]
+                 [matthiasn/systems-toolbox-ui "0.5.1"]
+                 [matthiasn/systems-toolbox-sente "0.5.1"]
+                 [matthiasn/systems-toolbox-metrics "0.5.1"]
                  [reagent "0.5.1"]
                  [incanter "1.5.6"]
                  [clj-time "0.11.0"]]
@@ -25,9 +27,9 @@
 
   :main example.core
 
-  :plugins [[lein-cljsbuild "1.1.1"]
+  :plugins [[lein-cljsbuild "1.1.2"]
             [lein-figwheel "0.5.0-2"]
-            [lein-codox "0.9.0"]]
+            [lein-codox "0.9.1"]]
 
   :figwheel {:server-port 3450
              :css-dirs    ["resources/public/css"]}

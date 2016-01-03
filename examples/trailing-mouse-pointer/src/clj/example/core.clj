@@ -2,9 +2,9 @@
   (:gen-class)
   (:require
     [matthiasn.systems-toolbox.switchboard :as sb]
-    [matthiasn.systems-toolbox.sente :as sente]
+    [matthiasn.systems-toolbox-sente.sente :as sente]
     [matthiasn.systems-toolbox.scheduler :as sched]
-    [matthiasn.systems-toolbox.metrics :as metrics]
+    [matthiasn.systems-toolbox-metrics.metrics :as metrics]
     [example.index :as index]
     [example.pointer :as ptr]
     [clojure.tools.logging :as log]
