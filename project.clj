@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.5.1"
+(defproject matthiasn/systems-toolbox "0.5.2"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -12,7 +12,7 @@
                  [org.ow2.asm/asm-all "5.0.4"]
                  [org.clojure/core.async "0.2.374" :exclusions [org.clojure/tools.reader]]
                  [org.clojure/tools.logging "0.3.1"]
-                 [io.aviso/pretty "0.1.20"]
+                 [io.aviso/pretty "0.1.21"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]
 
   :plugins [[lein-codox "0.9.1" :exclusions [org.clojure/clojure]]
