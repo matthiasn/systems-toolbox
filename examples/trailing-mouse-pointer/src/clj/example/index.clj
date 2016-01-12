@@ -1,5 +1,4 @@
 (ns example.index
-  (:gen-class)
   (:require
     [hiccup.core :refer [html]]
     [garden.core :refer [css]]
