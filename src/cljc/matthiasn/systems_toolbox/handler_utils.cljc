@@ -1,6 +1,4 @@
 (ns matthiasn.systems-toolbox.handler-utils
-  #?(:clj
-     (:gen-class))
   (:require [clojure.set :refer [subset?]]))
 
 (defn fwd-as

@@ -1,6 +1,4 @@
 (ns matthiasn.systems-toolbox.scheduler
-  #?(:clj
-     (:gen-class))
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go-loop]]))
   (:require [matthiasn.systems-toolbox.component :as comp]
     #?(:clj [clojure.core.async :refer [<! go-loop timeout]])

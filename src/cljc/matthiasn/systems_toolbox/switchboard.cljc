@@ -1,5 +1,4 @@
 (ns matthiasn.systems-toolbox.switchboard
-  #?(:clj (:gen-class))
   (:require
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])

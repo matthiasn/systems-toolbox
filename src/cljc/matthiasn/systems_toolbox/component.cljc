@@ -1,5 +1,4 @@
 (ns matthiasn.systems-toolbox.component
-  #?(:clj (:gen-class))
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]))
   (:require
     #?(:clj  [clojure.core.match :refer [match]]
