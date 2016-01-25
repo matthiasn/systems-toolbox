@@ -21,6 +21,9 @@
 
 ;;; Scheduled events can be deleted. TODO: implement
 
+;;; When the same, optional :id is set on multiple message sent to scheduler component, only first of those messages
+;;; will result in scheduling a new timer.
+
 ;;; TODO: record start time so that the scheduled time can be shown in UI. Platform-specific implementation.
 
 ;;; WARNING: timeouts specified here are not precise unless proven otherwise. Even if timeouts happen to have a
@@ -32,21 +35,25 @@
   [{:keys [cmp-state put-fn msg-payload]}]
   (let [timout-ms (:timeout msg-payload)
         msg-to-send (:message msg-payload)
-        scheduler-id (or (:id msg-payload) (first msg-to-send))]
-    (when scheduler-id (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
-                       (put-fn [:log/info (str "Scheduling:" msg-payload)]))
-    (when (:initial msg-payload) (put-fn msg-to-send))
-    (go-loop []
-      (<! (timeout timout-ms))
-      (let [state @cmp-state
-            active-timer (get (:active-timers state) scheduler-id)]
-        (put-fn msg-to-send)
-        (when active-timer
-          (if (:repeat active-timer)
-            (recur)
-            (do
-              (swap! cmp-state update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
-              (put-fn [:info/completed-timer scheduler-id]))))))))
+        scheduler-id (or (:id msg-payload) (first msg-to-send))
+        existing-timer (get-in @cmp-state [:active-timers (:id msg-payload)])]
+    (when existing-timer
+      (put-fn [:log/info (str "Timer " (:id msg-payload) " already scheduled - ignoring.")]))
+    (when-not existing-timer
+      (put-fn [:log/info (str "Scheduling:" msg-payload)])
+      (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
+      (when (:initial msg-payload) (put-fn msg-to-send))
+      (go-loop []
+        (<! (timeout timout-ms))
+        (let [state @cmp-state
+              active-timer (get (:active-timers state) scheduler-id)]
+          (put-fn msg-to-send)
+          (when active-timer
+            (if (:repeat active-timer)
+              (recur)
+              (do
+                (swap! cmp-state update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
+                (put-fn [:info/completed-timer scheduler-id])))))))))
 
 (defn cmp-map
   {:added "0.3.1"}
