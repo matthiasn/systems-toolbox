@@ -45,15 +45,25 @@
       (when (:initial msg-payload) (put-fn msg-to-send))
       (go-loop []
         (<! (timeout timout-ms))
-        (let [state @cmp-state
-              active-timer (get (:active-timers state) scheduler-id)]
+        (let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
           (put-fn msg-to-send)
-          (when active-timer
+          (if active-timer
             (if (:repeat active-timer)
               (recur)
               (do
-                (swap! cmp-state update-in [:active-timers] (dissoc (:active-timers state) scheduler-id))
-                (put-fn [:info/completed-timer scheduler-id])))))))))
+                (swap! cmp-state update :active-timers dissoc scheduler-id)
+                (put-fn [:info/completed-timer scheduler-id])))
+            (put-fn [:info/deleted-timer scheduler-id])))))))
+
+(defn stop-loop
+  "Stops a an loop that was previously scheduled."
+  [{:keys [cmp-state put-fn msg-payload]}]
+  (let [scheduler-id (:id msg-payload)
+        existing-timer (get-in @cmp-state [:active-timers scheduler-id])]
+    (if existing-timer
+      (do (put-fn [:log/info (str "Stopping timer: " (:id msg-payload) " already scheduled - ignoring.")])
+          (swap! cmp-state update :active-timers dissoc scheduler-id))
+      (put-fn [:log/info (str "Timer with id: " (:id msg-payload) " not found - did not stop.")]))))
 
 (defn cmp-map
   {:added "0.3.1"}
@@ -61,7 +71,7 @@
   {:cmp-id      cmp-id
    :state-fn    (fn [_] {:state (atom {:active-timers {}})})
    :handler-map {:cmd/schedule-new    start-loop
-                 :cmd/schedule-delete ()}
+                 :cmd/schedule-delete stop-loop}
    :opts        {:reload-cmp false}})
 
 (defn component
