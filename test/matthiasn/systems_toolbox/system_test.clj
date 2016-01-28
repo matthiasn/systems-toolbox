@@ -20,5 +20,3 @@
                   :msg [:cmd/ping onion]}])
     (is (deref ping 1000 false))
     (is (deref pong 1000 false))))
-
-(run-tests)

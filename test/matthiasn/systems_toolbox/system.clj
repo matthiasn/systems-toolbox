@@ -5,7 +5,7 @@
     * a ping component
     * a pong component
     * message payloads are functions; they typically deliver promises
-    * an optional spy component that listen for messages"
+    * an optional spy component that listens for messages"
 
   (:require [clojure.tools.logging :as log]
             [matthiasn.systems-toolbox.switchboard :as switchboard]))

@@ -43,10 +43,6 @@
        [:cmd/route {:from :scheduler-cmp :to :spy-cmp}]
        ;; Stop the scheduler
        [:cmd/send {:to  :scheduler-cmp
-                   :msg [:cmd/schedule-delete
-                         {:timeout 10
-                          :id      :cycle
-                          :message [:cmd/pong countdown]
-                          :repeat  true}]}]])
+                   :msg [:cmd/schedule-delete {:id :cycle}]}]])
 
     (is (deref spy 1000 false))))
