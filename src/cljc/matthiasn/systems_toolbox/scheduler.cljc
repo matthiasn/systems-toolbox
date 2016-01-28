@@ -36,7 +36,7 @@
   (let [timout-ms (:timeout msg-payload)
         msg-to-send (:message msg-payload)
         scheduler-id (or (:id msg-payload) (first msg-to-send))
-        existing-timer (get-in @cmp-state [:active-timers (:id msg-payload)])]
+        existing-timer (get-in @cmp-state [:active-timers scheduler-id])]
     (when existing-timer
       (put-fn [:log/info (str "Timer " (:id msg-payload) " already scheduled - ignoring.")]))
     (when-not existing-timer
