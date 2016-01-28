@@ -1,3 +1,12 @@
+## v0.5.7 - January 29th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.7"]
+```
+
+* PR from clyfe: stoppable scheduler
+
+
 ## v0.5.1 - January 3rd, 2016
 
 ```clojure

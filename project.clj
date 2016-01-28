@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.5.6"
+(defproject matthiasn/systems-toolbox "0.5.7"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -20,10 +20,10 @@
             [lein-cljsbuild "1.1.2"]]
 
   :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]
-                                  [ch.qos.logback/logback-classic "1.1.2" :exclusions [org.slf4j/slf4j-api]]
-                                  [org.slf4j/jul-to-slf4j "1.7.7"]
-                                  [org.slf4j/jcl-over-slf4j "1.7.7"]
-                                  [org.slf4j/log4j-over-slf4j "1.7.7"]]}}
+                                  [ch.qos.logback/logback-classic "1.1.3" :exclusions [org.slf4j/slf4j-api]]
+                                  [org.slf4j/jul-to-slf4j "1.7.14"]
+                                  [org.slf4j/jcl-over-slf4j "1.7.14"]
+                                  [org.slf4j/log4j-over-slf4j "1.7.14"]]}}
 
   :cljsbuild {:builds {:test
                        {:source-paths ["test"]
