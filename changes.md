@@ -1,3 +1,12 @@
+## v0.5.8 - February 17th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.8"]
+```
+
+* send-msg blocks by default; component tests
+
+
 ## v0.5.7 - January 29th, 2016
 
 ```clojure

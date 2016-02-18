@@ -238,6 +238,15 @@
            (msg-handler-loop cmp-map :sliding-in-chan))))
 
 (defn send-msg
-  "Send message to the specified component."
-  [component msg]
-  (put! (:in-chan component) msg))
+  "Sends message to the specified component. By default, calls to this function will block when no buffer space
+  is available. Asynchronous handling is also possible (JVM only), however the implications should be understood,
+  such as that core.async will throw an exception when there are more than 1024 pending operations. Under most
+  circumstances, blocking seems like the safer bet. Note that, unless specified otherwise, the buffer for a
+  component's in-chan is of size one, see 'component-defaults'."
+  ([cmp msg] (send-msg cmp msg true))
+  ([cmp msg blocking?]
+   (let [in-chan (:in-chan cmp)]
+     #?(:clj  (if blocking?
+                (>!! in-chan msg)
+                (put! in-chan msg))
+        :cljs (put! in-chan msg)))))
