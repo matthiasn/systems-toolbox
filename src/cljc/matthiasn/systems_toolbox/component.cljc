@@ -13,6 +13,17 @@
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
 
+#?(:clj  (defn put-msg
+           "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise the system
+           easily blows up when there are more than 1024 pending put operations."
+           [channel msg]
+           (>!! channel msg))
+   :cljs (defn put-msg
+           "On the ClojureScript side, there is no equivalent of the blocking put, so the asynchronous operation will
+           have to do. But then, more than 1024 pending operations in the browser wouldn't happen often, if ever."
+           [channel msg]
+           (put! channel msg)))
+
 #?(:clj  (defn make-uuid [] (str (java.util.UUID/randomUUID)))
    :cljs (defn make-uuid [] (str (uuid/make-random-uuid))))
 
@@ -79,11 +90,11 @@
           (when (= chan-key :sliding-in-chan)
             (state-pub-handler msg-map)
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put! firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
+              (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (<! (timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put! firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id
+              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id
                                                        :msg msg
                                                        :msg-meta msg-meta
                                                        :ts (now)}]))
@@ -123,8 +134,7 @@
           msg-w-meta (with-meta msg completed-meta)
           msg-type (first msg)
           msg-from-firehose? (= "firehose" (namespace msg-type))]
-      #?(:clj  (>!! put-chan msg-w-meta)
-         :cljs (put! put-chan msg-w-meta))
+      (put-msg put-chan msg-w-meta)
 
       ;; Not all components should emit firehose messages. For example, messages that process
       ;; firehose messages should not do so again in order to avoid infinite messaging loops.
@@ -136,8 +146,8 @@
         ;; message should go on the firehose channel on the receiving end as such, not
         ;; wrapped as other messages would (see the second case in the if-clause).
         (if msg-from-firehose?
-          (put! firehose-chan msg-w-meta)
-          (put! firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
+          (put-msg firehose-chan msg-w-meta)
+          (put-msg firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
                                                   :msg msg-w-meta
                                                   :msg-meta completed-meta
                                                   :ts (now)}]))))))
@@ -151,12 +161,11 @@
           snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})
           state-firehose-chan (chan (sliding-buffer 1))]
       (pipe state-firehose-chan firehose-chan)
-      (put! sliding-out-chan snapshot-msg)
+      (put-msg sliding-out-chan snapshot-msg)
       (when (:snapshots-on-firehose cfg)
-        (put! state-firehose-chan
-              [:firehose/cmp-publish-state {:cmp-id cmp-id
-                                            :snapshot snapshot-xform
-                                            :ts (now)}])))))
+        (put-msg state-firehose-chan [:firehose/cmp-publish-state {:cmp-id   cmp-id
+                                                                     :snapshot snapshot-xform
+                                                                     :ts       (now)}])))))
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the

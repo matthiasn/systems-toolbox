@@ -1,3 +1,12 @@
+## v0.5.9 - February 19th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.9"]
+```
+
+* broader use of blocking put; additional test
+
+
 ## v0.5.8 - February 17th, 2016
 
 ```clojure
