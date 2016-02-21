@@ -1,17 +1,21 @@
 (ns matthiasn.systems-toolbox.component
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]))
   (:require
-    #?(:clj  [clojure.core.match :refer [match]]
+    #?(:clj [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj  [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer go-loop timeout]]
-       :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer timeout]])
-    #?(:clj  [clojure.tools.logging :as log])
-    #?(:clj  [clojure.pprint :as pp]
+    #?(:clj [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
+                                        go-loop timeout]]
+       :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
+                                      timeout]])
+    #?(:clj [clojure.tools.logging :as log])
+    #?(:clj [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
     #?(:cljs [cljs-uuid-utils.core :as uuid])))
 
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
+
+(defn pp-str [data] (with-out-str (pp/pprint data)))
 
 #?(:clj  (defn put-msg
            "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise the system
@@ -70,17 +74,17 @@
   off the returned channel and calling the provided handler-fn with the msg.
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
-  [{:keys [handler-map all-msgs-handler cmp-state state-pub-handler put-fn cfg cmp-id firehose-chan snapshot-publish-fn
-           unhandled-handler]
-    :as cmp-map} chan-key]
-  (let [chan (make-chan-w-buf (chan-key cfg))]
+  [cmp-map chan-key]
+  (let [{:keys [handler-map all-msgs-handler cmp-state state-pub-handler put-fn cfg cmp-id firehose-chan
+                snapshot-publish-fn unhandled-handler]
+         :or {handler-map {}}} cmp-map
+        chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
       (let [msg (<! chan)
             msg-meta (-> (merge (meta msg) {})
                          (add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
-            handler-map (merge {} handler-map)
             handler-fn (msg-type handler-map)
             msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
                                     :msg-type    msg-type
@@ -94,20 +98,19 @@
             (<! (timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id
-                                                       :msg msg
-                                                       :msg-meta msg-meta
-                                                       :ts (now)}]))
+              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id   cmp-id
+                                                          :msg      msg
+                                                          :msg-meta msg-meta
+                                                          :ts       (now)}]))
             (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
             (when unhandled-handler
               (when-not (contains? handler-map msg-type) (unhandled-handler msg-map)))
             (when all-msgs-handler (all-msgs-handler msg-map)))
-          #?(:clj  (catch Exception e (do (log/error e "Exception in" cmp-id "when receiving message:")
-                                          (pp/pprint msg)))
-             :cljs (catch js/Object e (do (.log js/console e (str "Exception in " cmp-id " when receiving message:"))
-                                          (pp/pprint msg)))))
+          #?(:clj  (catch Exception e (log/error e "Exception in" cmp-id "when receiving message:" (pp-str msg)))
+             :cljs (catch js/Object e (.log js/console e (str "Exception in " cmp-id " when receiving message:"
+                                                              (pp-str msg))))))
         (recur)))
     {chan-key chan}))
 
@@ -147,10 +150,10 @@
         ;; wrapped as other messages would (see the second case in the if-clause).
         (if msg-from-firehose?
           (put-msg firehose-chan msg-w-meta)
-          (put-msg firehose-chan [:firehose/cmp-put {:cmp-id cmp-id
-                                                  :msg msg-w-meta
-                                                  :msg-meta completed-meta
-                                                  :ts (now)}]))))))
+          (put-msg firehose-chan [:firehose/cmp-put {:cmp-id   cmp-id
+                                                     :msg      msg-w-meta
+                                                     :msg-meta completed-meta
+                                                     :ts       (now)}]))))))
 
 (defn make-snapshot-publish-fn
   "Creates a function for publishing changes to the component state atom as snapshot messages,"
@@ -164,8 +167,8 @@
       (put-msg sliding-out-chan snapshot-msg)
       (when (:snapshots-on-firehose cfg)
         (put-msg state-firehose-chan [:firehose/cmp-publish-state {:cmp-id   cmp-id
-                                                                     :snapshot snapshot-xform
-                                                                     :ts       (now)}])))))
+                                                                   :snapshot snapshot-xform
+                                                                   :ts       (now)}])))))
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the
@@ -173,19 +176,17 @@
   [{:keys [watch-state cmp-id snapshot-publish-fn]}]
   #?(:clj  (try
              (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
-             (catch Exception e (do (log/error e "Exception in" cmp-id "when attempting to watch atom:")
-                                    (pp/pprint watch-state))))
+             (catch Exception e (log/error e "Exception in" cmp-id "when watching atom:" (pp-str watch-state))))
      :cljs (let [changed (atom true)]
              (letfn [(step []
-                           (request-animation-frame step)
-                           (when @changed
-                             (snapshot-publish-fn)
-                             (swap! changed not)))]
+                       (request-animation-frame step)
+                       (when @changed
+                         (snapshot-publish-fn)
+                         (swap! changed not)))]
                (request-animation-frame step)
                (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
                     (catch js/Object e
-                      (do (.log js/console e (str "Exception in " cmp-id " when attempting to watch atom:"))
-                          (pp/pprint watch-state))))))))
+                      (.log js/console e (str "Exception in " cmp-id " when watching atom:" (pp-str watch-state)))))))))
 
 (defn make-system-ready-fn
   "This function is called by the switchboard that wired this component when all other
@@ -193,9 +194,19 @@
   were accumulated on the 'put-chan' buffer since startup are released. Also, the
   component state is published."
   [{:keys [put-chan out-chan snapshot-publish-fn]}]
-   (fn []
-     (pipe put-chan out-chan)
-     (snapshot-publish-fn)))
+  (fn []
+    (pipe put-chan out-chan)
+    (snapshot-publish-fn)))
+
+(defn initial-cmp-map
+  "Assembles initial component map with actual channels."
+  [cmp-map cfg]
+  (merge cmp-map
+         {:put-chan         (make-chan-w-buf (:out-chan cfg))            ; used in put-fn, not connected at first
+          :out-chan         (make-chan-w-buf (:out-chan cfg))            ; outgoing chan, used in mult and pub
+          :cfg              cfg
+          :firehose-chan    (make-chan-w-buf (:firehose-chan cfg))       ; channel for publishing all messages
+          :sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))})) ; chan for publishing snapshots
 
 (defn make-component
   "Creates a component with attached in-chan, out-chan, sliding-in-chan and sliding-out-chan.
@@ -216,32 +227,27 @@
   The configuration of a component comes from merging the component defaults with the opts
   map that is passed on component creation the :opts key. The order of the merge operation
   allows overwriting the default settings."
-  [{:keys [state-fn opts] :as cmp-conf}]
+  [{:keys [state-fn opts] :as cmp-map}]
   (let [cfg (merge component-defaults opts)
         out-pub-chan (make-chan-w-buf (:out-chan cfg))
-        cmp-map-1 (merge cmp-conf
-                         {:put-chan         (make-chan-w-buf (:out-chan cfg)) ; used in put-fn, not connected at first
-                          :out-chan         (make-chan-w-buf (:out-chan cfg)) ; outgoing chan, used in mult and pub
-                          :cfg              cfg
-                          :firehose-chan    (make-chan-w-buf (:firehose-chan cfg)) ; channel for publishing all messages
-                          :sliding-out-chan (make-chan-w-buf (:sliding-out-chan cfg))}) ; chan for publishing snapshots
-        put-fn (make-put-fn cmp-map-1)
+        cmp-map (initial-cmp-map cmp-map cfg)
+        put-fn (make-put-fn cmp-map)
         state-map (if state-fn (state-fn put-fn) {:state (atom {})}) ; create state, either from state-fn or empty map
         state (:state state-map)
-        watch-state (if-let [watch (:watch cfg)] (watch state) state) ; watchable atom
-        cmp-map-2 (merge cmp-map-1 {:watch-state watch-state})
-        cmp-map-3 (merge cmp-map-2 {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map-2)})
-        cmp-map (merge cmp-map-3 {:out-mult          (mult (:out-chan cmp-map-3))
-                                  :firehose-mult     (mult (:firehose-chan cmp-map-3))
-                                  :out-pub           (pub out-pub-chan first)
-                                  :state-pub         (pub (:sliding-out-chan cmp-map-3) first)
-                                  :cmp-state         state
-                                  :put-fn            put-fn
-                                  :system-ready-fn   (make-system-ready-fn cmp-map-3)
-                                  :shutdown-fn       (:shutdown-fn state-map)
-                                  :state-snapshot-fn (fn [] @watch-state)})]
+        watch-state (if-let [watch (:watch opts)] (watch state) state) ; watchable atom
+        cmp-map (merge cmp-map {:watch-state watch-state})
+        cmp-map (merge cmp-map {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map)})
+        cmp-map (merge cmp-map {:out-mult          (mult (:out-chan cmp-map))
+                                :firehose-mult     (mult (:firehose-chan cmp-map))
+                                :out-pub           (pub out-pub-chan first)
+                                :state-pub         (pub (:sliding-out-chan cmp-map) first)
+                                :cmp-state         state
+                                :put-fn            put-fn
+                                :system-ready-fn   (make-system-ready-fn cmp-map)
+                                :shutdown-fn       (:shutdown-fn state-map)
+                                :state-snapshot-fn (fn [] @watch-state)})]
     (tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
-    (detect-changes cmp-map) ; publish snapshots when changes are detected
+    (detect-changes cmp-map)                ; publish snapshots when changes are detected
     (merge cmp-map
            (msg-handler-loop cmp-map :in-chan)
            (msg-handler-loop cmp-map :sliding-in-chan))))
