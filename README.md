@@ -55,6 +55,6 @@ This project is quite young and APIs may still change. However, you can expect t
 
 ## License
 
-Copyright © 2015 Matthias Nehlsen
+Copyright © 2015, 2016 Matthias Nehlsen
 
 Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.
