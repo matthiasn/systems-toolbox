@@ -2,6 +2,8 @@
 
 Applications are systems. Systems are fascinating entities, and one of their characteristics is that we can observe them. Read more about that **[here](doc/systems-thinking.md)**.
 
+[![Build Status](https://travis-ci.org/matthiasn/systems-toolbox.svg?branch=master)](https://travis-ci.org/matthiasn/systems-toolbox)
+
 [![Join the chat at https://gitter.im/matthiasn/systems-toolbox](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/matthiasn/systems-toolbox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
