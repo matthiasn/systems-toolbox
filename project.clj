@@ -20,6 +20,8 @@
             [test2junit "1.2.1"]
             [lein-cljsbuild "1.1.2"]]
 
+  :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
+
   :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.5" :exclusions [org.slf4j/slf4j-api]]
                                   [org.slf4j/jul-to-slf4j "1.7.16"]
