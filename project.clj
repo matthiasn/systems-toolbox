@@ -17,6 +17,7 @@
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]
 
   :plugins [[lein-codox "0.9.4"]
+            [test2junit "1.2.1"]
             [lein-cljsbuild "1.1.2"]]
 
   :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]

@@ -13,3 +13,5 @@ pom.xml.asc
 *.iml
 .DS_Store
 *.log
+test2junit/
+build.xml
