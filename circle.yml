@@ -1,3 +1,5 @@
 test:
   override:
     - lein test2junit
+  post:
+    - ant
