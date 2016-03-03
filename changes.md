@@ -1,3 +1,12 @@
+## v0.5.11 - March 3rd, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.11"]
+```
+
+* performance improvements in browser by using requestAnimationFrame more sparingly
+
+
 ## v0.5.10 - February 21st, 2016
 
 ```clojure
