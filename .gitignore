@@ -15,3 +15,5 @@ pom.xml.asc
 *.log
 test2junit/
 build.xml
+resources/public/js/
+out/

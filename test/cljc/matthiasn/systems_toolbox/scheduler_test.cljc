@@ -1,9 +1,9 @@
 (ns matthiasn.systems-toolbox.scheduler-test
 
-  (require [clojure.test :refer [deftest testing is run-tests]]
-           [matthiasn.systems-toolbox.scheduler :as scheduler]
-           [matthiasn.systems-toolbox.system :as system]
-           [matthiasn.systems-toolbox.switchboard :as switchboard]))
+  (:require [clojure.test :refer [deftest testing is run-tests]]
+            [matthiasn.systems-toolbox.scheduler :as scheduler]
+            [matthiasn.systems-toolbox.system :as system]
+            [matthiasn.systems-toolbox.switchboard :as switchboard]))
 
 (def echo-switchboard (system/create))
 

@@ -2,9 +2,9 @@
 
   "Create a system, send some messages, see them flowing correctly."
 
-  (require [clojure.test :refer [deftest testing is run-tests]]
-           [matthiasn.systems-toolbox.system :as system]
-           [matthiasn.systems-toolbox.switchboard :as switchboard]))
+  (:require [clojure.test :refer [deftest testing is run-tests]]
+            [matthiasn.systems-toolbox.system :as system]
+            [matthiasn.systems-toolbox.switchboard :as switchboard]))
 
 (def echo-switchboard (system/create))
 
