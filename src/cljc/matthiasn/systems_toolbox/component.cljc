@@ -172,21 +172,30 @@
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the
-  'snapshot-publish-fn'."
+  'snapshot-publish-fn'.
+  The Clojure version simply calls the snapshot-publish-fn whenever there is a change
+  to the component state atom.
+  The ClojureScript version holds the publication of a new component state snapshot by
+  scheduling it to happen on the the next animation-frame event. Until then, no further
+  snapshot publications are scheduled. This effectively ignores all state updates until
+  that event fires, while then publishing the latest snapshot. This mechanism avoids
+  burdening the JS engine with messages that are not relevant for rendering anyway."
   [{:keys [watch-state cmp-id snapshot-publish-fn]}]
-  #?(:clj  (try
-             (add-watch watch-state :watcher (fn [_ _ _ new-state] (snapshot-publish-fn)))
-             (catch Exception e (log/error e "Exception in" cmp-id "when watching atom:" (pp-str watch-state))))
-     :cljs (let [changed (atom true)]
-             (letfn [(step []
-                       (request-animation-frame step)
-                       (when @changed
-                         (snapshot-publish-fn)
-                         (swap! changed not)))]
-               (request-animation-frame step)
-               (try (add-watch watch-state :watcher (fn [_ _ _ new-state] (reset! changed true)))
-                    (catch js/Object e
-                      (.log js/console e (str "Exception in " cmp-id " when watching atom:" (pp-str watch-state)))))))))
+  #?(:clj  (try (add-watch watch-state :watcher (fn [_ _ _ _new-state] (snapshot-publish-fn)))
+                (catch Exception e (log/error e "Exception in" cmp-id "when watching atom:"
+                                              (pp-str watch-state))))
+     :cljs (let [publish-scheduled? (atom false)
+                 publish-fn (fn []
+                              (snapshot-publish-fn)
+                              (reset! publish-scheduled? false))
+                 publish-schedule-fn (fn []
+                                       (when-not @publish-scheduled?
+                                         (reset! publish-scheduled? true)
+                                         (request-animation-frame publish-fn)))]
+             (try (add-watch watch-state :watcher (fn [_ _ _ _new-state] (publish-schedule-fn)))
+                  (catch js/Object e
+                    (.log js/console e (str "Exception in " cmp-id " when watching atom:"
+                                            (pp-str watch-state))))))))
 
 (defn make-system-ready-fn
   "This function is called by the switchboard that wired this component when all other
