@@ -17,6 +17,11 @@ This library only contains the bare minimum for building and wiring systems. Add
 
 * **[systems-toolbox-sente](https://github.com/matthiasn/systems-toolbox-sente)**: This library connects browser-based subsystems with a backend system using WebSockets. This library contains everything you need for serving your application via **HTPP**, including support for **HTTPS**, **HTTP2**, deployment in application servers, and serving **REST** resources. This library serves the sample applications and provides the communication with their respective backends.
 
+* **[systems-toolbox-kafka](https://github.com/matthiasn/systems-toolbox-kafka)**: This library connects different systems via **[Kafka](http://kafka.apache.org/)** so that they can form a larger, distributed system.
+
+
+* **[systems-toolbox-metrics](https://github.com/matthiasn/systems-toolbox-metrics)**: This library is a small example for how functionality can be implemented across subsystems. Here, we have a server-side component which gathers some stats about the host and JVM, plus a UI "widget" that can be embedded in a **systems-toolbox-ui** interface. You can see it in use in both example applications.
+
 
 ## Artifacts
 
