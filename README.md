@@ -1,32 +1,43 @@
 # systems-toolbox
 
-Applications are systems. Systems are fascinating entities, and one of their characteristics is that we can observe them. Read more about that **[here](doc/systems-thinking.md)**.
+Applications are systems. Systems are fascinating entities, and one of their characteristics is that we can observe them. Read more about that **[here](doc/systems-thinking.md)**. Also make sure you read about the **[rationale](doc/rationale.md)** behind this library.
 
 [![TravisCI Build Status](https://travis-ci.org/matthiasn/systems-toolbox.svg?branch=master)](https://travis-ci.org/matthiasn/systems-toolbox)
 ![CircleCI Build Status](https://circleci.com/gh/matthiasn/systems-toolbox.svg?&style=shield&circle-token=24e698236c3b69afa71b954d829fbb9f9fb7c34d)
 [![Join the chat at https://gitter.im/matthiasn/systems-toolbox](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/matthiasn/systems-toolbox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-## Rationale
+## What's in the box?
 
-Some time ago, I wrote this toy application called **[BirdWatch](http://github.com/matthiasn/BirdWatch)**. The first and very basic version was using **[Scala](http://www.scala-lang.org/)** on the server side and **[Knockout](https://github.com/knockout/knockout)** on the client. The next version was then using **[AngularJS](https://angularjs.org/)** on the client side, followed by another client in **[React](https://facebook.github.io/react/)**.js. Then, I fell in love with **[Clojure](http://clojure.org/)**. So I wrote the application again, this time with the backend written in Clojure and the frontend written in **[ClojureScript](https://github.com/clojure/clojurescript)**. It was the first application I had ever written in Clojure. While it worked well, it was a bit of an entangled mess (and hard to maintain). When I discovered Stuart Sierra's component library, I thought this could be a way to get more structure into my system. But it wasn't solving many of the problems that I had. Instead, I wanted to build a different kind of system, one that is primarily messaging-driven, spans multiple machines (such as web client and a server, or also multiple machines on the server side) and that uses **[core.async](https://github.com/clojure/core.async)** for message conveyance. I thought there must be another way to do it, but I didn't find an existing library. Also, at the time, the component library only worked on the server side, whereas I thought that communicating subsystems are a universal thing, not only something that one finds on a server. So I thought, why not write a library that solves my problems, one that works on both client and server? Then came along a consulting gig that allowed me to explore the problem while we wrote a commercial application with it.
+This library helps you build distributed systems. Such a larger system could, for example, consist of multiple processes in different **JVM**, plus all connected browser instances, which, if you think about it, are an important part of the overall distributed systems. Going forward, there is also support planned for native apps. Except for a different presentation layer, the required code should be the exact same as for single-page web applications.
+
+This library only contains the bare minimum for building and wiring systems. Additional functionality can be found in these repositories:
+
+* **[systems-toolbox-ui](https://github.com/matthiasn/systems-toolbox-ui)**: This library gives you a simple way to build user interfaces using **[Reagent](https://github.com/reagent-project/reagent)**. This provided functionality is somewhat comparable to **[React](https://facebook.github.io/react/)** & **[Redux](https://github.com/reactjs/redux)**. I'll elaborate on this soon. This library powers the user interfaces of the example applications.
+
+* **[systems-toolbox-sente](https://github.com/matthiasn/systems-toolbox-sente)**: This library connects browser-based subsystems with a backend system using WebSockets. This library contains everything you need for serving your application via **HTPP**, including support for **HTTPS**, **HTTP2**, deployment in application servers, and serving **REST** resources. This library serves the sample applications and provides the communication with their respective backends.
 
 
-## Assumptions
+## Artifacts
 
-Unsurprisingly, the **systems-toolbox** library makes a few assumptions:
+Artifacts are [released to Clojars](https://clojars.org/matthiasn/systems-toolbox).
 
-* A system is made out of **subsystems**, which communicate by sending each other immutable messages via **[core.async](https://github.com/clojure/core.async)** channels, which conceptually can be seen as conveyor belts. You WILL have to either watch Rich Hickey's **[talk](http://www.infoq.com/presentations/clojure-core-async)** on this subject or read the **[transcript](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/CoreAsync.md)** -- or both. Seriously, do that NOW.
+With Leiningen, add the following dependency to your `project.clj`:
 
-* Hey, welcome back, what do you think about the talk? I think the conveyor belt metaphor is fascinating and may well be more appropriate than in **[other places](http://www.jfs.tku.edu.tw/wp-content/uploads/2014/01/121-E01.pdf)** where it is apparently used as well. Also, I feel the implementation is ready for production usage. However, I think one piece is missing, at least when you follow the metaphor. Let me explain. Say we have a factory or the luggage transportation system in an airport and there's indeed a conveyor belt. The decoupling that comes from using this mechanism (or any other queue, for that matter) is essential for larger systems that don't make you want to pull your hair out. There's one difference, though. The conveyor belt is observable, without interfering with it -- **[core.async](https://github.com/clojure/core.async)** is not.
+[![Clojars Project](https://img.shields.io/clojars/v/matthiasn/systems-toolbox.svg)](https://clojars.org/matthiasn/systems-toolbox)
 
-* **Black boxes** aren't as useful as I used to think. The chances are that a portion of the taxes you pay goes into some very expensive contraptions such as CERNs **[Large Hadron Collider](http://home.cern/topics/large-hadron-collider)** that help us get a better understanding how particles interact, and rightfully so. In natural sciences, it is considered a good thing to look inside stuff (like atoms) and not stop just because someone tells you that you have to respect the borders of a black box. And yet in computer (science), we are supposed to accept that? Come on. When I come into a new project, I would like to look into all the parts of the system and see how they massage the data flowing through that very system. I do understand that implementation details of subsystems may not be important, but at least I need to understand what goes in and what goes out. And this is exactly where I think core.async falls short of the promise of building better systems. Why does the channel need to be a black box that I cannot inspect? I want to be able to see what goes onto a channel, and I want to see what is taken off a channel, just like we a can in the factory with the conveyor belt, without interfering with the system any more than necessary. Of course, everything I just mentioned only works in the realm of **functional programming**. Black boxes make a whole lot more sense when you need to protect mutable state inside objects.
 
-* Subsystems or components wired by the **systems-toolbox** are observable, they emit all messages onto a **firehose** channel, including state changes, without requiring a single extra line of code. This firehose channel contains all the messages flowing through a system, just like the **[Twitter Firehose](https://dev.twitter.com/streaming/firehose)** contains all the tweets flowing through Twitter.
+## Testing
 
-* Subsystems can **send** and **receive** messages. These messages are like sending your tax declaration to the IRS. You expect a response at some point, but you don't know when. Or, to stay more on topic, these are like the messages one layer below TCP. When your computer sends a datagram out, you don't know yet if anyone will respond. Maybe, who knows. If not and a timeout is reached, you will have to deal with that. One might think of this as a limitation, but I have not found that to be the case yet when building actual applications with it. Any reliable transport out there is best just effort plus timeouts plus retries and an eventual exception.
+This library targets both **Clojure** and **Clojurescript** and is written entirely in `.clc`. Accordingly, testing needs to happen on both the **JVM** and at least one of the **JS** runtimes out there. For testing on the JVM, you simply run:
 
-* I like building systems with user interfaces. Therefore, this library also provides the building blocks for user interfaces. This part of the library is opinionated towards **[Reagent](https://github.com/reagent-project/reagent)**, as I like writing DOM subtrees in **[Hiccup](https://github.com/weavejester/hiccup)**. However, it should be simple to write building blocks for the other wrappers for React out there. If I had more time, I'd probably write those.
+    $ lein test
+
+On the JavaScript side, you have more options, for example:
+
+    $ lein doo firefox cljs-test once    
+
+Alternatively, you can replace `firefox` with `chrome`, `phantom` or `nashorn`. Instead of `once`, you can also use `auto` to run the tests automatically when changes are detected. For more information about the options, check out the documentation for **[doo](https://github.com/bensu/doo)**.
 
 
 ## Examples
@@ -46,11 +57,7 @@ Right now, there are two example applications:
 
 We use this project at my current consulting gig to build a system that spans both the browser and a backend.
 
-Also, applications built with it appear to be quite stable. At the time of this writing, the **[demo instance](http://birdwatch2.matthiasnehlsen.com)** of BirdWatch has been up and running for the past **2887 hours** without problems, during which it processed more than **25 million** tweets. Funny that the resulting string for the uptime duration is slightly longer than anticipated:
-
-![2887h Uptime](./doc/2887h.png)
-
-Same thing when looking at the library's sample application, only that the uptime here has been longer still at the time of this writing, as you can see in the screenshot above.
+Also, applications built with it appear to be quite stable. At the time of this writing, the **[demo instance](http://birdwatch2.matthiasnehlsen.com)** of BirdWatch has been up and running for the past **2887 hours** without problems, during which it processed more than **25 million** tweets.
 
 This project is quite young and APIs may still change. However, you can expect that minor version bumps do not break your existing system. .
 

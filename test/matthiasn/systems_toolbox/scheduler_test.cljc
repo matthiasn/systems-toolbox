@@ -1,9 +1,15 @@
 (ns matthiasn.systems-toolbox.scheduler-test
 
-  (:require [clojure.test :refer [deftest testing is run-tests]]
+  #?(:cljs (:require-macros [cljs.core.async.macros :refer [go]]))
+  (:require
+    #?(:clj  [clojure.test :refer [deftest testing is]]
+       :cljs [cljs.test :refer-macros [deftest testing is]])
+    #?(:clj  [clojure.core.async :refer [<! put! go promise-chan]]
+       :cljs [cljs.core.async :refer [<! put! promise-chan]])
             [matthiasn.systems-toolbox.scheduler :as scheduler]
             [matthiasn.systems-toolbox.system :as system]
-            [matthiasn.systems-toolbox.switchboard :as switchboard]))
+            [matthiasn.systems-toolbox.switchboard :as switchboard]
+            [matthiasn.systems-toolbox.fake-promise :as fp]))
 
 (def echo-switchboard (system/create))
 
@@ -14,13 +20,13 @@
    [:cmd/route {:from :scheduler-cmp :to :pong-cmp}]])
 
 (deftest scheduler-cycle
-  (let [pong (promise)
+  (let [pong (promise-chan)
         counter (atom 0)
         countdown #(if (< @counter 3)
                     (swap! counter inc)
-                    (deliver pong true))
-        spy (promise)
-        stopped #(deliver spy true)]
+                    (put! pong true))
+        spy (promise-chan)
+        stopped #(put! spy true)]
 
     ;; Scheduling
     (switchboard/send-cmd
@@ -32,7 +38,7 @@
                          :message [:cmd/pong countdown]
                          :repeat  true}]}])
     ;; Scheduling spins ok
-    (is (deref pong 1000 false))
+    (fp/w-timeout 1000 (go (is (true? (<! pong)))))
 
     (switchboard/send-mult-cmd
       echo-switchboard
@@ -45,4 +51,4 @@
        [:cmd/send {:to  :scheduler-cmp
                    :msg [:cmd/schedule-delete {:id :cycle}]}]])
 
-    (is (deref spy 1000 false))))
+    (fp/w-timeout 1000 (go (is (true? (<! spy)))))))

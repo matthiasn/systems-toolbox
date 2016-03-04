@@ -1,16 +1,17 @@
 (ns matthiasn.systems-toolbox.component
-  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]))
+  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
+             [cljs.core :refer [exists?]]))
   (:require
-    #?(:clj [clojure.core.match :refer [match]]
-       :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
-                                        go-loop timeout]]
-       :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
-                                      timeout]])
-    #?(:clj [clojure.tools.logging :as log])
-    #?(:clj [clojure.pprint :as pp]
-       :cljs [cljs.pprint :as pp])
-    #?(:cljs [cljs-uuid-utils.core :as uuid])))
+   #?(:clj  [clojure.core.match :refer [match]]
+      :cljs [cljs.core.match :refer-macros [match]])
+   #?(:clj  [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
+                                        go-loop timeout onto-chan]]
+      :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
+                                      timeout onto-chan]])
+   #?(:clj  [clojure.tools.logging :as log])
+   #?(:clj  [clojure.pprint :as pp]
+      :cljs [cljs.pprint :as pp])
+   #?(:cljs [cljs-uuid-utils.core :as uuid])))
 
 #?(:clj  (defn now [] (System/currentTimeMillis))
    :cljs (defn now [] (.getTime (js/Date.))))
@@ -32,10 +33,11 @@
    :cljs (defn make-uuid [] (str (uuid/make-random-uuid))))
 
 #?(:cljs (def request-animation-frame
-           (or (.-requestAnimationFrame js/window)
-               (.-webkitRequestAnimationFrame js/window)
-               (.-mozRequestAnimationFrame js/window)
-               (.-msRequestAnimationFrame js/window)
+           (or (when (exists? js/window)
+                 (or (.-requestAnimationFrame js/window)
+                     (.-webkitRequestAnimationFrame js/window)
+                     (.-mozRequestAnimationFrame js/window)
+                     (.-msRequestAnimationFrame js/window)))
                (fn [callback] (js/setTimeout callback 17)))))
 
 (defn make-chan-w-buf
@@ -274,3 +276,10 @@
                 (>!! in-chan msg)
                 (put! in-chan msg))
         :cljs (put! in-chan msg)))))
+
+(defn send-msgs
+  "Sends multiple messages to a component. Takes the component itself plus a sequence with messages to send
+  to the component. Does not close the :in-chan of the component."
+  [cmp msgs]
+  (let [in-chan (:in-chan cmp)]
+    (onto-chan in-chan msgs false)))

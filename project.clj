@@ -23,8 +23,6 @@
 
   :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
 
-  :test-paths ["test/cljc"]
-
   :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.5" :exclusions [org.slf4j/slf4j-api]]
                                   [org.slf4j/jul-to-slf4j "1.7.16"]
@@ -32,7 +30,7 @@
                                   [org.slf4j/log4j-over-slf4j "1.7.16"]]}}
 
   :cljsbuild {:builds [{:id           "cljs-test"
-                        :source-paths ["src" "test/cljs"]
+                        :source-paths ["src" "test"]
                         :compiler     {:output-to     "out/testable.js"
                                        :main          matthiasn.systems-toolbox.runner
-                                       :optimizations :whitespace}}]})
+                                       :optimizations :advanced}}]})

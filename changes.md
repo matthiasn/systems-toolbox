@@ -1,3 +1,12 @@
+## v0.5.12 - March 4th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.12"]
+```
+
+* library now testable on JVM and browser
+
+
 ## v0.5.11 - March 3rd, 2016
 
 ```clojure
