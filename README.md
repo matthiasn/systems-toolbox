@@ -41,7 +41,6 @@ On the JavaScript side, you have more options, for example:
 Alternatively, you can replace `firefox` with `chrome`, `phantom` or `nashorn`. Instead of `once`, you can also use `auto` to run the tests automatically when changes are detected. For more information about the options, check out the documentation for **[doo](https://github.com/bensu/doo)**.
 
 Both ways of testing run automatically on each new commit. On the **JVM**, we use **CircleCI**: ![CircleCI Build Status](https://circleci.com/gh/matthiasn/systems-toolbox.svg?&style=shield&circle-token=24e698236c3b69afa71b954d829fbb9f9fb7c34d)
-                                                                                            [![Join the chat at https://gitter.im/matthiasn/systems-toolbox](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/matthiasn/systems-toolbox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
                                                                                             
 On **TravisCI**, the tests then run in a **JS** environment, on **[PhantomJS](http://phantomjs.org/)**: [![TravisCI Build Status](https://travis-ci.org/matthiasn/systems-toolbox.svg?branch=master)](https://travis-ci.org/matthiasn/systems-toolbox)
 
@@ -59,6 +58,16 @@ Right now, there are two example applications:
 * Then, there's the toy example I mentioned above, **[BirdWatch](https://github.com/matthiasn/BirdWatch)**. This application provided the inspiration for this library. A running demo instance can be seen **[here](http://birdwatch2.matthiasnehlsen.com)**.
 
 ![BirdWatch Screenshot](./doc/birdwatch.png)
+
+
+## Feedback and question
+
+Please feel free to open issues here or in any of the related projects when you have a question. Also, you can send the author an email, but issues are generally preferred as more users would benefit from the resulting discussion. Also, there's a chat on [![Join the chat at https://gitter.im/matthiasn/systems-toolbox](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/matthiasn/systems-toolbox?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge).
+
+
+## Contributions
+
+Contributions always welcome! Unless it's nothing more than the fix of a typo though, the best approach is to start with an issue and a brief discussion of the problem or improvement, rather than start the process with a pull request. Cheers.
 
 
 ## Project maturity

@@ -114,6 +114,7 @@
                       :msg-type  msg-type
                       :pred      pred}))))))
 
+;; TODO: implement filtering with comparable semantics as in route-handler, see issue #34
 (defn route-all-handler
   [{:keys [cmp-state put-fn msg-payload]}]
   (let [{:keys [from to pred]} msg-payload]
