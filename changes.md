@@ -1,3 +1,12 @@
+## v0.5.13 - March 5th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.13"]
+```
+
+* additional tests; checking for overhead introduced by library
+
+
 ## v0.5.12 - March 4th, 2016
 
 ```clojure

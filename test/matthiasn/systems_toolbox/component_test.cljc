@@ -37,7 +37,7 @@
                          (testing "sent messages equal received messages"
                            (is (= msgs-to-send @msgs-recvd)))))))
 
-(defn cmp-all-msgs-handler-cmp-state
+(defn cmp-all-msgs-handler-cmp-state-fn
   []
   "Like cmp-all-msgs-handler test, except that the handler function here acts on the component state provided
   in the map that the :all-msgs-handler function is called with.
@@ -45,52 +45,69 @@
   The number of messages sent in this test is somewhat arbitrarily, except that I wanted a) more than the 1024 pending
   puts that core.async allows and b) have confidence that a larger number of messages can be processed in
   very short time. Here, I test that more than 1K messages are processed per second. While timing can be problematic
-  in tests, my laptop processes around 30K messages/s on the JVM (JDK 1.8) and is more than twice as fast in both
-  Firefox andChrome. If the rate dropped below 1K on ANY machine, that would indeed be a problem IMHO. These tests
-  ought to quickly make visible any changes in the library that have an unfavorable complexity.
+  in tests, my laptop processes around 80K messages/s on the JVM (JDK 1.8) after some warming up and slightly slower
+  in both Firefox and Chrome with around 70K msgs/s. If the rate dropped below 1K on ANY machine, that would indeed
+  be a problem IMHO. These tests ought to quickly make visible any changes in the library that have an unfavorable
+  complexity and thus provide some sanity check. Also, since the CI environment records these results, they can be
+  compared over time.
 
   Running this test multiple times gets us a better understanding how performance increases on subsequent runs,
   likely because of JIT compilation and other optimizations in the runtime."
-  (let [start-ts (component/now)
-        cnt 50000
-        msgs-recvd (atom [])
-        msgs-to-send (vec (range cnt))
+  (let [cnt (* 100 1000)
+        state (atom 0)
+        vals-to-send (vec (range cnt))
+        msgs-to-send (map (fn [m] [:some/type m]) vals-to-send)
         all-recvd (promise-chan)
-        cmp (component/make-component {:state-fn         (fn [_put-fn] {:state msgs-recvd})
+        res (reduce + (range cnt))
+        cmp (component/make-component {:state-fn         (fn [_put-fn] {:state state})
                                        :all-msgs-handler (fn [{:keys [msg-payload cmp-state]}]
-                                                           (swap! cmp-state conj msg-payload)
-                                                           (when (= cnt (count @cmp-state))
-                                                             (put! all-recvd true)))})]
+                                                           (let [new-state (+ @cmp-state msg-payload)]
+                                                             (reset! state new-state)
+                                                             (when (= res new-state)
+                                                               (put! all-recvd true))))})
+        start-ts (component/now)]
 
-    (component/send-msgs cmp (map (fn [m] [:some/type m]) msgs-to-send))
+    (component/send-msgs cmp msgs-to-send)
 
-    (fp/w-timeout 50000 (go
-                          (testing "all messages received"
-                            (is (true? (<! all-recvd))))
-                          (testing "sent messages equal received messages"
-                            (is (= msgs-to-send @msgs-recvd)))
-                          (testing "processes more than 1K messages per second"
-                            (let [msgs-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                              (log/debug "Msgs/s:" msgs-per-sec)
-                              (is (> msgs-per-sec 1000))))))))
+    (fp/w-timeout cnt (go
+                        (testing "all messages received"
+                          (is (true? (<! all-recvd))))
+                        (testing "processes more than 1K messages per second"
+                          (let [msgs-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
+                            (log/debug "Msgs/s:" msgs-per-sec)
+                            (is (> msgs-per-sec 1000))))
+                        (testing "sent messages equal received messages"
+                          (is (= res @state)))))))
 
 (deftest cmp-all-msgs-handler-cmp-state1
-  (cmp-all-msgs-handler-cmp-state))
+  (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-all-msgs-handler-cmp-state2
-  (cmp-all-msgs-handler-cmp-state))
+  (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-all-msgs-handler-cmp-state3
-  (cmp-all-msgs-handler-cmp-state))
+  (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-all-msgs-handler-cmp-state4
-  (cmp-all-msgs-handler-cmp-state))
+  (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-all-msgs-handler-cmp-state5
-  (cmp-all-msgs-handler-cmp-state))
+  (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-all-msgs-handler-cmp-state6
-  (cmp-all-msgs-handler-cmp-state))
+  (cmp-all-msgs-handler-cmp-state-fn))
+
+(deftest cmp-all-msgs-handler-cmp-state7
+  (cmp-all-msgs-handler-cmp-state-fn))
+
+(deftest cmp-all-msgs-handler-cmp-state8
+  (cmp-all-msgs-handler-cmp-state-fn))
+
+(deftest cmp-all-msgs-handler-cmp-state9
+  (cmp-all-msgs-handler-cmp-state-fn))
+
+(deftest cmp-all-msgs-handler-cmp-state10
+  (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-handlers-test
   "Tests that a) specific handlers receive only their respective messages, b) unhandled-handler receives only

@@ -55,8 +55,9 @@
    :out-chan              [:buffer 1]
    :sliding-out-chan      [:sliding 1]
    :firehose-chan         [:buffer 1]
-   :snapshots-on-firehose true
-   :msgs-on-firehose      true
+   :publish-snapshots     true
+   :snapshots-on-firehose false
+   :msgs-on-firehose      false
    :reload-cmp            true})
 
 (defn add-to-msg-seq
@@ -77,21 +78,22 @@
   Does not process return values from the processing step; instead, put-fn needs to be
   called to produce output."
   [cmp-map chan-key]
-  (let [{:keys [handler-map all-msgs-handler cmp-state state-pub-handler put-fn cfg cmp-id firehose-chan
+  (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan
                 snapshot-publish-fn unhandled-handler]
          :or {handler-map {}}} cmp-map
-        chan (make-chan-w-buf (chan-key cfg))]
+        in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
-      (let [msg (<! chan)
+      (let [msg (<! in-chan)
             msg-meta (-> (merge (meta msg) {})
                          (add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
-            msg-map (merge cmp-map {:msg         (with-meta msg msg-meta)
-                                    :msg-type    msg-type
-                                    :msg-meta    msg-meta
-                                    :msg-payload msg-payload})]
+            msg-map (merge cmp-map {:msg          (with-meta msg msg-meta)
+                                    :msg-type     msg-type
+                                    :msg-meta     msg-meta
+                                    :msg-payload  msg-payload
+                                    :onto-in-chan #(onto-chan in-chan % false)})]
         (try
           (when (= chan-key :sliding-in-chan)
             (state-pub-handler msg-map)
@@ -104,7 +106,6 @@
                                                           :msg      msg
                                                           :msg-meta msg-meta
                                                           :ts       (now)}]))
-            (when (= msg-type :cmd/get-state) (put-fn [:state/snapshot {:cmp-id cmp-id :snapshot @cmp-state}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (handler-fn msg-map))
             (when unhandled-handler
@@ -114,7 +115,7 @@
              :cljs (catch js/Object e (.log js/console e (str "Exception in " cmp-id " when receiving message:"
                                                               (pp-str msg))))))
         (recur)))
-    {chan-key chan}))
+    {chan-key in-chan}))
 
 (defn make-put-fn
   "The put-fn is used inside each component for emitting messages to the outside world, from
@@ -161,16 +162,17 @@
   "Creates a function for publishing changes to the component state atom as snapshot messages,"
   [{:keys [watch-state snapshot-xform-fn cmp-id sliding-out-chan cfg firehose-chan]}]
   (fn []
-    (let [snapshot @watch-state
-          snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
-          snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})
-          state-firehose-chan (chan (sliding-buffer 1))]
-      (pipe state-firehose-chan firehose-chan)
-      (put-msg sliding-out-chan snapshot-msg)
-      (when (:snapshots-on-firehose cfg)
-        (put-msg state-firehose-chan [:firehose/cmp-publish-state {:cmp-id   cmp-id
-                                                                   :snapshot snapshot-xform
-                                                                   :ts       (now)}])))))
+    (when (:publish-snapshots cfg)
+      (let [snapshot @watch-state
+            snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
+            snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})
+            state-firehose-chan (chan (sliding-buffer 1))]
+        (pipe state-firehose-chan firehose-chan)
+        (put-msg sliding-out-chan snapshot-msg)
+        (when (:snapshots-on-firehose cfg)
+          (put-msg state-firehose-chan [:firehose/cmp-publish-state {:cmp-id   cmp-id
+                                                                     :snapshot snapshot-xform
+                                                                     :ts       (now)}]))))))
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the
