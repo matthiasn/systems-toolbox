@@ -14,7 +14,7 @@
     #?(:clj
             [clojure.core.async :refer [<! chan mult put! go go-loop timeout promise-chan >! tap sliding-buffer]]
        :cljs [cljs.core.async :refer [<! chan mult put! timeout promise-chan >! tap sliding-buffer]])
-            [matthiasn.systems-toolbox.fake-promise :as fp]
+            [matthiasn.systems-toolbox.test-promise :as tp]
             [matthiasn.systems-toolbox.component :as component]
     #?(:clj
             [clojure.tools.logging :as log]
@@ -103,7 +103,7 @@
       (dotimes [n cnt] (>! ch n))
       (put! done true))
 
-    (fp/w-timeout cnt (go
+    (tp/w-timeout cnt (go
                         (testing "all messages received"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
@@ -127,7 +127,7 @@
           (put! done true)))
       (recur))
 
-    (fp/w-timeout cnt (go
+    (tp/w-timeout cnt (go
                         (testing "all messages received"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
@@ -157,7 +157,7 @@
           (put! done true)))
       (recur))
 
-    (fp/w-timeout cnt (go
+    (tp/w-timeout cnt (go
                         (testing "all messages received"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
@@ -194,7 +194,7 @@
           (put! done true)))
       (recur))
 
-    (fp/w-timeout cnt (go
+    (tp/w-timeout cnt (go
                         (testing "promise delivered"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
@@ -207,6 +207,7 @@
 (deftest put-consume-mult-w-pub-repeatedly
   (put-consume-mult-w-pub-repeatedly-fn))
 
+#_#_#_#_#_#_#_#_#_
 (deftest put-consume-mult-w-pub-repeatedly2
   (put-consume-mult-w-pub-repeatedly-fn))
 

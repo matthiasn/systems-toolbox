@@ -7,7 +7,7 @@
       :cljs [cljs.test :refer-macros [deftest testing is]])
    #?(:clj  [clojure.core.async :refer [<! chan put! go timeout promise-chan]]
       :cljs [cljs.core.async :refer [<! chan put! timeout promise-chan]])
-            [matthiasn.systems-toolbox.fake-promise :as fp]
+            [matthiasn.systems-toolbox.test-promise :as tp]
             [matthiasn.systems-toolbox.component :as component]
    #?(:clj  [clojure.tools.logging :as log]
       :cljs [matthiasn.systems-toolbox.log :as log])))
@@ -31,7 +31,7 @@
 
     (component/send-msgs cmp (map (fn [m] [:some/type m]) msgs-to-send))
 
-    (fp/w-timeout 5000 (go
+    (tp/w-timeout 5000 (go
                          (testing "all messages received"
                            (is (true? (<! all-recvd))))
                          (testing "sent messages equal received messages"
@@ -69,7 +69,7 @@
 
     (component/send-msgs cmp msgs-to-send)
 
-    (fp/w-timeout cnt (go
+    (tp/w-timeout cnt (go
                         (testing "all messages received"
                           (is (true? (<! all-recvd))))
                         (testing "processes more than 1K messages per second"
@@ -143,7 +143,7 @@
                                       [msg-type m]))
                                   msgs-to-send))
 
-    (fp/w-timeout 5000 (go
+    (tp/w-timeout 5000 (go
                          (testing "all messages received"
                            (is (true? (<! all-recvd))))
                          (testing "sent messages equal received messages"
