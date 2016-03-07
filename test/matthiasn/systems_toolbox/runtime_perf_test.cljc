@@ -9,10 +9,10 @@
 
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
   (:require
-    #?(:clj [clojure.test :refer [deftest testing is]]
+    #?(:clj  [clojure.test :refer [deftest testing is]]
        :cljs [cljs.test :refer-macros [deftest testing is]])
-    #?(:clj
-            [clojure.core.async :refer [<! chan mult put! go go-loop timeout promise-chan >! tap sliding-buffer]]
+    #?(:clj  [clojure.core.async :refer [<! chan mult buffer put! go go-loop timeout promise-chan >! tap
+                                         sliding-buffer onto-chan]]
        :cljs [cljs.core.async :refer [<! chan mult put! timeout promise-chan >! tap sliding-buffer]])
             [matthiasn.systems-toolbox.test-promise :as tp]
             [matthiasn.systems-toolbox.component :as component]
@@ -61,8 +61,9 @@
 (defn reset-atom-repeatedly-fn
   []
   "This test aims at getting some perspective how expensive resetting an atom is in Clojure/ClojureScript.
-  Answer: not terribly expensive. On the JVM, this can be performed around 70 million times per second,
-  whereas in ClojureScript, this can be done 15 million times per second (2015 Retina MacBook)."
+  Answer: not terribly expensive. On the JVM, this can be performed around 90 million times per second,
+  whereas in ClojureScript, this can be done 15 million times per second on PhantomJS and over 60 million
+  times per second in Firefox (2015 Retina MacBook)."
   (let [start-ts (component/now)
         cnt (* 1000 1000)
         state (atom 0)]
@@ -92,8 +93,9 @@
   (dotimes [_ test-runs]
     (deref-atom-repeatedly-fn)))
 
-(deftest put-on-chan-repeatedly
+(defn put-on-chan-repeatedly-fn
   "Channel with attached mult and no other channels tapping into mult: messages silently dropped."
+  []
   (let [start-ts (component/now)
         cnt (* 100 1000)
         ch (chan)
@@ -109,6 +111,14 @@
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
                           (log/debug "Channel puts/s:" ops-per-sec)
                           (is (> ops-per-sec 1000)))))))
+
+(deftest put-on-chan-repeatedly1 (put-on-chan-repeatedly-fn))
+#_#_#_#_#_
+(deftest put-on-chan-repeatedly2 (put-on-chan-repeatedly-fn))
+(deftest put-on-chan-repeatedly3 (put-on-chan-repeatedly-fn))
+(deftest put-on-chan-repeatedly4 (put-on-chan-repeatedly-fn))
+(deftest put-on-chan-repeatedly5 (put-on-chan-repeatedly-fn))
+(deftest put-on-chan-repeatedly6 (put-on-chan-repeatedly-fn))
 
 (deftest put-consume-repeatedly
   "Channel with attached go-loop, simple calculation using messages from channel."
@@ -181,9 +191,6 @@
         state-mult (mult state-pub-chan)
         state (atom 0)
         done (promise-chan)]
-    (go (dotimes [n cnt] (>! ch n)))
-
-    (tap m ch2)
 
     (go-loop []
       (let [n (<! ch2)
@@ -193,6 +200,9 @@
         (when (= (dec cnt) n)
           (put! done true)))
       (recur))
+
+    (tap m ch2)
+    (go (dotimes [n cnt] (>! ch n)))
 
     (tp/w-timeout cnt (go
                         (testing "promise delivered"
@@ -204,33 +214,11 @@
                           (is (= @state (reduce + (range cnt)))))
                         :done))))
 
-(deftest put-consume-mult-w-pub-repeatedly
-  (put-consume-mult-w-pub-repeatedly-fn))
+(deftest put-consume-mult-w-pub-repeatedly (put-consume-mult-w-pub-repeatedly-fn))
 
-#_#_#_#_#_#_#_#_#_
-(deftest put-consume-mult-w-pub-repeatedly2
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly3
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly4
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly5
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly6
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly7
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly8
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly9
-  (put-consume-mult-w-pub-repeatedly-fn))
-
-(deftest put-consume-mult-w-pub-repeatedly10
-  (put-consume-mult-w-pub-repeatedly-fn))
+#_#_#_#_#_
+(deftest put-consume-mult-w-pub-repeatedly2 (put-consume-mult-w-pub-repeatedly-fn))
+(deftest put-consume-mult-w-pub-repeatedly3 (put-consume-mult-w-pub-repeatedly-fn))
+(deftest put-consume-mult-w-pub-repeatedly4 (put-consume-mult-w-pub-repeatedly-fn))
+(deftest put-consume-mult-w-pub-repeatedly5 (put-consume-mult-w-pub-repeatedly-fn))
+(deftest put-consume-mult-w-pub-repeatedly6 (put-consume-mult-w-pub-repeatedly-fn))

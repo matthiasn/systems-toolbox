@@ -38,7 +38,6 @@
                            (is (= msgs-to-send @msgs-recvd)))))))
 
 (defn cmp-all-msgs-handler-cmp-state-fn
-  []
   "Like cmp-all-msgs-handler test, except that the handler function here acts on the component state provided
   in the map that the :all-msgs-handler function is called with.
 
@@ -53,6 +52,7 @@
 
   Running this test multiple times gets us a better understanding how performance increases on subsequent runs,
   likely because of JIT compilation and other optimizations in the runtime."
+  []
   (let [cnt (* 100 1000)
         state (atom 0)
         vals-to-send (vec (range cnt))
@@ -79,35 +79,12 @@
                         (testing "sent messages equal received messages"
                           (is (= res @state)))))))
 
-(deftest cmp-all-msgs-handler-cmp-state1
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state2
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state3
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state4
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state5
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state6
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state7
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state8
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state9
-  (cmp-all-msgs-handler-cmp-state-fn))
-
-(deftest cmp-all-msgs-handler-cmp-state10
-  (cmp-all-msgs-handler-cmp-state-fn))
+(deftest cmp-all-msgs-handler-cmp-state1 (cmp-all-msgs-handler-cmp-state-fn))
+(deftest cmp-all-msgs-handler-cmp-state2 (cmp-all-msgs-handler-cmp-state-fn))
+(deftest cmp-all-msgs-handler-cmp-state3 (cmp-all-msgs-handler-cmp-state-fn))
+(deftest cmp-all-msgs-handler-cmp-state4 (cmp-all-msgs-handler-cmp-state-fn))
+(deftest cmp-all-msgs-handler-cmp-state5 (cmp-all-msgs-handler-cmp-state-fn))
+(deftest cmp-all-msgs-handler-cmp-state6 (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-handlers-test
   "Tests that a) specific handlers receive only their respective messages, b) unhandled-handler receives only
