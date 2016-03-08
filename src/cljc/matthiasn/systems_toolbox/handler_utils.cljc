@@ -33,3 +33,15 @@
    (let [handler-fn (handler-key (:handler-map msg-map))]
      (when handler-fn (handler-fn (assoc msg-map :msg-type handler-key
                                                  :msg [handler-key]))))))
+
+(defn assoc-in-cmp
+  "Helper for creating a function that sets value in component atom in given path."
+  [path]
+  (fn [{:keys [state-snapshot msg-payload]}]
+    {:new-state (assoc-in state-snapshot path msg-payload)}))
+
+(defn update-in-cmp
+  "Helper for creating a function that updates value in component atom in given path by applying f."
+  [path f]
+  (fn [{:keys [state-snapshot]}]
+    {:new-state (update-in state-snapshot path f)}))

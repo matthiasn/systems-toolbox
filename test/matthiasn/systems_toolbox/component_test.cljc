@@ -60,11 +60,11 @@
         all-recvd (promise-chan)
         res (reduce + (range cnt))
         cmp (component/make-component {:state-fn         (fn [_put-fn] {:state state})
-                                       :all-msgs-handler (fn [{:keys [msg-payload cmp-state]}]
-                                                           (let [new-state (+ @cmp-state msg-payload)]
-                                                             (reset! state new-state)
+                                       :all-msgs-handler (fn [{:keys [msg-payload state-snapshot]}]
+                                                           (let [new-state (+ state-snapshot msg-payload)]
                                                              (when (= res new-state)
-                                                               (put! all-recvd true))))})
+                                                               (put! all-recvd true))
+                                                             {:new-state new-state}))})
         start-ts (component/now)]
 
     (component/send-msgs cmp msgs-to-send)
@@ -80,6 +80,7 @@
                           (is (= res @state)))))))
 
 (deftest cmp-all-msgs-handler-cmp-state1 (cmp-all-msgs-handler-cmp-state-fn))
+#_#_#_#_#_
 (deftest cmp-all-msgs-handler-cmp-state2 (cmp-all-msgs-handler-cmp-state-fn))
 (deftest cmp-all-msgs-handler-cmp-state3 (cmp-all-msgs-handler-cmp-state-fn))
 (deftest cmp-all-msgs-handler-cmp-state4 (cmp-all-msgs-handler-cmp-state-fn))
@@ -101,12 +102,13 @@
         div-by-10? #(zero? (mod % 10))
         div-by-100? #(zero? (mod % 100))
         all-recvd (promise-chan)
-        all-msgs-handler (fn [{:keys [msg-payload cmp-state]}]
-                           (swap! cmp-state update-in [:all] conj msg-payload)
-                           (when (= cnt (count (:all @cmp-state)))
-                             (put! all-recvd true)))
-        msg-handler (fn [k] (fn [{:keys [msg-payload cmp-state]}]
-                              (swap! cmp-state update-in [k] conj msg-payload)))
+        all-msgs-handler (fn [{:keys [msg-payload state-snapshot]}]
+                           (let [new-state (update-in state-snapshot [:all] conj msg-payload)]
+                             (when (= cnt (count (:all new-state)))
+                               (put! all-recvd true))
+                             {:new-state new-state}))
+        msg-handler (fn [k] (fn [{:keys [msg-payload state-snapshot]}]
+                              {:new-state (update-in state-snapshot [k] conj msg-payload)}))
         cmp (component/make-component {:state-fn          (fn [_put-fn] {:state msgs-recvd})
                                        :handler-map       {:int/div-by-10  (msg-handler :div-by-10)
                                                            :int/div-by-100 (msg-handler :div-by-100)}

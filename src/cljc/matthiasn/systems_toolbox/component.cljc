@@ -75,11 +75,14 @@
   "Constructs a map with a channel for the provided channel keyword, with the buffer
   configured according to cfg for the channel keyword. Then starts loop for taking messages
   off the returned channel and calling the provided handler-fn with the msg.
-  Does not process return values from the processing step; instead, put-fn needs to be
-  called to produce output."
+  Uses return value from handler function to change state and emit messages if there respective
+  keys :new-state and :emit-msg exist. Thus, the handler function can be free from side effects.
+  For backwards compatibility, it is also possible interact with the put-fn and the cmp-state
+  atom directly, in which case the handler function itself would produce side effects.
+  This, however, makes such handler functions somewhat more difficult to test."
   [cmp-map chan-key]
   (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan
-                snapshot-publish-fn unhandled-handler]
+                snapshot-publish-fn unhandled-handler state-reset-fn state-snapshot-fn put-fn]
          :or {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
@@ -89,14 +92,20 @@
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
-            msg-map (merge cmp-map {:msg          (with-meta msg msg-meta)
-                                    :msg-type     msg-type
-                                    :msg-meta     msg-meta
-                                    :msg-payload  msg-payload
-                                    :onto-in-chan #(onto-chan in-chan % false)})]
+            msg-map (merge cmp-map {:msg            (with-meta msg msg-meta)
+                                    :msg-type       msg-type
+                                    :msg-meta       msg-meta
+                                    :msg-payload    msg-payload
+                                    :onto-in-chan   #(onto-chan in-chan % false)
+                                    :state-snapshot (state-snapshot-fn)})
+            state-change-emit-handler (fn [{:keys [new-state emit-msg]}]
+                                        (when new-state (state-reset-fn new-state))
+                                        (when emit-msg
+                                          (let [new-meta (meta emit-msg)]
+                                            (put-fn (with-meta emit-msg (or new-meta msg-meta))))))]
         (try
           (when (= chan-key :sliding-in-chan)
-            (state-pub-handler msg-map)
+            (state-change-emit-handler (state-pub-handler msg-map))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (<! (timeout (:throttle-ms cfg))))
@@ -107,10 +116,10 @@
                                                           :msg-meta msg-meta
                                                           :ts       (now)}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
-            (when handler-fn (handler-fn msg-map))
+            (when handler-fn (state-change-emit-handler (handler-fn msg-map)))
             (when unhandled-handler
-              (when-not (contains? handler-map msg-type) (unhandled-handler msg-map)))
-            (when all-msgs-handler (all-msgs-handler msg-map)))
+              (when-not (contains? handler-map msg-type) (state-change-emit-handler (unhandled-handler msg-map))))
+            (when all-msgs-handler (state-change-emit-handler (all-msgs-handler msg-map))))
           #?(:clj  (catch Exception e (log/error e "Exception in" cmp-id "when receiving message:" (pp-str msg)))
              :cljs (catch js/Object e (.log js/console e (str "Exception in " cmp-id " when receiving message:"
                                                               (pp-str msg))))))
@@ -258,7 +267,8 @@
                                 :put-fn            put-fn
                                 :system-ready-fn   (make-system-ready-fn cmp-map)
                                 :shutdown-fn       (:shutdown-fn state-map)
-                                :state-snapshot-fn (fn [] @watch-state)})]
+                                :state-snapshot-fn (fn [] @watch-state)
+                                :state-reset-fn    (fn [new-state] (reset! watch-state new-state))})]
     (tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
     (detect-changes cmp-map)                ; publish snapshots when changes are detected
     (merge cmp-map
