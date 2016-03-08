@@ -92,12 +92,12 @@
                          (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
-            msg-map (merge cmp-map {:msg            (with-meta msg msg-meta)
-                                    :msg-type       msg-type
-                                    :msg-meta       msg-meta
-                                    :msg-payload    msg-payload
-                                    :onto-in-chan   #(onto-chan in-chan % false)
-                                    :state-snapshot (state-snapshot-fn)})
+            msg-map (merge cmp-map {:msg           (with-meta msg msg-meta)
+                                    :msg-type      msg-type
+                                    :msg-meta      msg-meta
+                                    :msg-payload   msg-payload
+                                    :onto-in-chan  #(onto-chan in-chan % false)
+                                    :current-state (state-snapshot-fn)})
             state-change-emit-handler (fn [{:keys [new-state emit-msg]}]
                                         (when new-state (state-reset-fn new-state))
                                         (when emit-msg

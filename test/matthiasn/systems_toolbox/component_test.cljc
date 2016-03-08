@@ -60,8 +60,8 @@
         all-recvd (promise-chan)
         res (reduce + (range cnt))
         cmp (component/make-component {:state-fn         (fn [_put-fn] {:state state})
-                                       :all-msgs-handler (fn [{:keys [msg-payload state-snapshot]}]
-                                                           (let [new-state (+ state-snapshot msg-payload)]
+                                       :all-msgs-handler (fn [{:keys [msg-payload current-state]}]
+                                                           (let [new-state (+ current-state msg-payload)]
                                                              (when (= res new-state)
                                                                (put! all-recvd true))
                                                              {:new-state new-state}))})
@@ -102,13 +102,13 @@
         div-by-10? #(zero? (mod % 10))
         div-by-100? #(zero? (mod % 100))
         all-recvd (promise-chan)
-        all-msgs-handler (fn [{:keys [msg-payload state-snapshot]}]
-                           (let [new-state (update-in state-snapshot [:all] conj msg-payload)]
+        all-msgs-handler (fn [{:keys [msg-payload current-state]}]
+                           (let [new-state (update-in current-state [:all] conj msg-payload)]
                              (when (= cnt (count (:all new-state)))
                                (put! all-recvd true))
                              {:new-state new-state}))
-        msg-handler (fn [k] (fn [{:keys [msg-payload state-snapshot]}]
-                              {:new-state (update-in state-snapshot [k] conj msg-payload)}))
+        msg-handler (fn [k] (fn [{:keys [msg-payload current-state]}]
+                              {:new-state (update-in current-state [k] conj msg-payload)}))
         cmp (component/make-component {:state-fn          (fn [_put-fn] {:state msgs-recvd})
                                        :handler-map       {:int/div-by-10  (msg-handler :div-by-10)
                                                            :int/div-by-100 (msg-handler :div-by-100)}
