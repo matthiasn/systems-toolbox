@@ -1,11 +1,11 @@
 (ns matthiasn.systems-toolbox.component
-  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
+  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go go-loop]]
              [cljs.core :refer [exists?]]))
   (:require
    #?(:clj  [clojure.core.match :refer [match]]
       :cljs [cljs.core.match :refer-macros [match]])
    #?(:clj  [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
-                                        go-loop timeout onto-chan]]
+                                        go go-loop timeout onto-chan]]
       :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
                                       timeout onto-chan]])
    #?(:clj  [clojure.tools.logging :as log])
@@ -45,7 +45,7 @@
   [config]
   (match config
          [:sliding n] (chan (sliding-buffer n))
-         [:buffer n] (chan (buffer n))
+         [:buffer  n] (chan (buffer n))
          :else (prn "invalid: " config)))
 
 (def component-defaults

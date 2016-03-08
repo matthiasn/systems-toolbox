@@ -1,0 +1,14 @@
+body {
+    margin: 20px;
+    font-family: sans-serif;
+    color: #555;
+}
+
+button {
+    font-weight: 300;
+}
+
+h1 {
+    font-weight: 300;
+    margin-bottom: 0.3em;
+}
