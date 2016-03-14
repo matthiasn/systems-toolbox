@@ -33,4 +33,9 @@
                         :source-paths ["src" "test"]
                         :compiler     {:output-to     "out/testable.js"
                                        :main          matthiasn.systems-toolbox.runner
+                                       :optimizations :advanced}}
+                       {:id           "cljs-perf-test"
+                        :source-paths ["src" "test"]
+                        :compiler     {:output-to     "out/perf.js"
+                                       :main          matthiasn.systems-toolbox.perf-runner
                                        :optimizations :advanced}}]})
