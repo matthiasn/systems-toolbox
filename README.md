@@ -11,7 +11,7 @@ This library only contains the bare minimum for building and wiring systems. Add
 
 * **[systems-toolbox-ui](https://github.com/matthiasn/systems-toolbox-ui)**: This library gives you a simple way to build user interfaces using **[Reagent](https://github.com/reagent-project/reagent)**. This provided functionality is somewhat comparable to **[React](https://facebook.github.io/react/)** & **[Redux](https://github.com/reactjs/redux)**. I'll elaborate on this soon. This library powers the user interfaces of the example applications.
 
-* **[systems-toolbox-sente](https://github.com/matthiasn/systems-toolbox-sente)**: This library connects browser-based subsystems with a backend system using WebSockets. This library contains everything you need for serving your application via **HTPP**, including support for **HTTPS**, **HTTP2**, deployment in application servers, and serving **REST** resources. This library serves the sample applications and provides the communication with their respective backends.
+* **[systems-toolbox-sente](https://github.com/matthiasn/systems-toolbox-sente)**: This library connects browser-based subsystems with a backend system using WebSockets. This library contains everything you need for serving your application via **HTTP**, including support for **HTTPS**, **HTTP2**, deployment in application servers, and serving **REST** resources. This library serves the sample applications and provides the communication with their respective backends.
 
 * **[systems-toolbox-kafka](https://github.com/matthiasn/systems-toolbox-kafka)**: This library connects different systems via **[Kafka](http://kafka.apache.org/)** so that they can form a larger, distributed system.
 
