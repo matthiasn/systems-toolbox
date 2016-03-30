@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.5.14"
+(defproject matthiasn/systems-toolbox "0.5.15"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -6,9 +6,9 @@
 
   :source-paths ["src/cljc"]
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.reader "1.0.0-alpha1"]
-                 [org.clojure/clojurescript "1.7.228"]
+                 [org.clojure/clojurescript "1.8.40"]
                  [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.analyzer.jvm]]
                  [org.ow2.asm/asm-all "5.1"]
                  [org.clojure/core.async "0.2.374" :exclusions [org.clojure/tools.reader]]
@@ -24,10 +24,10 @@
   :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
 
   :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]
-                                  [ch.qos.logback/logback-classic "1.1.6" :exclusions [org.slf4j/slf4j-api]]
-                                  [org.slf4j/jul-to-slf4j "1.7.18"]
-                                  [org.slf4j/jcl-over-slf4j "1.7.18"]
-                                  [org.slf4j/log4j-over-slf4j "1.7.18"]]}}
+                                  [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]
+                                  [org.slf4j/jul-to-slf4j "1.7.20"]
+                                  [org.slf4j/jcl-over-slf4j "1.7.20"]
+                                  [org.slf4j/log4j-over-slf4j "1.7.20"]]}}
 
   :cljsbuild {:builds [{:id           "cljs-test"
                         :source-paths ["src" "test"]
