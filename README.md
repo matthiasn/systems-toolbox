@@ -55,7 +55,7 @@ Right now, there are two example applications:
 
 ![Example Screenshot](./doc/example.png)
 
-* Then, there's the toy example I mentioned above, **[BirdWatch](https://github.com/matthiasn/BirdWatch)**. This application provided the inspiration for this library. A running demo instance can be seen **[here](http://birdwatch2.matthiasnehlsen.com)**.
+* Then, there's the toy example I mentioned above, **[BirdWatch](https://github.com/matthiasn/BirdWatch)**. This application provided the inspiration for this library. A running demo instance can be seen **[here](http://birdwatch.matthiasnehlsen.com)**.
 
 ![BirdWatch Screenshot](./doc/birdwatch.png)
 
@@ -72,11 +72,7 @@ Contributions always welcome! Unless it's nothing more than the fix of a typo th
 
 ## Project maturity
 
-We use this project at my current consulting gig to build a system that spans both the browser and a backend.
-
-Also, applications built with it appear to be quite stable. At the time of this writing, the **[demo instance](http://birdwatch2.matthiasnehlsen.com)** of BirdWatch has been up and running for the past **2887 hours** without problems, during which it processed more than **25 million** tweets.
-
-This project is quite young and APIs may still change. However, you can expect that minor version bumps do not break your existing system. .
+This project is quite young and APIs may still change. However, you can expect that minor version bumps do not break your existing system. 
 
 
 ## License

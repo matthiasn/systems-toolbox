@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.5.15"
+(defproject matthiasn/systems-toolbox "0.5.16"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -7,13 +7,13 @@
   :source-paths ["src/cljc"]
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/tools.reader "1.0.0-alpha1"]
+                 [org.clojure/tools.reader "1.0.0-beta1"]
                  [org.clojure/clojurescript "1.8.40"]
                  [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.analyzer.jvm]]
                  [org.ow2.asm/asm-all "5.1"]
                  [org.clojure/core.async "0.2.374" :exclusions [org.clojure/tools.reader]]
                  [org.clojure/tools.logging "0.3.1"]
-                 [io.aviso/pretty "0.1.24"]
+                 [io.aviso/pretty "0.1.25"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]
 
   :plugins [[lein-codox "0.9.4"]
@@ -25,9 +25,9 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]
-                                  [org.slf4j/jul-to-slf4j "1.7.20"]
-                                  [org.slf4j/jcl-over-slf4j "1.7.20"]
-                                  [org.slf4j/log4j-over-slf4j "1.7.20"]]}}
+                                  [org.slf4j/jul-to-slf4j "1.7.21"]
+                                  [org.slf4j/jcl-over-slf4j "1.7.21"]
+                                  [org.slf4j/log4j-over-slf4j "1.7.21"]]}}
 
   :cljsbuild {:builds [{:id           "cljs-test"
                         :source-paths ["src" "test"]
