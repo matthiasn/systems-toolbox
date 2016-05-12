@@ -1,3 +1,12 @@
+## v0.5.18 - May 11th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.18"]
+```
+
+* `:emit-msgs` and `:send-to-self` in return map of handler
+
+
 ## v0.5.15 - March 30th, 2016
 
 ```clojure

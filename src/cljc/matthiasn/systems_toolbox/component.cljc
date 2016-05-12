@@ -98,11 +98,18 @@
                                     :msg-payload   msg-payload
                                     :onto-in-chan  #(onto-chan in-chan % false)
                                     :current-state (state-snapshot-fn)})
-            state-change-emit-handler (fn [{:keys [new-state emit-msg]}]
+            state-change-emit-handler (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
                                         (when new-state (state-reset-fn new-state))
-                                        (when emit-msg
-                                          (let [new-meta (meta emit-msg)]
-                                            (put-fn (with-meta emit-msg (or new-meta msg-meta))))))]
+                                        (when send-to-self
+                                          (onto-chan in-chan [send-to-self] false))
+                                        (let [emit-msg-fn (fn [msg-to-emit]
+                                                            (let [new-meta (meta msg-to-emit)]
+                                                              (put-fn (with-meta msg-to-emit
+                                                                                 (or new-meta msg-meta)))))]
+                                          (when emit-msg (emit-msg-fn emit-msg))
+                                          (when emit-msgs
+                                            (doseq [msg-to-emit emit-msgs]
+                                              (emit-msg-fn msg-to-emit)))))]
         (try
           (when (= chan-key :sliding-in-chan)
             (state-change-emit-handler (state-pub-handler msg-map))
