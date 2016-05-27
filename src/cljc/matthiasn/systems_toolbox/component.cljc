@@ -71,6 +71,16 @@
       (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id))
       msg-meta)))
 
+(defn default-state-pub-handler
+  "Default handler function, can be replaced by a more application-specific handler function, for example
+  for resetting local component state when user is not logged in."
+  [{:keys [cmp-state msg-payload observed-xform]}]
+  (let [new-state (if observed-xform
+                    (observed-xform msg-payload)
+                    msg-payload)]
+    (when (not= @(:observed cmp-state) new-state)
+      (reset! (:observed cmp-state) new-state))))
+
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
   configured according to cfg for the channel keyword. Then starts loop for taking messages
@@ -81,8 +91,8 @@
   atom directly, in which case the handler function itself would produce side effects.
   This, however, makes such handler functions somewhat more difficult to test."
   [cmp-map chan-key]
-  (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan
-                snapshot-publish-fn unhandled-handler state-reset-fn state-snapshot-fn put-fn]
+  (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan snapshot-publish-fn
+                unhandled-handler state-reset-fn state-snapshot-fn put-fn]
          :or {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
@@ -112,7 +122,7 @@
                                               (emit-msg-fn msg-to-emit)))))]
         (try
           (when (= chan-key :sliding-in-chan)
-            (state-change-emit-handler (state-pub-handler msg-map))
+            (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) msg-map))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (<! (timeout (:throttle-ms cfg))))
@@ -255,7 +265,10 @@
   touched by the library whenever it exists already.
   The configuration of a component comes from merging the component defaults with the opts
   map that is passed on component creation the :opts key. The order of the merge operation
-  allows overwriting the default settings."
+  allows overwriting the default settings.
+  An observed-xform function can be provided, which transforms the observed state before
+  resetting the respective observed state. This function takes a single argument, the observed
+  state snapshot, and is expected to return a single map with the transformed snapshot."
   [{:keys [state-fn opts] :as cmp-map}]
   (let [cfg (merge component-defaults opts)
         out-pub-chan (make-chan-w-buf (:out-chan cfg))

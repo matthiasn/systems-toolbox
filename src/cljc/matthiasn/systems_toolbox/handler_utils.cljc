@@ -28,7 +28,7 @@
    ;; A common mistake is to call (run-handler) with a handler-key and msg-payload, but not with
    ;; a msg-map. In such case, this fn would do nothing and fail silently, leaving user in a blank.
    ;; Assert to verify against that.
-   (assert (subset? #{:cmp-state :msg-meta :msg-payload} (into #{} (keys msg-map)))
+   (assert (subset? #{:cmp-state :msg-meta :msg-payload} (set (keys msg-map)))
            "(run-handler) invoked with invalid arguments. Make sure you did pass msg-map.")
    (let [handler-fn (handler-key (:handler-map msg-map))]
      (when handler-fn (handler-fn (assoc msg-map :msg-type handler-key

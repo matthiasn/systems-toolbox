@@ -1,3 +1,12 @@
+## v0.5.19 - May 28th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.19"]
+```
+
+* components support `observed-xform` function: applied to observed snapshot before resetting the local observed state
+
+
 ## v0.5.18 - May 11th, 2016
 
 ```clojure
