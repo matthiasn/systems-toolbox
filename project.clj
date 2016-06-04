@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.5.19"
+(defproject matthiasn/systems-toolbox "0.5.20"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -6,9 +6,7 @@
 
   :source-paths ["src/cljc"]
 
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/tools.reader "1.0.0-beta1"]
-                 [org.clojure/clojurescript "1.8.51"]
+  :dependencies [[org.clojure/tools.reader "1.0.0-beta1"]
                  [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.analyzer.jvm]]
                  [org.ow2.asm/asm-all "5.1"]
                  [org.clojure/core.async "0.2.374" :exclusions [org.clojure/tools.reader]]
@@ -23,7 +21,9 @@
 
   :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
 
-  :profiles {:dev {:dependencies [[org.clojure/tools.logging "0.3.1"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha3"]
+                                  [org.clojure/clojurescript "1.9.36"]
+                                  [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]
                                   [org.slf4j/jul-to-slf4j "1.7.21"]
                                   [org.slf4j/jcl-over-slf4j "1.7.21"]
