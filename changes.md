@@ -1,7 +1,7 @@
-## v0.5.21 - June 6th, 2016
+## v0.5.22 - June 6th, 2016
 
 ```clojure
-[matthiasn/systems-toolbox "0.5.21"]
+[matthiasn/systems-toolbox "0.5.22"]
 ```
 
 * support multiple messages in `send-to-self` and `emit-msg`. `emit-msgs` deprecated

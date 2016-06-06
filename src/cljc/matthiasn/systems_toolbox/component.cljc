@@ -128,7 +128,7 @@
                                                                                  (or new-meta msg-meta)))))]
                                           (when emit-msg
                                             (if (vector? (first emit-msg))
-                                              (doseq [msg-to-emit emit-msgs]
+                                              (doseq [msg-to-emit emit-msg]
                                                 (emit-msg-fn msg-to-emit))
                                               (emit-msg-fn emit-msg)))
                                           (when emit-msgs
