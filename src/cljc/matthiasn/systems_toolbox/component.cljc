@@ -2,35 +2,43 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go go-loop]]
              [cljs.core :refer [exists?]]))
   (:require
-   #?(:clj  [clojure.core.match :refer [match]]
-      :cljs [cljs.core.match :refer-macros [match]])
-   #?(:clj  [clojure.core.async :refer [<! >! >!! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
-                                        go go-loop timeout onto-chan]]
-      :cljs [cljs.core.async :refer [<! >! chan put! sub pipe mult tap pub buffer sliding-buffer dropping-buffer
-                                      timeout onto-chan]])
-   #?(:clj  [clojure.tools.logging :as log])
-   #?(:clj  [clojure.pprint :as pp]
-      :cljs [cljs.pprint :as pp])
-   #?(:cljs [cljs-uuid-utils.core :as uuid])))
+    #?(:clj [clojure.core.match :refer [match]]
+       :cljs [cljs.core.match :refer-macros [match]])
+    #?(:clj  [clojure.core.async :as a :refer [chan go go-loop]]
+       :cljs [cljs.core.async :as a :refer [chan]])
+    #?(:clj  [clojure.tools.logging :as log])
+    #?(:clj  [clojure.pprint :as pp]
+       :cljs [cljs.pprint :as pp])
+    #?(:cljs [cljs-uuid-utils.core :as uuid])))
 
-#?(:clj  (defn now [] (System/currentTimeMillis))
-   :cljs (defn now [] (.getTime (js/Date.))))
+(defn now
+  "Get milliseconds since epoch."
+  []
+  #?(:clj  (System/currentTimeMillis)
+     :cljs (.getTime (js/Date.))))
+
+(defn warn-deprecated
+  "Print platform-specific deprecation warning."
+  [text]
+  #?(:clj  (log/warn (str "DEPRECATED: " text))
+     :cljs (.log js/console (str "DEPRECATED: " text))))
 
 (defn pp-str [data] (with-out-str (pp/pprint data)))
 
-#?(:clj  (defn put-msg
-           "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise the system
-           easily blows up when there are more than 1024 pending put operations."
-           [channel msg]
-           (>!! channel msg))
-   :cljs (defn put-msg
-           "On the ClojureScript side, there is no equivalent of the blocking put, so the asynchronous operation will
-           have to do. But then, more than 1024 pending operations in the browser wouldn't happen often, if ever."
-           [channel msg]
-           (put! channel msg)))
+(defn put-msg
+  "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise the system easily
+  blows up when there are more than 1024 pending put operations. On the ClojureScript side, there isno equivalent
+  of the blocking put, so the asynchronous operation will have to do. But then, more than 1024 pending operations
+  in the browser wouldn't happen often, if ever."
+  [channel msg]
+  #?(:clj  (a/>!! channel msg)
+     :cljs (a/put! channel msg)))
 
-#?(:clj  (defn make-uuid [] (str (java.util.UUID/randomUUID)))
-   :cljs (defn make-uuid [] (str (uuid/make-random-uuid))))
+(defn make-uuid
+  "Get a random UUID."
+  []
+  #?(:clj  (str (java.util.UUID/randomUUID))
+     :cljs (str (uuid/make-random-uuid))))
 
 #?(:cljs (def request-animation-frame
            (or (when (exists? js/window)
@@ -44,8 +52,8 @@
   "Create a channel with a buffer of the specified size and type."
   [config]
   (match config
-         [:sliding n] (chan (sliding-buffer n))
-         [:buffer  n] (chan (buffer n))
+         [:sliding n] (chan (a/sliding-buffer n))
+         [:buffer  n] (chan (a/buffer n))
          :else (prn "invalid: " config)))
 
 (def component-defaults
@@ -96,7 +104,7 @@
          :or {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
-      (let [msg (<! in-chan)
+      (let [msg (a/<! in-chan)
             msg-meta (-> (merge (meta msg) {})
                          (add-to-msg-seq cmp-id :in)
                          (assoc-in [cmp-id :in-ts] (now)))
@@ -106,18 +114,25 @@
                                     :msg-type      msg-type
                                     :msg-meta      msg-meta
                                     :msg-payload   msg-payload
-                                    :onto-in-chan  #(onto-chan in-chan % false)
+                                    :onto-in-chan  #(a/onto-chan in-chan % false)
                                     :current-state (state-snapshot-fn)})
             state-change-emit-handler (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
                                         (when new-state (state-reset-fn new-state))
                                         (when send-to-self
-                                          (onto-chan in-chan [send-to-self] false))
+                                          (if (vector? (first send-to-self))
+                                            (a/onto-chan in-chan send-to-self false)
+                                            (a/onto-chan in-chan [send-to-self] false)))
                                         (let [emit-msg-fn (fn [msg-to-emit]
                                                             (let [new-meta (meta msg-to-emit)]
                                                               (put-fn (with-meta msg-to-emit
                                                                                  (or new-meta msg-meta)))))]
-                                          (when emit-msg (emit-msg-fn emit-msg))
+                                          (when emit-msg
+                                            (if (vector? (first emit-msg))
+                                              (doseq [msg-to-emit emit-msgs]
+                                                (emit-msg-fn msg-to-emit))
+                                              (emit-msg-fn emit-msg)))
                                           (when emit-msgs
+                                            (warn-deprecated "emit-msgs, use emit-msg with a message vector instead")
                                             (doseq [msg-to-emit emit-msgs]
                                               (emit-msg-fn msg-to-emit)))))]
         (try
@@ -125,7 +140,7 @@
             (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) msg-map))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
-            (<! (timeout (:throttle-ms cfg))))
+            (a/<! (a/timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id   cmp-id
@@ -192,8 +207,8 @@
       (let [snapshot @watch-state
             snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
             snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})
-            state-firehose-chan (chan (sliding-buffer 1))]
-        (pipe state-firehose-chan firehose-chan)
+            state-firehose-chan (chan (a/sliding-buffer 1))]
+        (a/pipe state-firehose-chan firehose-chan)
         (put-msg sliding-out-chan snapshot-msg)
         (when (:snapshots-on-firehose cfg)
           (put-msg state-firehose-chan [:firehose/cmp-publish-state {:cmp-id   cmp-id
@@ -234,7 +249,7 @@
   component state is published."
   [{:keys [put-chan out-chan snapshot-publish-fn]}]
   (fn []
-    (pipe put-chan out-chan)
+    (a/pipe put-chan out-chan)
     (snapshot-publish-fn)))
 
 (defn initial-cmp-map
@@ -279,17 +294,17 @@
         watch-state (if-let [watch (:watch opts)] (watch state) state) ; watchable atom
         cmp-map (merge cmp-map {:watch-state watch-state})
         cmp-map (merge cmp-map {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map)})
-        cmp-map (merge cmp-map {:out-mult          (mult (:out-chan cmp-map))
-                                :firehose-mult     (mult (:firehose-chan cmp-map))
-                                :out-pub           (pub out-pub-chan first)
-                                :state-pub         (pub (:sliding-out-chan cmp-map) first)
+        cmp-map (merge cmp-map {:out-mult          (a/mult (:out-chan cmp-map))
+                                :firehose-mult     (a/mult (:firehose-chan cmp-map))
+                                :out-pub           (a/pub out-pub-chan first)
+                                :state-pub         (a/pub (:sliding-out-chan cmp-map) first)
                                 :cmp-state         state
                                 :put-fn            put-fn
                                 :system-ready-fn   (make-system-ready-fn cmp-map)
                                 :shutdown-fn       (:shutdown-fn state-map)
                                 :state-snapshot-fn (fn [] @watch-state)
                                 :state-reset-fn    (fn [new-state] (reset! watch-state new-state))})]
-    (tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
+    (a/tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
     (detect-changes cmp-map)                ; publish snapshots when changes are detected
     (merge cmp-map
            (msg-handler-loop cmp-map :in-chan)
@@ -305,13 +320,13 @@
   ([cmp msg blocking?]
    (let [in-chan (:in-chan cmp)]
      #?(:clj  (if blocking?
-                (>!! in-chan msg)
-                (put! in-chan msg))
-        :cljs (put! in-chan msg)))))
+                (a/>!! in-chan msg)
+                (a/put! in-chan msg))
+        :cljs (a/put! in-chan msg)))))
 
 (defn send-msgs
   "Sends multiple messages to a component. Takes the component itself plus a sequence with messages to send
   to the component. Does not close the :in-chan of the component."
   [cmp msgs]
   (let [in-chan (:in-chan cmp)]
-    (onto-chan in-chan msgs false)))
+    (a/onto-chan in-chan msgs false)))

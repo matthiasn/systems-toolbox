@@ -1,3 +1,20 @@
+## v0.5.21 - June 6th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.21"]
+```
+
+* support multiple messages in `send-to-self` and `emit-msg`. `emit-msgs` deprecated
+
+## v0.5.20 - June 4th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.5.20"]
+```
+
+* dependencies; no dependency on specific Clojure version
+
+
 ## v0.5.19 - May 28th, 2016
 
 ```clojure
