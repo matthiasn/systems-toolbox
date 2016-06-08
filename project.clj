@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.5.22"
+(defproject matthiasn/systems-toolbox "0.6.1"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -21,7 +21,7 @@
 
   :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha3"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha5"]
                                   [org.clojure/clojurescript "1.9.36"]
                                   [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]

@@ -1,7 +1,8 @@
 (ns matthiasn.systems-toolbox.scheduler
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go-loop]]))
-  (:require [matthiasn.systems-toolbox.component :as comp]
-    #?(:clj [clojure.core.async :refer [<! go-loop timeout]])
+  (:require  [matthiasn.systems-toolbox.component :as comp]
+             [matthiasn.systems-toolbox.log :as l]
+    #?(:clj  [clojure.core.async :refer [<! go-loop timeout]])
     #?(:cljs [cljs.core.async :refer [<! timeout]])))
 
 ;;; Systems Toolbox - Scheduler Subsystem
@@ -38,22 +39,18 @@
         scheduler-id (or (:id msg-payload) (first msg-to-send))
         existing-timer (get-in @cmp-state [:active-timers scheduler-id])]
     (when existing-timer
-      (put-fn [:log/info (str "Timer " (:id msg-payload) " already scheduled - ignoring.")]))
+      (l/warn (str "Timer " (:id msg-payload) " already scheduled - ignoring.")))
     (when-not existing-timer
-      (put-fn [:log/info (str "Scheduling:" msg-payload)])
       (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
       (when (:initial msg-payload) (put-fn msg-to-send))
       (go-loop []
         (<! (timeout timout-ms))
         (let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
           (put-fn msg-to-send)
-          (if active-timer
+          (when active-timer
             (if (:repeat active-timer)
               (recur)
-              (do
-                (swap! cmp-state update :active-timers dissoc scheduler-id)
-                (put-fn [:info/completed-timer scheduler-id])))
-            (put-fn [:info/deleted-timer scheduler-id])))))))
+              (swap! cmp-state update :active-timers dissoc scheduler-id))))))))
 
 (defn stop-loop
   "Stops a an loop that was previously scheduled."
@@ -61,9 +58,8 @@
   (let [scheduler-id (:id msg-payload)
         existing-timer (get-in @cmp-state [:active-timers scheduler-id])]
     (if existing-timer
-      (do (put-fn [:log/info (str "Stopping timer: " (:id msg-payload) " already scheduled - ignoring.")])
-          (swap! cmp-state update :active-timers dissoc scheduler-id))
-      (put-fn [:log/info (str "Timer with id: " (:id msg-payload) " not found - did not stop.")]))))
+      (swap! cmp-state update :active-timers dissoc scheduler-id)
+      (l/warn (str "Timer with id: " (:id msg-payload) " not found - did not stop.")))))
 
 (defn cmp-map
   {:added "0.3.1"}

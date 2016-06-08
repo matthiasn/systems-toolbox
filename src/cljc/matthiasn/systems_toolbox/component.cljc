@@ -1,8 +1,9 @@
 (ns matthiasn.systems-toolbox.component
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go go-loop]]
-             [cljs.core :refer [exists?]]))
-  (:require
-    #?(:clj [clojure.core.match :refer [match]]
+                            [cljs.core :refer [exists?]]))
+  (:require  [matthiasn.systems-toolbox.spec :as s]
+             [matthiasn.systems-toolbox.log :as l]
+    #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
     #?(:clj  [clojure.core.async :as a :refer [chan go go-loop]]
        :cljs [cljs.core.async :as a :refer [chan]])
@@ -16,12 +17,6 @@
   []
   #?(:clj  (System/currentTimeMillis)
      :cljs (.getTime (js/Date.))))
-
-(defn warn-deprecated
-  "Print platform-specific deprecation warning."
-  [text]
-  #?(:clj  (log/warn (str "DEPRECATED: " text))
-     :cljs (.log js/console (str "DEPRECATED: " text))))
 
 (defn pp-str [data] (with-out-str (pp/pprint data)))
 
@@ -132,7 +127,7 @@
                                                 (emit-msg-fn msg-to-emit))
                                               (emit-msg-fn emit-msg)))
                                           (when emit-msgs
-                                            (warn-deprecated "emit-msgs, use emit-msg with a message vector instead")
+                                            (l/warn "DEPRECATED use of emit-msgs, use emit-msg with a message vector instead")
                                             (doseq [msg-to-emit emit-msgs]
                                               (emit-msg-fn msg-to-emit)))))]
         (try
@@ -172,6 +167,8 @@
    not try call more messages than fit in the buffer before the entire system is up."
   [{:keys [cmp-id put-chan cfg firehose-chan]}]
   (fn [msg]
+    {:pre [(s/valid-or-no-spec? (first msg) (second msg))]}
+    (s/valid-or-no-spec? :systems-toolbox/msg msg)
     (let [msg-meta (-> (merge (meta msg) {})
                        (add-to-msg-seq cmp-id :out)
                        (assoc-in [cmp-id :out-ts] (now)))
@@ -180,7 +177,9 @@
           completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
           msg-w-meta (with-meta msg completed-meta)
           msg-type (first msg)
+          msg-payload (second msg)
           msg-from-firehose? (= "firehose" (namespace msg-type))]
+      ;(s/valid-or-no-spec? msg-type msg-payload)
       (put-msg put-chan msg-w-meta)
 
       ;; Not all components should emit firehose messages. For example, messages that process

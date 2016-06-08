@@ -6,6 +6,7 @@
 
 * support multiple messages in `send-to-self` and `emit-msg`. `emit-msgs` deprecated
 
+
 ## v0.5.20 - June 4th, 2016
 
 ```clojure
