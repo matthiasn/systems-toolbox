@@ -66,6 +66,7 @@
 (s/def :st.switchboard/state-pub-handler (s/nilable fn?))
 (s/def :st.switchboard/observed-xform (s/nilable fn?))
 (s/def :st.switchboard/opts map?)
+(s/def :st.switchboard/state-spec namespaced-keyword?)
 
 (s/def :cmd/init-comp
   (s/keys :req-un [:st.switchboard/cmp-id]
@@ -74,9 +75,10 @@
                    :st.switchboard/all-msgs-handler
                    :st.switchboard/state-pub-handler
                    :st.switchboard/observed-xform
-                   :st.switchboard/opts]))
+                   :st.switchboard/opts
+                   :st.switchboard/state-spec]))
 
-;(s/def :st.switchboard/cmp namespaced-keyword?)
+(s/def :st.switchboard/cmp namespaced-keyword?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/route

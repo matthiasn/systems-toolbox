@@ -112,7 +112,10 @@
                                     :onto-in-chan  #(a/onto-chan in-chan % false)
                                     :current-state (state-snapshot-fn)})
             state-change-emit-handler (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
-                                        (when new-state (state-reset-fn new-state))
+                                        (when new-state
+                                          (when-let [state-spec (:state-spec cmp-map)]
+                                            (s/valid-or-no-spec? state-spec new-state))
+                                          (state-reset-fn new-state))
                                         (when send-to-self
                                           (if (vector? (first send-to-self))
                                             (a/onto-chan in-chan send-to-self false)

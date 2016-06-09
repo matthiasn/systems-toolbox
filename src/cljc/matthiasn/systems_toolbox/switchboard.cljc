@@ -6,6 +6,8 @@
        :cljs [cljs.core.async :refer [put! chan pipe sub tap untap-all unsub-all]])
     #?(:clj  [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
+    #?(:clj  [clojure.tools.logging :as l]
+       :cljs [matthiasn.systems-toolbox.log :as l])
     #?(:clj  [clojure.spec :as s]
        :cljs [cljs.spec :as s])))
 
@@ -77,12 +79,12 @@
   [app put-fn to switchboard-id]
   (let [sw-firehose-mult (:firehose-mult (switchboard-id (:components @app)))
         to-comp (to (:components @app))
-        err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " switchboard-id " -> " to " - " %)])]
+        error-log #(l/error "Could not create tap: " switchboard-id " -> " to " - " %)]
     (try (do
            (tap sw-firehose-mult (:in-chan to-comp))
            (swap! app update-in [:fh-taps] conj {:from switchboard-id :to to :type :fh-tap}))
-         #?(:clj (catch Exception e (err-put (.getMessage e)))
-            :cljs (catch js/Object e (err-put e))))))
+         #?(:clj (catch Exception e (error-log (.getMessage e)))
+            :cljs (catch js/Object e (error-log e))))))
 
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful
@@ -126,7 +128,7 @@
     (doseq [from (flatten [from])]
       (let [mult-comp (from (:components @cmp-state))
             tap-comp (to (:components @cmp-state))
-            err-put #(put-fn [:log/switchboard-tap (str "Could not create tap: " from " -> " to " - " %)])
+            error-log #(l/error "Could not create tap: " from " -> " to " - " %)
             target-chan (if pred
                           (let [filtered-chan (chan 1 (filter pred))]
                             (pipe filtered-chan (:in-chan tap-comp))
@@ -135,8 +137,8 @@
         (try (do
                (tap (:out-mult mult-comp) target-chan)
                (swap! cmp-state update-in [:taps] conj {:from from :to to :type :tap}))
-             #?(:clj (catch Exception e (err-put (.getMessage e)))
-                :cljs (catch js/Object e (err-put e))))))))
+             #?(:clj (catch Exception e (error-log (.getMessage e)))
+                :cljs (catch js/Object e (error-log e))))))))
 
 (defn attach-to-firehose
   "Attaches a component to firehose channel. For example for observational components."
