@@ -64,7 +64,7 @@
     (subscribe {:cmp-state cmp-state
                 :put-fn    put-fn
                 :from      [from :state-pub]
-                :msg-type  :app-state
+                :msg-type  :app/state
                 :to        [t :sliding-in-chan]})))
 
 (defn tap-switchboard-firehose

@@ -206,7 +206,7 @@
     (when (:publish-snapshots cfg)
       (let [snapshot @watch-state
             snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
-            snapshot-msg (with-meta [:app-state snapshot-xform] {:from cmp-id})
+            snapshot-msg (with-meta [:app/state snapshot-xform] {:from cmp-id})
             state-firehose-chan (chan (a/sliding-buffer 1))]
         (a/pipe state-firehose-chan firehose-chan)
         (put-msg sliding-out-chan snapshot-msg)

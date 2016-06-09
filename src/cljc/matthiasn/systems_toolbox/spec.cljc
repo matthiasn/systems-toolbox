@@ -107,7 +107,15 @@
   (s/keys :req-un [:st.switchboard-send/to
                    :st.switchboard-send/msg]))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Misc Switchboard Specs
 ;; TODO: define structure of component map. Here, the switchboard is passed.
 (s/def :cmd/self-register map?)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; App State Specs
+;; TODO: define specific specs for a component in order to validate the :new-state returned
+;;       by handler functions
+(s/def :app/state map?)
