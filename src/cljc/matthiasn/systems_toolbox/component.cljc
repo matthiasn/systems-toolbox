@@ -131,6 +131,7 @@
                                             (doseq [msg-to-emit emit-msgs]
                                               (emit-msg-fn msg-to-emit)))))]
         (try
+          (s/valid-or-no-spec? msg-type msg-payload)
           (when (= chan-key :sliding-in-chan)
             (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) msg-map))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
