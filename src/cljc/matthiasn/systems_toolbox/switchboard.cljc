@@ -1,12 +1,13 @@
 (ns matthiasn.systems-toolbox.switchboard
-  (:require
+  (:require  [matthiasn.systems-toolbox.component :as comp]
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
     #?(:clj  [clojure.core.async :refer [put! chan pipe sub tap untap-all unsub-all]]
        :cljs [cljs.core.async :refer [put! chan pipe sub tap untap-all unsub-all]])
     #?(:clj  [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
-    [matthiasn.systems-toolbox.component :as comp]))
+    #?(:clj  [clojure.spec :as s]
+       :cljs [cljs.spec :as s])))
 
 (defn wire-or-init-comp
   "Either wire existing and already instantiated component or instantiate a component from a component map.
@@ -38,7 +39,11 @@
                 (reset! (:watch-state cmp) @prev-state))
               (swap! cmp-state assoc-in [:components cmp-id-to-wire] cmp)
               (tap (:firehose-mult cmp) firehose-chan)
-              (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire :to cmp-id :type :fh-tap})
+              (swap! cmp-state update-in [:fh-taps] conj {:from cmp-id-to-wire
+                                                          :to   cmp-id
+                                                          :type :fh-tap})
+              (let [known-cmp-ids (set (keys (:components @cmp-state)))]
+                (s/def :st.switchboard/cmp known-cmp-ids))
               (put! in-chan [:cmd/publish-state]))))))))
 
 (defn subscribe

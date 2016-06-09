@@ -16,8 +16,8 @@
 ;; Add a scheduler to our system and wire it to pong component
 (switchboard/send-mult-cmd
   echo-switchboard
-  [[:cmd/init-comp (scheduler/cmp-map :scheduler-cmp)]
-   [:cmd/route {:from :scheduler-cmp :to :pong-cmp}]])
+  [[:cmd/init-comp (scheduler/cmp-map :test/scheduler-cmp)]
+   [:cmd/route {:from :test/scheduler-cmp :to :test/pong-cmp}]])
 
 (deftest scheduler-cycle
   (let [pong (promise-chan)
@@ -31,7 +31,7 @@
     ;; Scheduling
     (switchboard/send-cmd
       echo-switchboard
-      [:cmd/send {:to  :scheduler-cmp
+      [:cmd/send {:to  :test/scheduler-cmp
                   :msg [:cmd/schedule-new
                         {:timeout 10
                          :id      :cycle
@@ -43,12 +43,12 @@
     (switchboard/send-mult-cmd
       echo-switchboard
       ;; Listen for scheduler being stopped
-      [[:cmd/init-comp (system/spy-cmp-map :spy-cmp
+      [[:cmd/init-comp (system/spy-cmp-map :test/spy-cmp
                                            [:info/deleted-timer]
                                            stopped)]
-       [:cmd/route {:from :scheduler-cmp :to :spy-cmp}]
+       [:cmd/route {:from :test/scheduler-cmp :to :test/spy-cmp}]
        ;; Stop the scheduler
-       [:cmd/send {:to  :scheduler-cmp
+       [:cmd/send {:to  :test/scheduler-cmp
                    :msg [:cmd/schedule-delete {:id :cycle}]}]])
 
     (tp/w-timeout 1000 (go (is (true? (<! spy)))))))

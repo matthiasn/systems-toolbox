@@ -14,10 +14,9 @@
     #?(:clj  [clojure.core.async :refer [<! chan mult buffer put! go go-loop timeout promise-chan >! tap
                                          sliding-buffer onto-chan]]
        :cljs [cljs.core.async :refer [<! chan mult put! timeout promise-chan >! tap sliding-buffer]])
-            [matthiasn.systems-toolbox.test-promise :as tp]
-            [matthiasn.systems-toolbox.component :as component]
-    #?(:clj
-            [clojure.tools.logging :as log]
+             [matthiasn.systems-toolbox.test-promise :as tp]
+             [matthiasn.systems-toolbox.component :as component]
+    #?(:clj  [clojure.tools.logging :as log]
        :cljs [matthiasn.systems-toolbox.log :as log])))
 
 ; here, we can tweak the number of test runs, which is useful if we are interested in JIT optimizations

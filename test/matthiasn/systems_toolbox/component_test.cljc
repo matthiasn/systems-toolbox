@@ -2,7 +2,7 @@
 
   "Interact with components by sending some messages directly, see them handled correctly."
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go]]))
-  (:require
+  (:require [matthiasn.systems-toolbox.test-spec]
    #?(:clj  [clojure.test :refer [deftest testing is]]
       :cljs [cljs.test :refer-macros [deftest testing is]])
    #?(:clj  [clojure.core.async :refer [<! chan put! go timeout promise-chan]]

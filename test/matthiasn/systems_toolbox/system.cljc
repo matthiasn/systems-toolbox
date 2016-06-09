@@ -34,14 +34,14 @@
 ;; System (= switchboard + components + wiring + routing)
 
 (defn create []
-  (let [echo-switchboard (switchboard/component :my-switchboard)]
+  (let [echo-switchboard (switchboard/component :test/my-switchboard)]
     (switchboard/send-mult-cmd
       echo-switchboard
       ;; Init/wire components
-      [[:cmd/init-comp (ping-cmp-map :ping-cmp)]
-       [:cmd/init-comp (pong-cmp-map :pong-cmp)]
+      [[:cmd/init-comp (ping-cmp-map :test/ping-cmp)]
+       [:cmd/init-comp (pong-cmp-map :test/pong-cmp)]
        ;; Set up switchboard routes
-       [:cmd/route {:from :ping-cmp :to :pong-cmp}]])
+       [:cmd/route {:from :test/ping-cmp :to :test/pong-cmp}]])
 
     echo-switchboard))
 

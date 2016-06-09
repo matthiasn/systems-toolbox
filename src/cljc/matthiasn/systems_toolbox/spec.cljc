@@ -31,7 +31,9 @@
         :payload (s/cat :msg-type namespaced-keyword?
                         :msg-payload (s/alt :map-payload map?
                                             :nil-payload nil?
-                                            :bool-payload boolean?))))
+                                            :bool-payload boolean?
+                                            :keyword-payload keyword?
+                                            :fn-payload fn?))))
 (s/def :systems-toolbox/msg message-spec)
 
 
@@ -39,15 +41,21 @@
 ;; Scheduler Spec
 (s/def :st.schedule/timeout pos-int?)
 (s/def :st.schedule/message message-spec)
+(s/def :st.schedule/id keyword?)
 (s/def :st.schedule/repeat boolean?)
 (s/def :st.schedule/initial boolean?)
 
 (s/def :cmd/schedule-new
   (s/keys :req-un [:st.schedule/timeout
                    :st.schedule/message]
-          :opt-un [:st.schedule/repeat
+          :opt-un [:st.schedule/id
+                   :st.schedule/repeat
                    :st.schedule/initial]))
 
+(s/def :cmd/schedule-delete
+  (s/keys :req-un [:st.schedule/id]))
+
+(s/def :info/deleted-timer keyword?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/init-comp
@@ -60,48 +68,49 @@
 (s/def :st.switchboard/opts map?)
 
 (s/def :cmd/init-comp
-  (s/keys :req-un [:systems-toolbox.switchboard/cmp-id]
-          :opt-un [:systems-toolbox.switchboard/state-fn
-                   :systems-toolbox.switchboard/handler-map
-                   :systems-toolbox.switchboard/all-msgs-handler
-                   :systems-toolbox.switchboard/state-pub-handler
-                   :systems-toolbox.switchboard/observed-xform
-                   :systems-toolbox.switchboard/opts]))
+  (s/keys :req-un [:st.switchboard/cmp-id]
+          :opt-un [:st.switchboard/state-fn
+                   :st.switchboard/handler-map
+                   :st.switchboard/all-msgs-handler
+                   :st.switchboard/state-pub-handler
+                   :st.switchboard/observed-xform
+                   :st.switchboard/opts]))
 
+;(s/def :st.switchboard/cmp namespaced-keyword?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/route
-(s/def :switchboard.route/from (s/or :single namespaced-keyword?
-                                     :multiple (s/+ namespaced-keyword?)))
-(s/def :switchboard.route/to namespaced-keyword?)
-(s/def :switchboard.route/only namespaced-keyword?)
-(s/def :switchboard.route/pred fn?)
+(s/def :st.switchboard.route/from (s/or :single :st.switchboard/cmp
+                                        :multiple (s/+ :st.switchboard/cmp)))
+(s/def :st.switchboard.route/to :st.switchboard/cmp)
+(s/def :st.switchboard.route/only :st.switchboard/cmp)
+(s/def :st.switchboard.route/pred fn?)
 
 (s/def :cmd/route
-  (s/keys :req-un [:switchboard.route/from
-                   :switchboard.route/to]
-          :opt-un [:switchboard.route/only
-                   :switchboard.route/pred]))
+  (s/keys :req-un [:st.switchboard.route/from
+                   :st.switchboard.route/to]
+          :opt-un [:st.switchboard.route/only
+                   :st.switchboard.route/pred]))
 
 (s/def :cmd/route-all
-  (s/keys :req-un [:switchboard.route/from
-                   :switchboard.route/to]
-          :opt-un [:switchboard.route/pred]))
+  (s/keys :req-un [:st.switchboard.route/from
+                   :st.switchboard.route/to]
+          :opt-un [:st.switchboard.route/pred]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/observe-state
-(s/def :switchboard.observe/from namespaced-keyword?)
-(s/def :switchboard.observe/to (s/or :single namespaced-keyword?
-                                     :multiple (s/+ namespaced-keyword?)))
+(s/def :st.switchboard.observe/from :st.switchboard/cmp)
+(s/def :st.switchboard.observe/to (s/or :single :st.switchboard/cmp
+                                     :multiple (s/+ :st.switchboard/cmp)))
 (s/def :cmd/observe-state
-  (s/keys :req-un [:switchboard.observe/from
-                   :switchboard.observe/to]))
+  (s/keys :req-un [:st.switchboard.observe/from
+                   :st.switchboard.observe/to]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/send
-(s/def :st.switchboard-send/to namespaced-keyword?)
+(s/def :st.switchboard-send/to :st.switchboard/cmp)
 (s/def :st.switchboard-send/msg message-spec)
 (s/def :cmd/send
   (s/keys :req-un [:st.switchboard-send/to

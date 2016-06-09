@@ -28,7 +28,7 @@
         v)))
 
 (defn w-timeout
-  "Combines tes-async and test-within to provide the deref functionality we expect from a promise.
+  "Combines test-async and test-within to provide the deref functionality we expect from a promise.
   The first argument is the timeout in milliseconds, the second argument should be a go-block (which
   returns a channel with the return value of the block once completed). Then, in that go block, we can
   await the promise-chan to be delivered first before making any further assertions."
