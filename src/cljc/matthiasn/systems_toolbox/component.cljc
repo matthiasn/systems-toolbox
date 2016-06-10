@@ -7,7 +7,6 @@
        :cljs [cljs.core.match :refer-macros [match]])
     #?(:clj  [clojure.core.async :as a :refer [chan go go-loop]]
        :cljs [cljs.core.async :as a :refer [chan]])
-    #?(:clj  [clojure.tools.logging :as log])
     #?(:clj  [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
     #?(:cljs [cljs-uuid-utils.core :as uuid])))
@@ -78,11 +77,28 @@
   "Default handler function, can be replaced by a more application-specific handler function, for example
   for resetting local component state when user is not logged in."
   [{:keys [cmp-state msg-payload observed-xform]}]
-  (let [new-state (if observed-xform
-                    (observed-xform msg-payload)
-                    msg-payload)]
+  (let [new-state (if observed-xform (observed-xform msg-payload) msg-payload)]
     (when (not= @(:observed cmp-state) new-state)
       (reset! (:observed cmp-state) new-state))))
+
+(defn mk-state-change-emit-handler
+  "Returns function for handling the return value of a handler function.
+  This returned map can contain :new-state, :emit-msg and :send-to-self keys."
+  [{:keys [state-reset-fn put-fn] :as cmp-map} in-chan msg-meta]
+  (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
+    (when new-state (when-let [state-spec (:state-spec cmp-map)]
+                      (s/valid-or-no-spec? state-spec new-state))
+                    (state-reset-fn new-state))
+    (when send-to-self (if (vector? (first send-to-self))
+                         (a/onto-chan in-chan send-to-self false)
+                         (a/onto-chan in-chan [send-to-self] false)))
+    (let [emit-msg-fn (fn [msg] (put-fn (with-meta msg (or (meta msg) msg-meta))))]
+      (when emit-msg (if (vector? (first emit-msg))
+                       (doseq [msg-to-emit emit-msg] (emit-msg-fn msg-to-emit))
+                       (emit-msg-fn emit-msg)))
+      (when emit-msgs (l/warn "DEPRECATED: emit-msgs, use emit-msg with a message vector instead")
+                      (doseq [msg-to-emit emit-msgs]
+                        (emit-msg-fn msg-to-emit))))))
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -95,14 +111,12 @@
   This, however, makes such handler functions somewhat more difficult to test."
   [cmp-map chan-key]
   (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan snapshot-publish-fn
-                unhandled-handler state-reset-fn state-snapshot-fn put-fn]
+                unhandled-handler state-snapshot-fn]
          :or {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
       (let [msg (a/<! in-chan)
-            msg-meta (-> (merge (meta msg) {})
-                         (add-to-msg-seq cmp-id :in)
-                         (assoc-in [cmp-id :in-ts] (now)))
+            msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :in) (assoc-in [cmp-id :in-ts] (now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
             msg-map (merge cmp-map {:msg           (with-meta msg msg-meta)
@@ -111,28 +125,7 @@
                                     :msg-payload   msg-payload
                                     :onto-in-chan  #(a/onto-chan in-chan % false)
                                     :current-state (state-snapshot-fn)})
-            state-change-emit-handler (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
-                                        (when new-state
-                                          (when-let [state-spec (:state-spec cmp-map)]
-                                            (s/valid-or-no-spec? state-spec new-state))
-                                          (state-reset-fn new-state))
-                                        (when send-to-self
-                                          (if (vector? (first send-to-self))
-                                            (a/onto-chan in-chan send-to-self false)
-                                            (a/onto-chan in-chan [send-to-self] false)))
-                                        (let [emit-msg-fn (fn [msg-to-emit]
-                                                            (let [new-meta (meta msg-to-emit)]
-                                                              (put-fn (with-meta msg-to-emit
-                                                                                 (or new-meta msg-meta)))))]
-                                          (when emit-msg
-                                            (if (vector? (first emit-msg))
-                                              (doseq [msg-to-emit emit-msg]
-                                                (emit-msg-fn msg-to-emit))
-                                              (emit-msg-fn emit-msg)))
-                                          (when emit-msgs
-                                            (l/warn "DEPRECATED use of emit-msgs, use emit-msg with a message vector instead")
-                                            (doseq [msg-to-emit emit-msgs]
-                                              (emit-msg-fn msg-to-emit)))))]
+            state-change-emit-handler (mk-state-change-emit-handler cmp-map in-chan msg-meta)]
         (try
           (s/valid-or-no-spec? msg-type msg-payload)
           (when (= chan-key :sliding-in-chan)
@@ -142,18 +135,15 @@
             (a/<! (a/timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id   cmp-id
-                                                          :msg      msg
-                                                          :msg-meta msg-meta
-                                                          :ts       (now)}]))
+              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg :msg-meta msg-meta :ts (now)}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (state-change-emit-handler (handler-fn msg-map)))
             (when unhandled-handler
               (when-not (contains? handler-map msg-type) (state-change-emit-handler (unhandled-handler msg-map))))
             (when all-msgs-handler (state-change-emit-handler (all-msgs-handler msg-map))))
-          #?(:clj  (catch Exception e (log/error e "Exception in" cmp-id "when receiving message:" (pp-str msg)))
-             :cljs (catch js/Object e (.log js/console e (str "Exception in " cmp-id " when receiving message:"
-                                                              (pp-str msg))))))
+          #?(:clj  (catch Exception e (l/error e "Exception in" cmp-id "when receiving message:" (pp-str msg)))
+             :cljs (catch js/Object e
+                     (l/error e (str "Exception in " cmp-id " when receiving message:" (pp-str msg))))))
         (recur)))
     {chan-key in-chan}))
 
@@ -173,19 +163,14 @@
   (fn [msg]
     {:pre [(s/valid-or-no-spec? (first msg) (second msg))]}
     (s/valid-or-no-spec? :systems-toolbox/msg msg)
-    (let [msg-meta (-> (merge (meta msg) {})
-                       (add-to-msg-seq cmp-id :out)
-                       (assoc-in [cmp-id :out-ts] (now)))
+    (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (now)))
           corr-id (make-uuid)
           tag (or (:tag msg-meta) (make-uuid))
           completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
           msg-w-meta (with-meta msg completed-meta)
           msg-type (first msg)
-          msg-payload (second msg)
           msg-from-firehose? (= "firehose" (namespace msg-type))]
-      ;(s/valid-or-no-spec? msg-type msg-payload)
       (put-msg put-chan msg-w-meta)
-
       ;; Not all components should emit firehose messages. For example, messages that process
       ;; firehose messages should not do so again in order to avoid infinite messaging loops.
       ;; This behavior can be configured when the component is fired up.
@@ -197,10 +182,8 @@
         ;; wrapped as other messages would (see the second case in the if-clause).
         (if msg-from-firehose?
           (put-msg firehose-chan msg-w-meta)
-          (put-msg firehose-chan [:firehose/cmp-put {:cmp-id   cmp-id
-                                                     :msg      msg-w-meta
-                                                     :msg-meta completed-meta
-                                                     :ts       (now)}]))))))
+          (put-msg firehose-chan
+                   [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta :msg-meta completed-meta :ts (now)}]))))))
 
 (defn make-snapshot-publish-fn
   "Creates a function for publishing changes to the component state atom as snapshot messages,"
@@ -214,9 +197,8 @@
         (a/pipe state-firehose-chan firehose-chan)
         (put-msg sliding-out-chan snapshot-msg)
         (when (:snapshots-on-firehose cfg)
-          (put-msg state-firehose-chan [:firehose/cmp-publish-state {:cmp-id   cmp-id
-                                                                     :snapshot snapshot-xform
-                                                                     :ts       (now)}]))))))
+          (put-msg state-firehose-chan
+                   [:firehose/cmp-publish-state {:cmp-id cmp-id :snapshot snapshot-xform :ts (now)}]))))))
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the
@@ -230,20 +212,14 @@
   burdening the JS engine with messages that are not relevant for rendering anyway."
   [{:keys [watch-state cmp-id snapshot-publish-fn]}]
   #?(:clj  (try (add-watch watch-state :watcher (fn [_ _ _ _new-state] (snapshot-publish-fn)))
-                (catch Exception e (log/error e "Exception in" cmp-id "when watching atom:"
-                                              (pp-str watch-state))))
+                (catch Exception e (l/error e "Exception in" cmp-id "when watching atom:" (pp-str watch-state))))
      :cljs (let [publish-scheduled? (atom false)
-                 publish-fn (fn []
-                              (snapshot-publish-fn)
-                              (reset! publish-scheduled? false))
-                 publish-schedule-fn (fn []
-                                       (when-not @publish-scheduled?
-                                         (reset! publish-scheduled? true)
-                                         (request-animation-frame publish-fn)))]
+                 publish-fn (fn [] (snapshot-publish-fn) (reset! publish-scheduled? false))
+                 publish-schedule-fn (fn [] (when-not @publish-scheduled?
+                                              (reset! publish-scheduled? true)
+                                              (request-animation-frame publish-fn)))]
              (try (add-watch watch-state :watcher (fn [_ _ _ _new-state] (publish-schedule-fn)))
-                  (catch js/Object e
-                    (.log js/console e (str "Exception in " cmp-id " when watching atom:"
-                                            (pp-str watch-state))))))))
+                  (catch js/Object e (l/error e "Exception in" cmp-id "when watching atom:" (pp-str watch-state)))))))
 
 (defn make-system-ready-fn
   "This function is called by the switchboard that wired this component when all other
@@ -308,7 +284,7 @@
                                 :state-snapshot-fn (fn [] @watch-state)
                                 :state-reset-fn    (fn [new-state] (reset! watch-state new-state))})]
     (a/tap (:out-mult cmp-map) out-pub-chan)  ; connect out-pub-chan to out-mult
-    (detect-changes cmp-map)                ; publish snapshots when changes are detected
+    (detect-changes cmp-map)                  ; publish snapshots when changes are detected
     (merge cmp-map
            (msg-handler-loop cmp-map :in-chan)
            (msg-handler-loop cmp-map :sliding-in-chan))))
