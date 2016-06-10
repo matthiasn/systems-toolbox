@@ -87,7 +87,7 @@
   [{:keys [state-reset-fn put-fn] :as cmp-map} in-chan msg-meta]
   (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
     (when new-state (when-let [state-spec (:state-spec cmp-map)]
-                      (s/valid-or-no-spec? state-spec new-state))
+                      (assert (s/valid-or-no-spec? state-spec new-state)))
                     (state-reset-fn new-state))
     (when send-to-self (if (vector? (first send-to-self))
                          (a/onto-chan in-chan send-to-self false)
@@ -127,7 +127,7 @@
                                     :current-state (state-snapshot-fn)})
             state-change-emit-handler (mk-state-change-emit-handler cmp-map in-chan msg-meta)]
         (try
-          (s/valid-or-no-spec? msg-type msg-payload)
+          (assert (s/valid-or-no-spec? msg-type msg-payload))
           (when (= chan-key :sliding-in-chan)
             (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) msg-map))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
@@ -161,8 +161,8 @@
    not try call more messages than fit in the buffer before the entire system is up."
   [{:keys [cmp-id put-chan cfg firehose-chan]}]
   (fn [msg]
-    {:pre [(s/valid-or-no-spec? (first msg) (second msg))]}
-    (s/valid-or-no-spec? :systems-toolbox/msg msg)
+    {:pre [(s/valid-or-no-spec? (first msg) (second msg))
+           (s/valid-or-no-spec? :systems-toolbox/msg msg)]}
     (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (now)))
           corr-id (make-uuid)
           tag (or (:tag msg-meta) (make-uuid))

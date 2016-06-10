@@ -9,39 +9,45 @@
 
   (:require [matthiasn.systems-toolbox.switchboard :as switchboard]
     #?(:clj [clojure.tools.logging :as log]
-      :cljs [matthiasn.systems-toolbox.log :as log])))
+      :cljs [matthiasn.systems-toolbox.log :as log])
+    #?(:clj  [clojure.core.async :refer [<! put! go promise-chan]]
+       :cljs [cljs.core.async :refer [<! put! promise-chan]])))
 
 ;; Ping component
+(defn pong-handler
+  [{:keys [current-state]}]
+  (let [new-state (update-in current-state [:n] inc)]
+    (when (= (:n new-state) (:expected-cnt new-state))
+      (put! (:all-recvd new-state) true))
+    {:new-state (update-in current-state [:n] inc)}))
 
-(defn ping-handler [{:keys [put-fn msg-payload]}]
-  (log/debug "Ping!")
-  (put-fn [:cmd/pong (msg-payload)]))
-
-(defn ping-cmp-map [cmp-id]
+(defn ping-cmp-map [cmp-id cmp-state]
   {:cmp-id      cmp-id
-   :handler-map {:cmd/ping ping-handler}})
-
-;; Pong component
-
-(defn pong-handler [{:keys [msg-payload]}]
-  (log/debug "Pong!")
-  (msg-payload))
-
-(defn pong-cmp-map [cmp-id]
-  {:cmp-id      cmp-id
+   :state-fn    (fn [_] {:state cmp-state})
    :handler-map {:cmd/pong pong-handler}})
 
-;; System (= switchboard + components + wiring + routing)
+;; Pong component
+(defn ping-handler
+  [{:keys [current-state]}]
+  {:new-state (update-in current-state [:n] inc)
+   :emit-msg [:cmd/pong]})
 
-(defn create []
+(defn pong-cmp-map [cmp-id cmp-state]
+  {:cmp-id      cmp-id
+   :state-fn    (fn [_] {:state cmp-state})
+   :handler-map {:cmd/ping ping-handler}})
+
+;; System (= switchboard + components + wiring + routing)
+(defn create [ping-state pong-state]
   (let [echo-switchboard (switchboard/component :test/my-switchboard)]
     (switchboard/send-mult-cmd
       echo-switchboard
       ;; Init/wire components
-      [[:cmd/init-comp (ping-cmp-map :test/ping-cmp)]
-       [:cmd/init-comp (pong-cmp-map :test/pong-cmp)]
+      [[:cmd/init-comp (ping-cmp-map :test/ping-cmp ping-state)]
+       [:cmd/init-comp (pong-cmp-map :test/pong-cmp pong-state)]
        ;; Set up switchboard routes
-       [:cmd/route {:from :test/ping-cmp :to :test/pong-cmp}]])
+       [:cmd/route {:from :test/ping-cmp :to :test/pong-cmp}]
+       [:cmd/route {:from :test/pong-cmp :to :test/ping-cmp}]])
 
     echo-switchboard))
 
