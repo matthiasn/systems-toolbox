@@ -74,18 +74,6 @@
                 :msg-type  :app/state
                 :to        [t :sliding-in-chan]})))
 
-(defn tap-switchboard-firehose
-  "Tap the switchboard firehose into a component observing it."
-  [app put-fn to switchboard-id]
-  (let [sw-firehose-mult (:firehose-mult (switchboard-id (:components @app)))
-        to-comp (to (:components @app))
-        error-log #(l/error "Could not create tap: " switchboard-id " -> " to " - " %)]
-    (try (do
-           (tap sw-firehose-mult (:in-chan to-comp))
-           (swap! app update-in [:fh-taps] conj {:from switchboard-id :to to :type :fh-tap}))
-         #?(:clj (catch Exception e (error-log (.getMessage e)))
-            :cljs (catch js/Object e (error-log e))))))
-
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful
   for communication with the outside world / within hierarchies where a subsystem
@@ -123,11 +111,12 @@
 
 ;; TODO: implement filtering with comparable semantics as in route-handler, see issue #34
 (defn route-all-handler
-  [{:keys [cmp-state put-fn msg-payload]}]
+  [{:keys [current-state msg-payload]}]
   (let [{:keys [from to pred]} msg-payload]
     (doseq [from (flatten [from])]
-      (let [mult-comp (from (:components @cmp-state))
-            tap-comp (to (:components @cmp-state))
+      (let [components (:components current-state)
+            mult-comp (from components)
+            tap-comp (to components)
             error-log #(l/error "Could not create tap: " from " -> " to " - " %)
             target-chan (if pred
                           (let [filtered-chan (chan 1 (filter pred))]
@@ -136,14 +125,22 @@
                           (:in-chan tap-comp))]
         (try (do
                (tap (:out-mult mult-comp) target-chan)
-               (swap! cmp-state update-in [:taps] conj {:from from :to to :type :tap}))
+               {:new-state (update-in current-state [:taps] conj {:from from :to to :type :tap})})
              #?(:clj (catch Exception e (error-log (.getMessage e)))
                 :cljs (catch js/Object e (error-log e))))))))
 
 (defn attach-to-firehose
   "Attaches a component to firehose channel. For example for observational components."
-  [{:keys [cmp-state put-fn msg-payload cmp-id]}]
-  (tap-switchboard-firehose cmp-state put-fn msg-payload cmp-id))
+  [{:keys [current-state msg-payload cmp-id]}]
+  (let [to msg-payload
+        sw-firehose-mult (:firehose-mult (cmp-id (:components current-state)))
+        to-comp (to (:components current-state))
+        error-log #(l/error "Could not create tap: " cmp-id " -> " to " - " %)]
+    (try (do
+           (tap sw-firehose-mult (:in-chan to-comp))
+           {:new-state (update-in current-state [:fh-taps] conj {:from cmp-id :to to :type :fh-tap})})
+         #?(:clj  (catch Exception e (error-log (.getMessage e)))
+            :cljs (catch js/Object e (error-log e))))))
 
 (defn observe-state
   [{:keys [cmp-state put-fn msg-payload]}]
