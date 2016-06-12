@@ -17,9 +17,13 @@
   :plugins [[lein-codox "0.9.5"]
             [test2junit "1.2.2"]
             [lein-doo "0.1.6"]
+            [com.jakemccrary/lein-test-refresh "0.15.0"]
             [lein-cljsbuild "1.1.3"]]
 
   :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
+
+  :test-refresh {:notify-on-success false
+                 :changes-only      false}
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha5"]
                                   [org.clojure/clojurescript "1.9.36"]

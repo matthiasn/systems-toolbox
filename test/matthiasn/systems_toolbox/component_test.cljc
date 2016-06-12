@@ -53,7 +53,7 @@
   Running this test multiple times gets us a better understanding how performance increases on subsequent runs,
   likely because of JIT compilation and other optimizations in the runtime."
   []
-  (let [cnt (* 100 1000)
+  (let [cnt 1000
         state (atom 0)
         vals-to-send (vec (range cnt))
         msgs-to-send (map (fn [m] [:some/type m]) vals-to-send)
