@@ -7,19 +7,17 @@
     #?(:clj  [clojure.spec :as s]
        :cljs [cljs.spec :as s])))
 
-(defn subscribe
+(defn subscribe-fn
   "Subscribe component to a specified publisher."
-  [{:keys [cmp-state from to msg-type pred]}]
-  (let [app @cmp-state
-        pub-comp (from (:components app))
-        sub-comp (to (:components app))
-        in-chan (:in-chan sub-comp)
-        target-chan (if pred (let [filtered-chan (chan 1 (filter pred))]
-                               (pipe filtered-chan in-chan)
-                               filtered-chan)
-                             in-chan)]
-    (sub (:out-pub pub-comp) msg-type target-chan)
-    (swap! cmp-state update-in [:subs] conj {:from from :to to :msg-type msg-type :type :sub})))
+  [from to pred]
+  (fn [current-state msg-type]
+    (let [in-chan (:in-chan (to (:components current-state)))
+          target-chan (if pred (let [filtered-chan (chan 1 (filter pred))]
+                                 (pipe filtered-chan in-chan)
+                                 filtered-chan)
+                               in-chan)]
+      (sub (:out-pub (from (:components current-state))) msg-type target-chan)
+      (update-in current-state [:subs] conj {:from from :to to :msg-type msg-type :type :sub}))))
 
 (defn route-handler
   "Creates subscriptions between one component's out-pub and another component's in-chan.
@@ -31,15 +29,11 @@
         from-set (set (flatten [from]))]
     (doseq [from from-set]
       (let [handled-messages (keys (:handler-map (to (:components @cmp-state))))
-
             ;; TODO: only should be intersection of handlers and only items
-            msg-types (if only (flatten [only]) (vec handled-messages))]
+            msg-types (if only (flatten [only]) (vec handled-messages))
+            subscribe (subscribe-fn from to pred)]
         (doseq [msg-type msg-types]
-          (subscribe {:cmp-state cmp-state
-                       :from      from
-                       :to        to
-                       :msg-type  msg-type
-                       :pred      pred}))))))
+          (reset! cmp-state (subscribe @cmp-state msg-type)))))))
 
 ;; TODO: implement filtering with comparable semantics as in route-handler, see issue #34
 (defn route-all-handler
