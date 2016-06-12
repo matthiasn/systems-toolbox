@@ -20,7 +20,7 @@
        :cljs [matthiasn.systems-toolbox.log :as log])))
 
 ; here, we can tweak the number of test runs, which is useful if we are interested in JIT optimizations
-(def test-runs 1)
+(def test-runs 0)
 
 (defn swap-atom-repeatedly-fn
   []
@@ -111,8 +111,8 @@
                           (log/debug "Channel puts/s:" ops-per-sec)
                           (is (> ops-per-sec 1000)))))))
 
+
 (deftest put-on-chan-repeatedly1 (put-on-chan-repeatedly-fn))
-#_#_#_#_#_
 (deftest put-on-chan-repeatedly2 (put-on-chan-repeatedly-fn))
 (deftest put-on-chan-repeatedly3 (put-on-chan-repeatedly-fn))
 (deftest put-on-chan-repeatedly4 (put-on-chan-repeatedly-fn))
@@ -214,8 +214,6 @@
                         :done))))
 
 (deftest put-consume-mult-w-pub-repeatedly (put-consume-mult-w-pub-repeatedly-fn))
-
-#_#_#_#_#_
 (deftest put-consume-mult-w-pub-repeatedly2 (put-consume-mult-w-pub-repeatedly-fn))
 (deftest put-consume-mult-w-pub-repeatedly3 (put-consume-mult-w-pub-repeatedly-fn))
 (deftest put-consume-mult-w-pub-repeatedly4 (put-consume-mult-w-pub-repeatedly-fn))

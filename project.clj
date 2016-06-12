@@ -25,6 +25,9 @@
   :test-refresh {:notify-on-success false
                  :changes-only      false}
 
+  :test-paths ["test"]
+  ;:test-paths ["test" "perf"]
+
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha5"]
                                   [org.clojure/clojurescript "1.9.36"]
                                   [org.clojure/tools.logging "0.3.1"]
