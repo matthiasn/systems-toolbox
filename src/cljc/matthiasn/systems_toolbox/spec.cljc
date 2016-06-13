@@ -32,6 +32,7 @@
                         :msg-payload (s/alt :map-payload map?
                                             :nil-payload nil?
                                             :bool-payload boolean?
+                                            :number-payload number?
                                             :keyword-payload keyword?))))
 (s/def :systems-toolbox/msg message-spec)
 
