@@ -84,7 +84,8 @@
 ;; Spec for :cmd/route
 (s/def :st.switchboard.route/from (s/or :single :st.switchboard/cmp
                                         :multiple (s/+ :st.switchboard/cmp)))
-(s/def :st.switchboard.route/to :st.switchboard/cmp)
+(s/def :st.switchboard.route/to (s/or :single :st.switchboard/cmp
+                                      :multiple (s/+ :st.switchboard/cmp)))
 (s/def :st.switchboard.route/only :st.switchboard/cmp)
 (s/def :st.switchboard.route/pred fn?)
 

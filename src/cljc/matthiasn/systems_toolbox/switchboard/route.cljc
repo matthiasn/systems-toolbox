@@ -4,8 +4,7 @@
        :cljs [cljs.core.async :refer [chan pipe sub tap]])
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj  [clojure.spec :as s]
-       :cljs [cljs.spec :as s])))
+             [clojure.set :as set]))
 
 (defn cartesian-product
   "All the ways to take one item from each sequence.
@@ -40,7 +39,7 @@
       (sub (:out-pub (from (:components current-state))) msg-type target-chan)
       (update-in current-state [:subs] conj {:from from :to to :msg-type msg-type :type :sub}))))
 
-(defn component-set
+(defn cmp-ids-set
   "Returns a set with component IDs."
   [val]
   (cond (set? val) val
@@ -54,8 +53,9 @@
   Also, routing can be limited to message types specified under the :only keyword. Here, either
   a single message type or a vector with multiple message types can be used."
   [{:keys [current-state msg-payload]}]
+  {:pre (empty? (set/intersection (cmp-ids-set (:from msg-payload)) (cmp-ids-set (:to msg-payload))))}
   (let [{:keys [from to only pred]} msg-payload
-        connections (cartesian-product (component-set from) (component-set to))
+        connections (cartesian-product (cmp-ids-set from) (cmp-ids-set to))
         subscribe-reducer-fn (fn [acc [from to]]
                                (let [handled-messages (keys (:handler-map (to (:components acc))))
                                      msg-types (if only (flatten [only]) (vec handled-messages))
@@ -69,9 +69,10 @@
   for which there is a specific handler. This results in both the all-msgs-handler and
   the unhandled-handler"
   [{:keys [current-state msg-payload]}]
+  {:pre (empty? (set/intersection (cmp-ids-set (:from msg-payload)) (cmp-ids-set (:to msg-payload))))}
   (let [{:keys [from to pred]} msg-payload
         components (:components current-state)
-        connections (cartesian-product (component-set from) (component-set to))
+        connections (cartesian-product (cmp-ids-set from) (cmp-ids-set to))
         reducer-fn (fn [acc [from to]]
                      (let [in-chan (:in-chan (to components))
                            target-chan (if pred
