@@ -14,7 +14,7 @@
 (s/def :st.switchboard.init/opts map?)
 (s/def :st.switchboard.init/state-spec sts/namespaced-keyword?)
 
-(s/def :cmd/init-comp
+(s/def :st.switchboard.init/cmp-map
   (s/keys :req-un [:st.switchboard.init/cmp-id]
           :opt-un [:st.switchboard.init/state-fn
                    :st.switchboard.init/handler-map
@@ -23,6 +23,9 @@
                    :st.switchboard.init/observed-xform
                    :st.switchboard.init/opts
                    :st.switchboard.init/state-spec]))
+
+(s/def :cmd/init-comp (s/or :single-cmp :st.switchboard.init/cmp-map
+                            :multiple-cmps (s/+ :st.switchboard.init/cmp-map)))
 
 (s/def :st.switchboard/cmp sts/namespaced-keyword?)
 

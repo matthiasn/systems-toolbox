@@ -29,11 +29,11 @@
 (s/def :systems-toolbox/msg-spec
   (s/or :no-payload (s/cat :msg-type namespaced-keyword?)
         :payload (s/cat :msg-type namespaced-keyword?
-                        :msg-payload (s/alt :map-payload map?
-                                            :nil-payload nil?
-                                            :bool-payload boolean?
-                                            :number-payload number?
-                                            :keyword-payload keyword?))))
+                        :msg-payload (s/or :map-payload map?
+                                           :nil-payload nil?
+                                           :bool-payload boolean?
+                                           :number-payload number?
+                                           :keyword-payload keyword?))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Scheduler Spec

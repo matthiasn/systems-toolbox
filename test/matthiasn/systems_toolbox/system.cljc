@@ -43,8 +43,8 @@
     (switchboard/send-mult-cmd
       echo-switchboard
       ;; Init/wire components
-      [[:cmd/init-comp (ping-cmp-map :test/ping-cmp ping-state)]
-       [:cmd/init-comp (pong-cmp-map :test/pong-cmp pong-state)]
+      [[:cmd/init-comp #{(ping-cmp-map :test/ping-cmp ping-state)
+                         (pong-cmp-map :test/pong-cmp pong-state)}]
        ;; Set up switchboard routes
        [:cmd/route {:from :test/ping-cmp :to :test/pong-cmp}]
        [:cmd/route {:from :test/pong-cmp :to :test/ping-cmp}]])
