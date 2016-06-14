@@ -1,23 +1,13 @@
 (ns matthiasn.systems-toolbox.component.msg-handling
-  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go go-loop]]
+  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
                             [cljs.core :refer [exists?]]))
   (:require  [matthiasn.systems-toolbox.spec :as s]
              [matthiasn.systems-toolbox.log :as l]
+             [matthiasn.systems-toolbox.component.helpers :as h]
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj  [clojure.core.async :as a :refer [chan go go-loop]]
-       :cljs [cljs.core.async :as a :refer [chan]])
-    #?(:clj  [clojure.pprint :as pp]
-       :cljs [cljs.pprint :as pp])
-    #?(:cljs [cljs-uuid-utils.core :as uuid])))
-
-(defn now
-  "Get milliseconds since epoch."
-  []
-  #?(:clj  (System/currentTimeMillis)
-     :cljs (.getTime (js/Date.))))
-
-(defn pp-str [data] (with-out-str (pp/pprint data)))
+    #?(:clj  [clojure.core.async :as a :refer [chan go-loop]]
+       :cljs [cljs.core.async :as a :refer [chan]])))
 
 (defn put-msg
   "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise the system easily
@@ -27,12 +17,6 @@
   [channel msg]
   #?(:clj  (a/>!! channel msg)
      :cljs (a/put! channel msg)))
-
-(defn make-uuid
-  "Get a random UUID."
-  []
-  #?(:clj  (str (java.util.UUID/randomUUID))
-     :cljs (str (uuid/make-random-uuid))))
 
 (defn make-chan-w-buf
   "Create a channel with a buffer of the specified size and type."
@@ -96,7 +80,7 @@
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
       (let [msg (a/<! in-chan)
-            msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :in) (assoc-in [cmp-id :in-ts] (now)))
+            msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :in) (assoc-in [cmp-id :in-ts] (h/now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
             msg-map (merge cmp-map {:msg           (with-meta msg msg-meta)
@@ -115,15 +99,15 @@
             (a/<! (a/timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg :msg-meta msg-meta :ts (now)}]))
+              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg :msg-meta msg-meta :ts (h/now)}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
             (when handler-fn (state-change-emit-handler (handler-fn msg-map)))
             (when unhandled-handler
               (when-not (contains? handler-map msg-type) (state-change-emit-handler (unhandled-handler msg-map))))
             (when all-msgs-handler (state-change-emit-handler (all-msgs-handler msg-map))))
-          #?(:clj  (catch Exception e (l/error e "Exception in" cmp-id "when receiving message:" (pp-str msg)))
+          #?(:clj  (catch Exception e (l/error e "Exception in" cmp-id "when receiving message:" (h/pp-str msg)))
              :cljs (catch js/Object e
-                     (l/error e (str "Exception in " cmp-id " when receiving message:" (pp-str msg))))))
+                     (l/error e (str "Exception in " cmp-id " when receiving message:" (h/pp-str msg))))))
         (recur)))
     {chan-key in-chan}))
 
@@ -143,9 +127,9 @@
   (fn [msg]
     {:pre [(s/valid-or-no-spec? (first msg) (second msg))
            (s/valid-or-no-spec? :systems-toolbox/msg msg)]}
-    (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (now)))
-          corr-id (make-uuid)
-          tag (or (:tag msg-meta) (make-uuid))
+    (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (h/now)))
+          corr-id (h/make-uuid)
+          tag (or (:tag msg-meta) (h/make-uuid))
           completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
           msg-w-meta (with-meta msg completed-meta)
           msg-type (first msg)
@@ -163,7 +147,7 @@
         (if msg-from-firehose?
           (put-msg firehose-chan msg-w-meta)
           (put-msg firehose-chan
-                   [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta :msg-meta completed-meta :ts (now)}]))))))
+                   [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta :msg-meta completed-meta :ts (h/now)}]))))))
 
 (defn send-msg
   "Sends message to the specified component. By default, calls to this function will block when no buffer space

@@ -9,7 +9,7 @@
   :dependencies [[org.clojure/tools.reader "1.0.0-beta1"]
                  [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.analyzer.jvm]]
                  [org.ow2.asm/asm-all "5.1"]
-                 [org.clojure/core.async "0.2.374" :exclusions [org.clojure/tools.reader]]
+                 [org.clojure/core.async "0.2.382"]
                  [org.clojure/tools.logging "0.3.1"]
                  [io.aviso/pretty "0.1.26"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]

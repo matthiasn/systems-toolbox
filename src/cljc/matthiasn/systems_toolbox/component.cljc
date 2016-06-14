@@ -1,17 +1,13 @@
 (ns matthiasn.systems-toolbox.component
-  #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go go-loop]]
-                            [cljs.core :refer [exists?]]))
   (:require  [matthiasn.systems-toolbox.spec :as s]
              [matthiasn.systems-toolbox.log :as l]
              [matthiasn.systems-toolbox.component.helpers :as h]
              [matthiasn.systems-toolbox.component.msg-handling :as msg]
-    #?(:clj  [clojure.core.match :refer [match]]
-       :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj  [clojure.core.async :as a :refer [chan go go-loop]]
-       :cljs [cljs.core.async :as a :refer [chan]])
-    #?(:cljs [cljs-uuid-utils.core :as uuid])))
+    #?(:clj  [clojure.core.async :as a :refer [chan]]
+       :cljs [cljs.core.async :as a :refer [chan]])))
 
 (def now h/now)
+(def make-uuid h/make-uuid)
 (def send-msg msg/send-msg)
 (def send-msgs msg/send-msgs)
 
