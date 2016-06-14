@@ -1,5 +1,6 @@
 (ns matthiasn.systems-toolbox.switchboard.init
   (:require  [matthiasn.systems-toolbox.component :as comp]
+             [matthiasn.systems-toolbox.switchboard.spec :as spec]
     #?(:clj  [clojure.core.async :refer [put! tap untap-all unsub-all]]
        :cljs [cljs.core.async :refer [put! tap untap-all unsub-all]])
     #?(:clj  [clojure.tools.logging :as l]

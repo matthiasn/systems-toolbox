@@ -126,7 +126,7 @@
   [{:keys [cmp-id put-chan cfg firehose-chan]}]
   (fn [msg]
     {:pre [(s/valid-or-no-spec? (first msg) (second msg))
-           (s/valid-or-no-spec? :systems-toolbox/msg msg)]}
+           (s/valid-or-no-spec? :systems-toolbox/msg-spec msg)]}
     (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (h/now)))
           corr-id (h/make-uuid)
           tag (or (:tag msg-meta) (h/make-uuid))

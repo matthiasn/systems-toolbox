@@ -74,17 +74,17 @@
 (defn component
   "Creates a switchboard component that wires individual components together into
   a communicating system."
-  ([] (component :switchboard))
-  ([switchboard-id]
-   (let [switchboard (comp/make-component
-                       {:cmp-id            switchboard-id
-                        :state-fn          mk-state
-                        :handler-map       handler-map
-                        :opts              {:msgs-on-firehose false}
-                        :snapshot-xform-fn xform-fn})
-         sw-in-chan (:in-chan switchboard)]
-     (put! sw-in-chan [:cmd/self-register switchboard])
-     switchboard)))
+  [switchboard-id]
+  (let [switchboard (comp/make-component
+                      {:cmp-id            switchboard-id
+                       :state-fn          mk-state
+                       :handler-map       handler-map
+                       :state-spec        :st.switchboard/state-spec
+                       :opts              {:msgs-on-firehose false}
+                       :snapshot-xform-fn xform-fn})
+        sw-in-chan (:in-chan switchboard)]
+    (put! sw-in-chan [:cmd/self-register switchboard])
+    switchboard))
 
 (defn send-cmd
   "Send message to the specified switchboard component."
