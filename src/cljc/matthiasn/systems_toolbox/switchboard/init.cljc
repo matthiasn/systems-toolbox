@@ -11,10 +11,11 @@
 (defn cmp-maps-set
   "Returns a set with component maps."
   [val]
-  (cond (set? val) val
-        (vector? val) (do (l/warn "Use of vector is deprecated, use a set instead:" val)
-                          (set val))
-        :else #{val}))
+  (cond
+    (set? val) val
+    (vector? val) (do (l/warn "Use of vector is deprecated, use a set instead:" val)
+                      (set val))
+    :else #{val}))
 
 (defn wire-or-init-comp
   "Either wire existing and already instantiated component or instantiate a component from a component map.
@@ -27,11 +28,11 @@
   asked to publish its state once (also useful for Figwheel)."
   [init?]
   (fn
-    [{:keys [current-state cmp-state msg-payload cmp-id]}]
+    [{:keys [current-state msg-payload cmp-id]}]
     (let [cmp-maps-set (cmp-maps-set msg-payload)
           reducer-fn (fn [acc cmp]
                        (let [cmp-id-to-wire (:cmp-id cmp)
-                             firehose-chan (:firehose-chan (cmp-id (:components @cmp-state)))
+                             firehose-chan (:firehose-chan (cmp-id (:components current-state)))
                              reload? (:reload-cmp (merge comp/component-defaults (:opts cmp)))
                              prev-cmp (get-in current-state [:components cmp-id-to-wire])]
                          (when (or (not prev-cmp) reload?)

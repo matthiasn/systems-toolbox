@@ -33,33 +33,30 @@
 
 (defn start-loop
   "Starts a loop for sending messages at set intervals."
-  [{:keys [cmp-state put-fn msg-payload]}]
+  [{:keys [current-state cmp-state put-fn msg-payload]}]
   (let [timout-ms (:timeout msg-payload)
         msg-to-send (:message msg-payload)
-        scheduler-id (or (:id msg-payload) (first msg-to-send))
-        existing-timer (get-in @cmp-state [:active-timers scheduler-id])]
-    (when existing-timer
-      (l/warn (str "Timer " (:id msg-payload) " already scheduled - ignoring.")))
-    (when-not existing-timer
-      (swap! cmp-state assoc-in [:active-timers scheduler-id] msg-payload)
-      (when (:initial msg-payload) (put-fn msg-to-send))
-      (go-loop []
-        (<! (timeout timout-ms))
-        (let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
-          (put-fn msg-to-send)
-          (if active-timer
-            (if (:repeat active-timer)
-              (recur)
-              (swap! cmp-state update :active-timers dissoc scheduler-id))
-            (put-fn [:info/deleted-timer scheduler-id])))))))
+        scheduler-id (or (:id msg-payload) (first msg-to-send))]
+    (if (get-in current-state [:active-timers scheduler-id])
+      (l/warn (str "Timer " (:id msg-payload) " already scheduled - ignoring."))
+      (do (when (:initial msg-payload) (put-fn msg-to-send))
+          (go-loop []
+            (<! (timeout timout-ms))
+            (let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
+              (put-fn msg-to-send)
+              (if active-timer
+                (if (:repeat active-timer)
+                  (recur)
+                  (swap! cmp-state update :active-timers dissoc scheduler-id))
+                (put-fn [:info/deleted-timer scheduler-id]))))
+          {:new-state (assoc-in current-state [:active-timers scheduler-id] msg-payload)}))))
 
 (defn stop-loop
   "Stops a an loop that was previously scheduled."
-  [{:keys [cmp-state put-fn msg-payload]}]
-  (let [scheduler-id (:id msg-payload)
-        existing-timer (get-in @cmp-state [:active-timers scheduler-id])]
-    (if existing-timer
-      (swap! cmp-state update :active-timers dissoc scheduler-id)
+  [{:keys [current-state msg-payload]}]
+  (let [scheduler-id (:id msg-payload)]
+    (if (get-in current-state [:active-timers scheduler-id])
+      {:new-state (update-in current-state [:active-timers scheduler-id] msg-payload)}
       (l/warn (str "Timer with id: " (:id msg-payload) " not found - did not stop.")))))
 
 (defn cmp-map
