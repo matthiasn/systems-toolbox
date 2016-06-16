@@ -40,12 +40,12 @@
 (defn default-state-pub-handler
   "Default handler function, can be replaced by a more application-specific handler function, for example
   for resetting local component state when user is not logged in."
-  [{:keys [cmp-state msg-payload observed-xform]}]
+  [{:keys [observed msg-payload observed-xform]}]
   (let [new-state (if observed-xform (observed-xform msg-payload) msg-payload)]
-    (when (not= @(:observed cmp-state) new-state)
-      (reset! (:observed cmp-state) new-state))))
+    (when (not= @observed new-state)
+      (reset! observed new-state))))
 
-(defn mk-state-change-emit-handler
+(defn mk-handler-return-fn
   "Returns function for handling the return value of a handler function.
   This returned map can contain :new-state, :emit-msg and :send-to-self keys."
   [{:keys [state-reset-fn put-fn] :as cmp-map} in-chan msg-meta]
@@ -89,11 +89,12 @@
                                               :msg-payload   msg-payload
                                               :onto-in-chan  #(a/onto-chan in-chan % false)
                                               :current-state (state-snapshot-fn)}))
-            state-change-emit-handler (mk-state-change-emit-handler cmp-map in-chan msg-meta)]
+            handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
+            observed-state-handler (or state-pub-handler default-state-pub-handler)]
         (try
           (assert (s/valid-or-no-spec? msg-type msg-payload))
           (when (= chan-key :sliding-in-chan)
-            (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) (msg-map-fn)))
+            (handler-return-fn (observed-state-handler (msg-map-fn)))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (a/<! (a/timeout (:throttle-ms cfg))))
@@ -101,10 +102,10 @@
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg :msg-meta msg-meta :ts (h/now)}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
-            (when handler-fn (state-change-emit-handler (handler-fn (msg-map-fn))))
+            (when handler-fn (handler-return-fn (handler-fn (msg-map-fn))))
             (when unhandled-handler
-              (when-not (contains? handler-map msg-type) (state-change-emit-handler (unhandled-handler (msg-map-fn)))))
-            (when all-msgs-handler (state-change-emit-handler (all-msgs-handler (msg-map-fn)))))
+              (when-not (contains? handler-map msg-type) (handler-return-fn (unhandled-handler (msg-map-fn)))))
+            (when all-msgs-handler (handler-return-fn (all-msgs-handler (msg-map-fn)))))
           #?(:clj  (catch Exception e (l/error e "Exception in" cmp-id "when receiving message:" (h/pp-str msg)))
              :cljs (catch js/Object e
                      (l/error e (str "Exception in " cmp-id " when receiving message:" (h/pp-str msg))))))

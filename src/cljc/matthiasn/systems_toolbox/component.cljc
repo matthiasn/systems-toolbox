@@ -106,7 +106,7 @@
         out-pub-chan (msg/make-chan-w-buf (:out-chan cfg))
         cmp-map (initial-cmp-map cmp-map cfg)
         put-fn (msg/make-put-fn cmp-map)
-        state-map (if state-fn (state-fn put-fn) {:state (atom {})}) ; create state, either from state-fn or empty map
+        state-map (merge {:state (atom {}) :observed (atom {})} (when state-fn (state-fn put-fn)))
         state (:state state-map)
         watch-state (if-let [watch (:watch opts)] (watch state) state) ; watchable atom
         cmp-map (merge cmp-map {:watch-state watch-state})
@@ -116,6 +116,7 @@
                                 :out-pub           (a/pub out-pub-chan first)
                                 :state-pub         (a/pub (:sliding-out-chan cmp-map) first)
                                 :cmp-state         state
+                                :observed          (:observed state-map)
                                 :put-fn            put-fn
                                 :system-ready-fn   (make-system-ready-fn cmp-map)
                                 :shutdown-fn       (:shutdown-fn state-map)
