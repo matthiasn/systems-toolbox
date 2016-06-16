@@ -13,3 +13,7 @@
 (s/def :int/div-by-10 #(and (number? %) (zero? (mod % 10))))
 (s/def :int/div-by-100 #(and (number? %) (zero? (mod % 100))))
 
+(s/def :test/n number?)
+(s/def :test/sum (s/keys :req-un [:test/n]))
+(s/def :test/unhandled :test/sum)
+

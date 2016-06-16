@@ -42,6 +42,7 @@
             :cljs (catch js/Object e (error-log e))))))
 
 (defn send-to
+  "Send message to specified component."
   [{:keys [cmp-state msg-payload]}]
   (let [{:keys [to msg]} msg-payload
         dest-comp (to (:components @cmp-state))]

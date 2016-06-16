@@ -83,17 +83,17 @@
             msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :in) (assoc-in [cmp-id :in-ts] (h/now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
-            msg-map (merge cmp-map {:msg           (with-meta msg msg-meta)
-                                    :msg-type      msg-type
-                                    :msg-meta      msg-meta
-                                    :msg-payload   msg-payload
-                                    :onto-in-chan  #(a/onto-chan in-chan % false)
-                                    :current-state (state-snapshot-fn)})
+            msg-map-fn (fn [] (merge cmp-map {:msg           (with-meta msg msg-meta)
+                                              :msg-type      msg-type
+                                              :msg-meta      msg-meta
+                                              :msg-payload   msg-payload
+                                              :onto-in-chan  #(a/onto-chan in-chan % false)
+                                              :current-state (state-snapshot-fn)}))
             state-change-emit-handler (mk-state-change-emit-handler cmp-map in-chan msg-meta)]
         (try
           (assert (s/valid-or-no-spec? msg-type msg-payload))
           (when (= chan-key :sliding-in-chan)
-            (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) msg-map))
+            (state-change-emit-handler ((or state-pub-handler default-state-pub-handler) (msg-map-fn)))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
             (a/<! (a/timeout (:throttle-ms cfg))))
@@ -101,10 +101,10 @@
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg :msg-meta msg-meta :ts (h/now)}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
-            (when handler-fn (state-change-emit-handler (handler-fn msg-map)))
+            (when handler-fn (state-change-emit-handler (handler-fn (msg-map-fn))))
             (when unhandled-handler
-              (when-not (contains? handler-map msg-type) (state-change-emit-handler (unhandled-handler msg-map))))
-            (when all-msgs-handler (state-change-emit-handler (all-msgs-handler msg-map))))
+              (when-not (contains? handler-map msg-type) (state-change-emit-handler (unhandled-handler (msg-map-fn)))))
+            (when all-msgs-handler (state-change-emit-handler (all-msgs-handler (msg-map-fn)))))
           #?(:clj  (catch Exception e (l/error e "Exception in" cmp-id "when receiving message:" (h/pp-str msg)))
              :cljs (catch js/Object e
                      (l/error e (str "Exception in " cmp-id " when receiving message:" (h/pp-str msg))))))
