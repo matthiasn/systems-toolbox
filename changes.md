@@ -1,3 +1,16 @@
+## v0.6.1-SNAPSHOT - June 17th, 2016
+
+```clojure
+[matthiasn/systems-toolbox "0.6.1-SNAPSHOT"]
+```
+
+Potential BREAKING CHANGES:
+
+* Clojure 1.9 required
+* component IDs MUST be namespaced keywords
+* message types MUST be namespaced keywords
+
+
 ## v0.5.22 - June 6th, 2016
 
 ```clojure

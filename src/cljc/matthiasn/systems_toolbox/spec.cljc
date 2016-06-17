@@ -30,9 +30,11 @@
   (s/or :no-payload (s/cat :msg-type namespaced-keyword?)
         :payload (s/cat :msg-type namespaced-keyword?
                         :msg-payload (s/or :map-payload map?
+                                           :vector-payload vector?
                                            :nil-payload nil?
                                            :bool-payload boolean?
                                            :number-payload number?
+                                           :string-payload string?
                                            :keyword-payload keyword?))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
