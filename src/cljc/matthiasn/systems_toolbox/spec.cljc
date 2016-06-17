@@ -19,7 +19,7 @@
       (do (l/warn (str "UNDEFINED SPEC " spec)) true)
       true)))
 
-(defn pos-int? [n] (and (integer? n) (pos? n)))
+#?(:cljs (defn pos-int? [n] (and (integer? n) (pos? n))))
 
 (defn namespaced-keyword? [k] (and (keyword? k) (namespace k)))
 
