@@ -28,7 +28,7 @@
   :test-paths ["test"]
   ;:test-paths ["test" "perf"]
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha6"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha7"]
                                   [org.clojure/clojurescript "1.9.36"]
                                   [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]
