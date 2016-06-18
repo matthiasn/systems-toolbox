@@ -2,8 +2,10 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
                             [cljs.core :refer [exists?]]))
   (:require  [matthiasn.systems-toolbox.spec :as s]
-             [matthiasn.systems-toolbox.log :as l]
+    #?(:clj  [clojure.tools.logging :as l]
+       :cljs [matthiasn.systems-toolbox.log :as l])
              [matthiasn.systems-toolbox.component.helpers :as h]
+    #?(:clj  [io.aviso.exception :as ex])
     #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
     #?(:clj  [clojure.core.async :as a :refer [chan go-loop]]
@@ -106,7 +108,8 @@
             (when unhandled-handler
               (when-not (contains? handler-map msg-type) (handler-return-fn (unhandled-handler (msg-map-fn)))))
             (when all-msgs-handler (handler-return-fn (all-msgs-handler (msg-map-fn)))))
-          #?(:clj  (catch Exception e (l/error e "Exception in" cmp-id "when receiving message:" (h/pp-str msg)))
+          #?(:clj  (catch Exception e
+                     (l/error "Exception in" cmp-id "when receiving message:" (ex/format-exception e) (h/pp-str msg)))
              :cljs (catch js/Object e
                      (l/error e (str "Exception in " cmp-id " when receiving message:" (h/pp-str msg))))))
         (recur)))

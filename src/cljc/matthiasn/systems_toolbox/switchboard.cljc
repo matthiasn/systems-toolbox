@@ -9,6 +9,7 @@
        :cljs [cljs.pprint :as pp])
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
+    #?(:clj  [io.aviso.exception :as ex])
     #?(:clj  [clojure.spec :as s]
        :cljs [cljs.spec :as s])))
 
@@ -33,13 +34,11 @@
   [{:keys [current-state msg-payload cmp-id]}]
   (let [to msg-payload
         sw-firehose-mult (:firehose-mult (cmp-id (:components current-state)))
-        to-comp (to (:components current-state))
-        error-log #(l/error "Could not create tap: " cmp-id " -> " to " - " %)]
-    (try (do
-           (tap sw-firehose-mult (:in-chan to-comp))
-           {:new-state (update-in current-state [:fh-taps] conj {:from cmp-id :to to :type :fh-tap})})
-         #?(:clj  (catch Exception e (error-log (.getMessage e)))
-            :cljs (catch js/Object e (error-log e))))))
+        to-comp (to (:components current-state))]
+    (try (do (tap sw-firehose-mult (:in-chan to-comp))
+             {:new-state (update-in current-state [:fh-taps] conj {:from cmp-id :to to :type :fh-tap})})
+         #?(:clj  (catch Exception e (l/error "Could not create tap: " cmp-id " -> " to " - " (ex/format-exception e)))
+            :cljs (catch js/Object e (l/error "Could not create tap: " cmp-id " -> " to " - " e))))))
 
 (defn send-to
   "Send message to specified component."

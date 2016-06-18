@@ -41,18 +41,20 @@
                                           (unsub-all (:state-pub prev-cmp))
                                           (when-let [shutdown-fn (:shutdown-fn prev-cmp)]
                                             (shutdown-fn)))
-                           (let [cmp (if init? (comp/make-component cmp) cmp)
-                                 in-chan (:in-chan cmp)
-                                 new-state (-> acc
-                                               (assoc-in [:components cmp-id-to-wire] cmp)
-                                               (update-in [:fh-taps] conj {:from cmp-id-to-wire
-                                                                           :to cmp-id
-                                                                           :type :fh-tap}))]
-                             (when-let [prev-state (:watch-state prev-cmp)]
-                               (reset! (:watch-state cmp) @prev-state))
-                             (tap (:firehose-mult cmp) firehose-chan)
-                             (let [known-cmp-ids (set (keys (:components new-state)))]
-                               (s/def :st.switchboard/cmp known-cmp-ids))
-                             (put! in-chan [:cmd/publish-state])
-                             new-state))))]
+                           (let [cmp (if init? (comp/make-component cmp) cmp)]
+                             (if cmp
+                               (let [in-chan (:in-chan cmp)
+                                     new-state (-> acc
+                                                   (assoc-in [:components cmp-id-to-wire] cmp)
+                                                   (update-in [:fh-taps] conj {:from cmp-id-to-wire
+                                                                               :to cmp-id
+                                                                               :type :fh-tap}))]
+                                 (when-let [prev-state (:watch-state prev-cmp)]
+                                   (reset! (:watch-state cmp) @prev-state))
+                                 (tap (:firehose-mult cmp) firehose-chan)
+                                 (let [known-cmp-ids (set (keys (:components new-state)))]
+                                   (s/def :st.switchboard/cmp known-cmp-ids))
+                                 (put! in-chan [:cmd/publish-state])
+                                 new-state)
+                               acc)))))]
       {:new-state (reduce reducer-fn current-state cmp-maps-set)})))
