@@ -27,9 +27,7 @@
      [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}] ;
      [:cmd/route {:from :server/scheduler-cmp :to :server/metrics-cmp}]
      [:cmd/send {:to  :server/scheduler-cmp
-                 :msg [:cmd/schedule-new
-                       {:timeout 5000 :id :disp-stats :message [:cmd/get-jvm-stats] :repeat true}]}]
-     ]))  ; route handled messages to ptr-cmp
+                 :msg [:cmd/schedule-new {:timeout 5000 :message [:cmd/get-jvm-stats] :repeat true}]}]]))
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The system that is fired up when

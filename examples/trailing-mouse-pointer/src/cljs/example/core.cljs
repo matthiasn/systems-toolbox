@@ -32,4 +32,5 @@
      ;; Finally, wire firehose with all messages into the observer component
      [:cmd/attach-to-firehose :client/observer-cmp]]))
 
-(init (sente/cmp-map :client/ws-cmp {:relay-types #{:cmd/mouse-pos}}))
+(init (sente/cmp-map :client/ws-cmp {:relay-types      #{:cmd/mouse-pos}
+                                     :msgs-on-firehose true}))

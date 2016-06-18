@@ -80,7 +80,8 @@
                        :state-fn          mk-state
                        :handler-map       handler-map
                        :state-spec        :st.switchboard/state-spec
-                       :opts              {:msgs-on-firehose false}
+                       :opts              {:msgs-on-firehose      false
+                                           :snapshots-on-firehose true}
                        :snapshot-xform-fn xform-fn})
         sw-in-chan (:in-chan switchboard)]
     (put! sw-in-chan [:cmd/self-register switchboard])

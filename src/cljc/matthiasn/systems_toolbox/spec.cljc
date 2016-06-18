@@ -33,6 +33,32 @@
                                            :string-payload string?
                                            :keyword-payload keyword?))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Firehose Spec
+(s/def :st.firehose/cmp-id namespaced-keyword?)
+(s/def :st.firehose/msg :systems-toolbox/msg-spec)
+(s/def :st.firehose/ts pos-int?)
+(s/def :st.firehose/snapshot map?)
+
+(s/def :firehose/cmp-recv
+  (s/keys :req-un [:st.firehose/cmp-id
+                   :st.firehose/msg
+                   :st.firehose/msg-meta
+                   :st.firehose/ts]))
+
+(s/def :firehose/cmp-put :firehose/cmp-recv)
+
+(s/def :firehose/cmp-publish-state
+  (s/keys :req-un [:st.firehose/cmp-id
+                   :st.firehose/snapshot
+                   :st.firehose/ts]))
+
+(s/def :firehose/cmp-recv-state
+  (s/keys :req-un [:st.firehose/cmp-id
+                   :st.firehose/msg]))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Scheduler Spec
 (s/def :st.schedule/timeout pos-int?)

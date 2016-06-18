@@ -30,4 +30,6 @@
   (r/cmp-map {:cmp-id  cmp-id
               :view-fn histograms-view
               :dom-id  "histograms"
-              :cfg     {:throttle-ms 100}}))
+              :cfg     {:throttle-ms           100
+                        :msgs-on-firehose      true
+                        :snapshots-on-firehose true}}))

@@ -36,4 +36,6 @@
   [cmp-id]
   {:cmp-id      cmp-id
    :state-fn    state-fn
-   :handler-map {:cmd/mouse-pos mouse-pos-from-server!}})
+   :handler-map {:cmd/mouse-pos mouse-pos-from-server!}
+   :opts        {:msgs-on-firehose      true
+                 :snapshots-on-firehose true}})

@@ -81,4 +81,5 @@
   [cmp-id]
   (r/cmp-map {:cmp-id  cmp-id
               :view-fn mouse-view
-              :dom-id  "mouse"}))
+              :dom-id  "mouse"
+              :cfg     {:msgs-on-firehose true}}))
