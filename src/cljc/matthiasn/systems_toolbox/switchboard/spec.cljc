@@ -49,6 +49,8 @@
                    :st.switchboard.route/to]
           :opt-un [:st.switchboard.route/pred]))
 
+(s/def :cmd/attach-to-firehose sts/namespaced-keyword?)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/observe-state
