@@ -1,17 +1,14 @@
 (ns example.core
-  (:require [matthiasn.systems-toolbox.switchboard :as sb]
+  (:require [example.spec]
+            [matthiasn.systems-toolbox.switchboard :as sb]
             [matthiasn.systems-toolbox-sente.server :as sente]
             [matthiasn.systems-toolbox-metrics.metrics :as metrics]
             [example.index :as index]
             [example.server-switchboard :as srvr-sb]
             [clojure.tools.logging :as log]
             [clj-pid.core :as pid]
-            [io.aviso.logging :as pretty]
             [example.pointer :as ptr]
             [matthiasn.systems-toolbox.scheduler :as sched]))
-
-(pretty/install-pretty-logging)
-(pretty/install-uncaught-exception-handler)
 
 (defonce switchboard (sb/component :server/switchboard))
 
@@ -21,11 +18,11 @@
   []
   (sb/send-mult-cmd
     switchboard
-    [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/index-page)]  ; WebSocket component
+    [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/sente-map)]  ; WebSocket component
      [:cmd/init-comp (sched/cmp-map :server/scheduler-cmp)]      ; scheduling component
      [:cmd/init-comp (ptr/cmp-map :server/ptr-cmp)]              ; component for processing mouse moves
      [:cmd/init-comp (metrics/cmp-map :server/metrics-cmp)]      ; metrics component
-     [:cmd/route-all {:from [:server/ptr-cmp :server/metrics-cmp]
+     [:cmd/route-all {:from #{:server/ptr-cmp :server/metrics-cmp}
                       :to   :server/ws-cmp}] ; route all messages to ws-cmp
      [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}] ;
      [:cmd/route {:from :server/scheduler-cmp :to :server/metrics-cmp}]

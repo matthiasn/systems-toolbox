@@ -1,0 +1,19 @@
+.counters {
+    margin: 20px;
+    font-family: sans-serif;
+    color: #555;
+}
+
+.counters button {
+    font-weight: 300;
+    color: #777;
+}
+
+.counters h1 {
+    font-weight: 300;
+    margin-bottom: 0.3em;
+}
+
+.counters pre {
+    margin-bottom: 2em;
+}

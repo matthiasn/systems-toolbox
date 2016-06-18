@@ -1,5 +1,6 @@
 (ns example.core
-  (:require [example.store :as store]
+  (:require [example.spec]
+            [example.store :as store]
             [example.ui-histograms :as hist]
             [example.ui-mouse-moves :as mouse]
             [example.conf :as conf]
@@ -24,13 +25,11 @@
      [:cmd/init-comp (obs/cmp-map :client/observer-cmp conf/observer-cfg-map)] ; UI component for observing system
 
      ;; Then, messages of a given type are wired from one component to another
-     [:cmd/route-all {:from :client/mouse-cmp :to :client/ws-cmp}]
-     [:cmd/route {:from :client/ws-cmp :to :client/store-cmp}]
-     [:cmd/route {:from :client/ws-cmp :to :client/jvmstats-cmp}]
-     [:cmd/observe-state {:from :client/store-cmp :to :client/histogram-cmp}]
-     [:cmd/observe-state {:from :client/store-cmp :to :client/mouse-cmp}]
+     [:cmd/route {:from :client/mouse-cmp :to :client/ws-cmp}]
+     [:cmd/route {:from :client/ws-cmp :to #{:client/store-cmp :client/jvmstats-cmp}}]
+     [:cmd/observe-state {:from :client/store-cmp :to #{:client/mouse-cmp :client/histogram-cmp}}]
 
      ;; Finally, wire firehose with all messages into the observer component
      [:cmd/attach-to-firehose :client/observer-cmp]]))
 
-(init (sente/cmp-map :client/ws-cmp))
+(init (sente/cmp-map :client/ws-cmp {:relay-types #{:cmd/mouse-pos}}))

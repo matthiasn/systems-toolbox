@@ -73,3 +73,8 @@
         [:div.l-box-lrg
          [:div#observer]]]]
       [:script {:src "/js/build/example.js"}]]]))
+
+(def sente-map
+  "Configuration map for sente-cmp."
+  {:index-page-fn index-page
+   :relay-types   #{:cmd/mouse-pos :stats/jvm}})
