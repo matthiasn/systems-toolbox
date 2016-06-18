@@ -5,8 +5,6 @@
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])))
 
-#?(:cljs (defn boolean? [x] (= (type x) js/Boolean)))
-
 (defn valid-or-no-spec?
   "If spec exists, validate spec and warn if x is invalid, with detailed explanation.
   If spec does not exist, log warning."
@@ -18,8 +16,6 @@
     (if x  ; only check for spec when x is truthy
       (do (l/warn (str "UNDEFINED SPEC " spec)) true)
       true)))
-
-#?(:cljs (defn pos-int? [n] (and (integer? n) (pos? n))))
 
 (defn namespaced-keyword? [k] (and (keyword? k) (namespace k)))
 

@@ -6,7 +6,9 @@
 
   :source-paths ["src/cljc"]
 
-  :dependencies [[org.clojure/tools.reader "1.0.0-beta1"]
+  :dependencies [[org.clojure/tools.reader "1.0.0-beta2"]
+                 [org.clojure/tools.analyzer.jvm "0.6.10"]
+                 [org.clojure/tools.analyzer "0.6.9"]
                  [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.analyzer.jvm]]
                  [org.ow2.asm/asm-all "5.1"]
                  [org.clojure/core.async "0.2.382"]
@@ -29,7 +31,7 @@
   ;:test-paths ["test" "perf"]
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha7"]
-                                  [org.clojure/clojurescript "1.9.36"]
+                                  [org.clojure/clojurescript "1.9.76"]
                                   [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]
                                   [org.slf4j/jul-to-slf4j "1.7.21"]
