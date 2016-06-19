@@ -32,24 +32,15 @@
    (when last-rt
      [:text (merge text-default {:x 115 :y 80}) (str mean " mean / " mn " min / " mx " max / " last-rt " last")])])
 
-(defn mouse-move-ev-handler
-  "Handler function for mouse move events, triggered when mouse is moved above SVG. Sends coordinates to server."
-  [app put-fn curr-cmp]
+(defn mouse-touch-ev-handler
+  "Handler function for mouse move and touch move events. Determines position from event and sends
+  coordinates as :cmd/mouse-pos messages. Also sets position in the local atom."
+  [local put-fn curr-cmp touch?]
   (fn [ev]
     (let [rect (-> curr-cmp rc/dom-node .getBoundingClientRect)
-          pos {:x (.toFixed (- (.-clientX ev) (.-left rect)) 0) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0)}]
-      (swap! app assoc :pos pos)
-      (put-fn [:cmd/mouse-pos pos])
-      (.stopPropagation ev))))
-
-(defn touch-move-ev-handler
-  "Handler function for touch move events, triggered when finger is moved above SVG. Sends coordinates to server."
-  [app put-fn curr-cmp]
-  (fn [ev]
-    (let [rect (-> curr-cmp rc/dom-node .getBoundingClientRect)
-          t (aget (.-targetTouches ev) 0)
-          pos {:x (- (.-clientX t) (.-left rect)) :y (.toFixed (- (.-clientY t) (.-top rect)) 0)}]
-      (swap! app assoc :pos pos)
+          ev (if touch? (aget (.-targetTouches ev) 0) ev)
+          pos {:x (.toFixed (- (.-clientX ev) (.-left rect))) :y (.toFixed (- (.-clientY ev) (.-top rect)) 0)}]
+      (swap! local assoc :pos pos)
       (put-fn [:cmd/mouse-pos pos])
       (.stopPropagation ev))))
 
@@ -58,9 +49,7 @@
   time is measured."
   [{:keys [observed local put-fn]}]
   (let [state-snapshot @observed
-        local-state @local
         mouse-div (by-id "mouse")
-        pos (:pos local-state)
         last-rt (:rt-time (:from-server state-snapshot))
         rtt-times (:rtt-times state-snapshot)
         mx (apply max rtt-times)
@@ -72,10 +61,10 @@
     [:div {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
      [:svg {:width         (:width @local) :height (:width @local) ;220
             :style         {:background-color :white}
-            :on-mouse-move (mouse-move-ev-handler local put-fn (rc/current-component))
-            :on-touch-move (touch-move-ev-handler local put-fn (rc/current-component))}
-      (text-view state-snapshot pos (.toFixed mean 0) mn mx last-rt)
-      (trailing-circles state-snapshot local-state)]]))
+            :on-mouse-move (mouse-touch-ev-handler local put-fn (rc/current-component) false)
+            :on-touch-move (mouse-touch-ev-handler local put-fn (rc/current-component) true)}
+      (text-view state-snapshot (:pos @local) (.toFixed mean 0) mn mx last-rt)
+      (trailing-circles state-snapshot @local)]]))
 
 (defn cmp-map
   [cmp-id]
