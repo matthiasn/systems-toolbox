@@ -59,7 +59,8 @@
     (update-width)
     (aset js/window "onresize" update-width)
     [:div {:style {:border-color :darkgray :border-width "1px" :border-style :solid}}
-     [:svg {:width         (:width @local) :height (:width @local) ;220
+     [:svg {:width         (:width @local)
+            :height        (:width @local)
             :style         {:background-color :white}
             :on-mouse-move (mouse-touch-ev-handler local put-fn (rc/current-component) false)
             :on-touch-move (mouse-touch-ev-handler local put-fn (rc/current-component) true)}

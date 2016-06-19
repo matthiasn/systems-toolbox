@@ -3,19 +3,15 @@
   them back. Here, this provides a way to measure roundtrip time from the UI, as timestamps are recorded as
   the message flows through the system.")
 
-(defn ptr-state-fn
-  "Creates fresh component state with a counter.."
-  [_]
-  {:state (atom {:count 0})})
-
 (defn process-mouse-pos
   "Handler function for received mouse positions, increments counter and returns mouse position to sender."
-  [{:keys [cmp-state msg-meta msg-payload put-fn]}]
-  (swap! cmp-state update-in [:count] inc)
-  (put-fn (with-meta [:cmd/mouse-pos (assoc msg-payload :count (:count @cmp-state))] msg-meta)))
+  [{:keys [current-state msg-meta msg-payload]}]
+  (let [new-state (update-in current-state [:count] inc)]
+    {:new-state new-state
+     :emit-msg (with-meta [:cmd/mouse-pos (assoc msg-payload :count (:count new-state))] msg-meta)}))
 
 (defn cmp-map
   [cmp-id]
   {:cmp-id      cmp-id
-   :state-fn    ptr-state-fn
+   :state-fn    (fn [_] {:state (atom {:count 0})})
    :handler-map {:cmd/mouse-pos process-mouse-pos}})

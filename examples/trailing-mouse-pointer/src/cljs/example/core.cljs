@@ -13,17 +13,17 @@
 
 (defonce switchboard (sb/component :client/switchboard))
 
-(defn init
-  [client-ws-cmp]
+(defn init! []
   (sb/send-mult-cmd
     switchboard
-    [[:cmd/init-comp client-ws-cmp]                         ; injected WebSocket communication component
-     [:cmd/init-comp (hist/cmp-map :client/histogram-cmp)]  ; histograms component
-     [:cmd/init-comp (mouse/cmp-map :client/mouse-cmp)]     ; UI component for capturing mouse moves
-     [:cmd/init-comp (store/cmp-map :client/store-cmp)]     ; Data store component
-     [:cmd/init-comp (jvmstats/cmp-map :client/jvmstats-cmp "jvm-stats-frame")] ;  UI component: JVM stats
-     [:cmd/init-comp (obs/cmp-map :client/observer-cmp conf/observer-cfg-map)] ; UI component for observing system
-
+    [[:cmd/init-comp
+      #{(sente/cmp-map :client/ws-cmp ;  WebSocket communication component
+                       {:relay-types #{:cmd/mouse-pos} :msgs-on-firehose true})
+        (mouse/cmp-map :client/mouse-cmp) ; UI component for capturing mouse moves
+        (store/cmp-map :client/store-cmp)                           ; Data store component
+        (hist/cmp-map :client/histogram-cmp)                        ; histograms component
+        (jvmstats/cmp-map :client/jvmstats-cmp "jvm-stats-frame")   ;  UI component: JVM stats
+        (obs/cmp-map :client/observer-cmp conf/observer-cfg-map)}]  ; UI component for observing system
      ;; Then, messages of a given type are wired from one component to another
      [:cmd/route {:from :client/mouse-cmp :to :client/ws-cmp}]
      [:cmd/route {:from :client/ws-cmp :to #{:client/store-cmp :client/jvmstats-cmp}}]
@@ -32,5 +32,4 @@
      ;; Finally, wire firehose with all messages into the observer component
      [:cmd/attach-to-firehose :client/observer-cmp]]))
 
-(init (sente/cmp-map :client/ws-cmp {:relay-types      #{:cmd/mouse-pos}
-                                     :msgs-on-firehose true}))
+(init!)
