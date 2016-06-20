@@ -11,7 +11,7 @@
                  [org.clojure/tools.analyzer "0.6.9"]
                  [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.analyzer.jvm]]
                  [org.ow2.asm/asm-all "5.1"]
-                 [org.clojure/core.async "0.2.382"]
+                 [org.clojure/core.async "0.2.385"]
                  [org.clojure/tools.logging "0.3.1"]
                  [io.aviso/pretty "0.1.26"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]
@@ -19,7 +19,7 @@
   :plugins [[lein-codox "0.9.5"]
             [test2junit "1.2.2"]
             [lein-doo "0.1.6"]
-            [com.jakemccrary/lein-test-refresh "0.15.0"]
+            [com.jakemccrary/lein-test-refresh "0.16.0"]
             [lein-cljsbuild "1.1.3"]]
 
   :test2junit-output-dir ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
