@@ -25,7 +25,6 @@
     [:html
      {:lang "en"}
      [:head
-      ;[:meta {:content "width=device-width, user-scalable=no", :name "viewport"}]
       [:meta {:name "viewport" :content "width=device-width, minimum-scale=1.0"}]
       [:title "Systems-Toolbox: Trailing Mouse Pointer Example"]
       [:link {:href "/bower_components/pure/pure-min.css", :media "screen", :rel "stylesheet"}]
@@ -39,6 +38,7 @@
         [:a.pure-menu-heading {:href ""} "systems-toolbox"]
         [:ul
          [:li [:div#jvm-stats-frame]]]]]
+      [:div#mouse]
       [:div.splash-container
        [:div.splash
         [:h1.splash-head "Trailing Mouse Moves Example"]
@@ -52,10 +52,8 @@
               white box below. The mouse move events will then be sent to the server and returned over the WebSocket
               connection and the time for sending and returning each message is measured. These times are then
               shown in histograms. Check out the code on "
-          [:a {:href "https://github.com/matthiasn/systems-toolbox"} "GitHub"] "."]]]
+          [:a {:href "https://github.com/matthiasn/systems-toolbox" :target "_blank"} "GitHub"] "."]]]
        [:div.content [:div.l-box-lrg.pure-g
-                      [:div.pure-u-1.pure-u-md-1-3 [:div#mouse]]
-                      [:div.pure-u-1.pure-u-md-1-6 [:div]]
                       [:div.pure-u-1.pure-u-md-1-2 [:div#observer]]]]
        [:div.content [:div.l-box-lrg [:div#histograms]]]
        [:div.content
@@ -64,14 +62,7 @@
               The number of bins is determined by applying the "
           [:a {:href "http://en.wikipedia.org/wiki/Freedman–Diaconis_rule"} "Freedman-Diaconis rule"] ".
               The first histogram takes the entire sample into account whereas the second only dispays the observations
-              that fall within the 99th percentile in order to remove potential outliers."]]]
-       [:div.content
-        [:div.l-box-lrg.pure-g
-         [:div#messages.pure-u-1.pure-u-md-1-2]
-         [:div#snapshots.pure-u-1.pure-u-md-1-2]]]
-       [:div.content
-        [:div.l-box-lrg
-         [:div#observer]]]]
+              that fall within the 99th percentile in order to remove potential outliers."]]]]
       [:script {:src "/js/build/example.js"}]]]))
 
 (def sente-map

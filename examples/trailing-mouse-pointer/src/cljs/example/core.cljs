@@ -25,7 +25,7 @@
         (jvmstats/cmp-map :client/jvmstats-cmp "jvm-stats-frame")   ;  UI component: JVM stats
         (obs/cmp-map :client/observer-cmp conf/observer-cfg-map)}]  ; UI component for observing system
      ;; Then, messages of a given type are wired from one component to another
-     [:cmd/route {:from :client/mouse-cmp :to :client/ws-cmp}]
+     [:cmd/route {:from :client/mouse-cmp :to #{:client/store-cmp :client/ws-cmp}}]
      [:cmd/route {:from :client/ws-cmp :to #{:client/store-cmp :client/jvmstats-cmp}}]
      [:cmd/observe-state {:from :client/store-cmp :to #{:client/mouse-cmp :client/histogram-cmp}}]
 

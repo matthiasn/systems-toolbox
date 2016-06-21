@@ -1,7 +1,6 @@
 (ns example.ui-histograms
   (:require [matthiasn.systems-toolbox-ui.reagent :as r]
-            [matthiasn.systems-toolbox-ui.charts.histogram :as hist]
-            [cljs.pprint :as pp]))
+            [matthiasn.systems-toolbox-ui.charts.histogram :as hist]))
 
 (defn histogram-view
   "Renders an individual histogram for the given data, dimension, label and color."
