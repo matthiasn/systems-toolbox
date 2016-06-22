@@ -32,7 +32,8 @@
   {:state (atom {:count             0
                  :rtt-times         []
                  :network-times     []
-                 :server-proc-times []})})
+                 :server-proc-times []
+                 :local {:x 0 :y 0}})})
 
 (defn cmp-map
   "Configuration map that specifies how to instantiate component."

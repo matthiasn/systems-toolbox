@@ -54,6 +54,7 @@
               shown in histograms. Check out the code on "
           [:a {:href "https://github.com/matthiasn/systems-toolbox" :target "_blank"} "GitHub"] "."]]]
        [:div.content [:div.l-box-lrg.pure-g
+                      [:div.pure-u-1.pure-u-md-1-2 [:div#info]]
                       [:div.pure-u-1.pure-u-md-1-2 [:div#observer]]]]
        [:div.content [:div.l-box-lrg [:div#histograms]]]
        [:div.content
