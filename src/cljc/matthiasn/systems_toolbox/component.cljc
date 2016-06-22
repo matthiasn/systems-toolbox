@@ -42,25 +42,12 @@
 
 (defn detect-changes
   "Detect changes to the component state atom and then publish a snapshot using the
-  'snapshot-publish-fn'.
-  The Clojure version simply calls the snapshot-publish-fn whenever there is a change
-  to the component state atom.
-  The ClojureScript version holds the publication of a new component state snapshot by
-  scheduling it to happen on the the next animation-frame event. Until then, no further
-  snapshot publications are scheduled. This effectively ignores all state updates until
-  that event fires, while then publishing the latest snapshot. This mechanism avoids
-  burdening the JS engine with messages that are not relevant for rendering anyway."
+  'snapshot-publish-fn'."
   [{:keys [watch-state cmp-id snapshot-publish-fn]}]
-  #?(:clj (try (add-watch watch-state :watcher (fn [_ _ _ _new-state] (snapshot-publish-fn)))
-            (catch Exception e
-              (l/error "Failed trying to watch atom in" cmp-id (ex/format-exception e) (h/pp-str watch-state))))
-     :cljs (let [publish-scheduled? (atom false)
-                 publish-fn (fn [] (snapshot-publish-fn) (reset! publish-scheduled? false))
-                 publish-schedule-fn (fn [] (when-not @publish-scheduled?
-                                              (reset! publish-scheduled? true)
-                                              (h/request-animation-frame publish-fn)))]
-             (try (add-watch watch-state :watcher (fn [_ _ _ _new-state] (publish-schedule-fn)))
-                  (catch js/Object e (l/error e "Failed trying to watch atom in" cmp-id (h/pp-str watch-state)))))))
+  (try
+    (add-watch watch-state :watcher (fn [_ _ _ _new-state] (snapshot-publish-fn)))
+    #?(:clj  (catch Exception e (l/error "Failed watching atom" cmp-id (ex/format-exception e) (h/pp-str watch-state)))
+       :cljs (catch js/Object e (l/error e "Failed watching atom" cmp-id (h/pp-str watch-state))))))
 
 (defn make-system-ready-fn
   "This function is called by the switchboard that wired this component when all other

@@ -29,12 +29,13 @@
   [{:keys [observed local]}]
   (let [state-snapshot @observed
         mouse-div (by-id "mouse")
-        update-width #(swap! local assoc :width (- (.-offsetWidth mouse-div) 2))]
-    (update-width)
-    (aset js/window "onresize" update-width)
+        update-dim #(do (swap! local assoc :width (- (.-offsetWidth mouse-div) 2))
+                        (swap! local assoc :height (aget js/document "body" "clientHeight")))]
+    (update-dim)
+    (aset js/window "onresize" update-dim)
     [:div
      [:svg {:width  (:width @local)
-            :height (:width @local)}
+            :height (:height @local)}
       (trailing-circles state-snapshot)]]))
 
 (defn init-fn
