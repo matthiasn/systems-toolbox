@@ -26,4 +26,5 @@
   (r/cmp-map {:cmp-id  cmp-id
               :view-fn info-view
               :dom-id  "info"
-              :cfg     {:msgs-on-firehose true}}))
+              :cfg     {:msgs-on-firehose      true
+                        :snapshots-on-firehose true}}))

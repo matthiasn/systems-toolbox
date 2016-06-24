@@ -6,6 +6,9 @@ Before the first usage, you want to install the **[Bower](http://bower.io)** dep
 
     $ bower install
 
+    $ cd resources/public/css/
+    $ git clone https://github.com/edwardtufte/tufte-css.git
+
 Once this is done, you can start the application as usual:
 
     $ lein run

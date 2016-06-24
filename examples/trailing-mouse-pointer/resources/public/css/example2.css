@@ -1,0 +1,24 @@
+#mouse {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 10;
+    margin-left: -12.5%;
+}
+
+#histograms {
+    margin-bottom: 1em;
+    display: flex;
+    flex-flow: row;
+}
+
+#histograms div {
+    display: flex;
+    flex-flow: column;
+}
+
+#histograms div div{
+    display: flex;
+    flex-flow: row;
+}
