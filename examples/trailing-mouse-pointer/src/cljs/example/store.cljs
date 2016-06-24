@@ -23,8 +23,14 @@
                 (update-in [:rtt-times] conj rt-time)
                 (update-in [:server-proc-times] conj srv-proc-time)
                 (update-in [:network-times] conj (- rt-time srv-proc-time))))
-          (assoc-in current-state [:local] msg-payload))]
+          (-> current-state
+              (assoc-in [:local] msg-payload)
+              (update-in [:local-positions] conj msg-payload)))]
     {:new-state new-state}))
+
+(defn show-all-handler
+  [{:keys [current-state]}]
+  {:new-state (update-in current-state [:show-all] not)})
 
 (defn state-fn
   "Return clean initial component state atom."
@@ -33,13 +39,15 @@
                  :rtt-times         []
                  :network-times     []
                  :server-proc-times []
-                 :local {:x 0 :y 0}})})
+                 :local {:x 0 :y 0}
+                 :show-all false})})
 
 (defn cmp-map
   "Configuration map that specifies how to instantiate component."
   [cmp-id]
   {:cmp-id      cmp-id
    :state-fn    state-fn
-   :handler-map {:cmd/mouse-pos mouse-pos-handler}
+   :handler-map {:cmd/mouse-pos mouse-pos-handler
+                 :cmd/show-all  show-all-handler}
    :opts        {:msgs-on-firehose      true
                  :snapshots-on-firehose true}})

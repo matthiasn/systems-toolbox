@@ -12,11 +12,11 @@
       [:meta {:name "viewport" :content "width=device-width, minimum-scale=1.0"}]
       [:title "Systems-Toolbox: Trailing Mouse Pointer Example"]
       [:link {:href "/css/tufte-css/tufte.css", :media "screen", :rel "stylesheet"}]
-      [:link {:href "/css/example2.css", :media "screen", :rel "stylesheet"}]
+      [:link {:href "/css/example.css", :media "screen", :rel "stylesheet"}]
       [:link {:href "/images/favicon.png", :rel "shortcut icon", :type "image/png"}]]
      [:body
+      [:div#mouse]
       [:article
-       [:div#mouse]
        [:h1 "WebSockets Latency Visualization"]
        [:p "Matthias Nehlsen"]
        [:section
@@ -28,7 +28,7 @@
           connection and the time for sending and returning each message is measured. These times are then
           shown in histograms."]
         [:figure#histograms.fullwidth]
-        [:p#info]
+        [:div#info]
         [:figure#observer]]
        [:p "The histograms above are entirely drawn in ClojureScript - without any additional charting library.
             The number of bins is determined by applying the "

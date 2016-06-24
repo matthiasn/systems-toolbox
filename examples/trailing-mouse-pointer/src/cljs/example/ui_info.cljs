@@ -5,7 +5,7 @@
 (defn info-view
   "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
   time is measured."
-  [{:keys [observed]}]
+  [{:keys [observed put-fn]}]
   (let [state-snapshot @observed
         last-rt (:rt-time (:from-server state-snapshot))
         rtt-times (:rtt-times state-snapshot)
@@ -18,7 +18,8 @@
      [:strong "Mouse Moves Processed: "] (:count state-snapshot) [:br]
      [:strong "Processed since Startup: "] (:count (:from-server state-snapshot)) [:br]
      [:strong "Current position: "] "x: " (:x local-pos) " y: " (:y local-pos) [:br]
-     [:strong "Latency (ms): "] latency-string [:br]]))
+     [:strong "Latency (ms): "] latency-string [:br]
+     [:button {:on-click #(put-fn [:cmd/show-all])} "show all"]]))
 
 (defn cmp-map
   "Configuration map for systems-toolbox-ui component."
