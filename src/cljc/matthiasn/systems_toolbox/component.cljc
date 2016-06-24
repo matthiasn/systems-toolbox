@@ -23,7 +23,10 @@
    :publish-snapshots     true
    :snapshots-on-firehose false
    :msgs-on-firehose      false
-   :reload-cmp            true})
+   :reload-cmp            true
+   :validate-in           false
+   :validate-out          true
+   :validate-state        true})
 
 (defn make-snapshot-publish-fn
   "Creates a function for publishing changes to the component state atom as snapshot messages,"

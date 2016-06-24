@@ -50,10 +50,11 @@
 (defn mk-handler-return-fn
   "Returns function for handling the return value of a handler function.
   This returned map can contain :new-state, :emit-msg and :send-to-self keys."
-  [{:keys [state-reset-fn put-fn] :as cmp-map} in-chan msg-meta]
+  [{:keys [state-reset-fn cfg put-fn] :as cmp-map} in-chan msg-meta]
   (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
     (when new-state (when-let [state-spec (:state-spec cmp-map)]
-                      (assert (s/valid-or-no-spec? state-spec new-state)))
+                      (when (:validate-state cfg)
+                        (assert (s/valid-or-no-spec? state-spec new-state))))
                     (state-reset-fn new-state))
     (when send-to-self (if (vector? (first send-to-self))
                          (a/onto-chan in-chan send-to-self false)
@@ -94,7 +95,7 @@
             handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
             observed-state-handler (or state-pub-handler default-state-pub-handler)]
         (try
-          (assert (s/valid-or-no-spec? msg-type msg-payload))
+          (when (:validate-in cfg) (assert (s/valid-or-no-spec? msg-type msg-payload)))
           (when (= chan-key :sliding-in-chan)
             (handler-return-fn (observed-state-handler (msg-map-fn)))
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
@@ -129,8 +130,9 @@
    not try call more messages than fit in the buffer before the entire system is up."
   [{:keys [cmp-id put-chan cfg firehose-chan]}]
   (fn [msg]
-    {:pre [(s/valid-or-no-spec? (first msg) (second msg))
-           (s/valid-or-no-spec? :systems-toolbox/msg-spec msg)]}
+    (when (:validate-out cfg)
+      {:pre [(s/valid-or-no-spec? (first msg) (second msg))
+             #_(s/valid-or-no-spec? :systems-toolbox/msg-spec msg)]})
     (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (h/now)))
           corr-id (h/make-uuid)
           tag (or (:tag msg-meta) (h/make-uuid))
