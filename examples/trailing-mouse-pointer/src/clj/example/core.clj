@@ -18,13 +18,13 @@
   []
   (sb/send-mult-cmd
     switchboard
-    [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/sente-map)]  ; WebSocket component
-     [:cmd/init-comp (sched/cmp-map :server/scheduler-cmp)]      ; scheduling component
-     [:cmd/init-comp (ptr/cmp-map :server/ptr-cmp)]              ; component for processing mouse moves
-     [:cmd/init-comp (metrics/cmp-map :server/metrics-cmp)]      ; metrics component
+    [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/sente-map)]
+     [:cmd/init-comp (sched/cmp-map :server/scheduler-cmp)]
+     [:cmd/init-comp (ptr/cmp-map :server/ptr-cmp)]
+     [:cmd/init-comp (metrics/cmp-map :server/metrics-cmp)]
      [:cmd/route-all {:from #{:server/ptr-cmp :server/metrics-cmp}
-                      :to   :server/ws-cmp}] ; route all messages to ws-cmp
-     [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}] ;
+                      :to   :server/ws-cmp}]
+     [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]
      [:cmd/route {:from :server/scheduler-cmp :to :server/metrics-cmp}]
      [:cmd/send {:to  :server/scheduler-cmp
                  :msg [:cmd/schedule-new {:timeout 5000 :message [:cmd/get-jvm-stats] :repeat true}]}]]))

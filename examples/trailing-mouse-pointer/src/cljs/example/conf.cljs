@@ -5,7 +5,7 @@
    :switchbrd-id :client/switchboard
    :fixed-nodes   {:client/ws-cmp           {:x 100 :y 300}
                    :client/observer-cmp     {:x 360 :y 550}
-                   :client/switchboard      {:x 360 :y 320}
+                   :client/switchboard      {:x 360 :y 420}
                    :client/mouse-cmp        {:x 650 :y 230}
                    :client/info-cmp         {:x 650 :y 360}
                    :client/histogram-cmp    {:x 650 :y 490}

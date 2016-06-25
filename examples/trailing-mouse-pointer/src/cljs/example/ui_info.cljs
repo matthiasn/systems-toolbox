@@ -3,8 +3,8 @@
             [matthiasn.systems-toolbox-ui.helpers :refer [by-id]]))
 
 (defn info-view
-  "Renders SVG with an area in which mouse moves are detected. They are then sent to the server and the round-trip
-  time is measured."
+  "Show some info about app state, plus toggle buttons for showing all mouse positions, both local
+  and from server."
   [{:keys [observed put-fn]}]
   (let [state-snapshot @observed
         last-rt (:rt-time (:from-server state-snapshot))
@@ -19,7 +19,10 @@
      [:strong "Processed since Startup: "] (:count (:from-server state-snapshot)) [:br]
      [:strong "Current position: "] "x: " (:x local-pos) " y: " (:y local-pos) [:br]
      [:strong "Latency (ms): "] latency-string [:br]
-     [:button {:on-click #(put-fn [:cmd/show-all])} "show all"]]))
+     [:br]
+     [:button {:on-click #(put-fn [:cmd/show-all :local])} "show all"]
+     [:button {:on-click #(do (put-fn [:mouse/get-hist])
+                              (put-fn [:cmd/show-all :server]))} "show all (server)"]]))
 
 (defn cmp-map
   "Configuration map for systems-toolbox-ui component."
