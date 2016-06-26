@@ -59,7 +59,12 @@
   position."
   [{:keys [put-fn]}]
   (aset js/window "onmousemove"
-        #(put-fn [:mouse/pos {:x (.-pageX %) :y (.-pageY %)}])))
+        #(put-fn [:mouse/pos {:x (.-pageX %) :y (.-pageY %)}]))
+  (aset js/window "ontouchmove"
+        (fn [ev]
+          (let [t (aget (.-targetTouches ev) 0)]
+            (put-fn [:mouse/pos {:x (.-pageX t) :y (.-pageY t)}])
+            #_(.preventDefault ev)))))
 
 (defn cmp-map
   "Configuration map for systems-toolbox-ui component."

@@ -10,7 +10,7 @@
   [{:keys [current-state msg-meta msg-payload]}]
   (let [new-state (-> current-state
                       (update-in [:count] inc)
-                      (update-in [:mouse-moves] #(vec (take-last 10000 (conj % msg-payload)))))]
+                      (update-in [:mouse-moves] #(vec (take-last 1000 (conj % msg-payload)))))]
     {:new-state new-state
      :emit-msg (with-meta [:mouse/pos (assoc msg-payload :count (:count new-state))] msg-meta)}))
 

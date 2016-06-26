@@ -20,25 +20,58 @@
        [:h1 "WebSockets Latency Visualization"]
        [:p [:a {:href "https://github.com/matthiasn" :target "_blank"} "Matthias Nehlsen"]]
        [:section
-        [:p "This is the second example in the "
+        [:p "WebSockets bring bi-directional communication to the browser. This enables you to deliver interactive,
+             real time web applications where all the data is as of right now, rather than always being outdated,
+             and then constantly refreshed."]
+        [:p "But how fast is this transport mechanism? Let's have a look. You may have noticed the circle around the
+             mouse pointer on this page, "
+         [:label {:for "explain1" :class "margin-toggle"} " ⊕ "]
+         [:input#explain1 {:type "checkbox" :class "margin-toggle"}]
+         [:span.marginnote "What happens here is that movements of the mouse (or your finger on your mobile device)
+                            are captured. The more reddish one is then painted immediately, whereas the bluish one
+                            is painted after the event is sent to a server somewhere in Germany, and then back to
+                            wherever you are."]
+         "or in fact the two circles, where one of them appears to follow the other. Both represent your last
+          mouse position, only that one was sent to and returned from the server in the
+          meantime. This gives you an intuition for how long it takes. Also, with your movement of the mouse,
+          you generate data for the histograms below, which show the roundtrip duration:"]
+        [:figure#histograms.fullwidth]
+        [:p "Now, since we are already capturing the movement of the mouse, you may think that it could be interesting
+             to see where the users' mouses go, as a proxy for where they are looking on a page. Surely not a accurate
+             as actual eye tracking, but probably much better than nothing. Now let's see where your mouse was since
+             you started interacting with this page. Click the \"show all\" button in the info section below,"
+         [:label {:for "explain2" :class "margin-toggle"} " ⊕ "]
+         [:input#explain2 {:type "checkbox" :class "margin-toggle"}]
+         [:span.marginnote "By clicking those buttons again, you can switch the display on or off."]
+         " and you see where your mouse goes. Then, by clicking \"show all (server)\", you can also display the most
+          recent mouse positions of all visitors on this page."]
+        [:div#info]
+        [:p "You are looking at a web application written in Clojure and ClojureScript. It is one of the example
+             applications of the systems-toolbox library. The histograms above are rendered entirely in ClojureScript
+             - without any additional charting library."
+         [:span.marginnote "The "
+          [:a {:href "http://en.wikipedia.org/wiki/Freedman–Diaconis_rule"} "Freedman-Diaconis rule"]
+          " determines the number of bins in the histograms. The first
+           histogram takes the entire sample into account whereas the second only displays the
+           observations that fall within the 99th percentile to remove potential outliers."]]
+        [:figure
+         [:label {:for "fig2" :class "margin-toggle"} " ⊕ "]
+         [:input#fig2 {:type "checkbox" :class "margin-toggle"}]
+         [:span.marginnote "Structure of the ClojureScript application, with their message flow visualized as rx
+                            and tx LEDs, like on a network card."]
+         [:div#observer]]
+        [:p "If you want to know how this application was built, have a look at the code on "
+         [:a {:href "https://github.com/matthiasn/systems-toolbox" :target "_blank"} "GitHub"]
+         " or the book "
          [:a {:href   "https://leanpub.com/building-a-system-in-clojure"
               :target "_blank"} "Building Systems in Clojure(Script)"]
-         " book. It gives you a feel for how fast communication via WebSocket is. Move your mouse anywhere on the page.
-          The mouse move events will then be sent to the server and returned over the WebSocket
-          connection and the time for sending and returning each message is measured. These times are then
-          shown in histograms."]
-        [:figure#histograms.fullwidth]
-        [:div#info]
-        [:figure#observer]]
-       [:p "The histograms above are entirely drawn in ClojureScript - without any additional charting library.
-            The number of bins is determined by applying the "
-        [:a {:href "http://en.wikipedia.org/wiki/Freedman–Diaconis_rule"} "Freedman-Diaconis rule"]
-        ". The first histogram takes the entire sample into account whereas the second only dispays the observations
-         that fall within the 99th percentile in order to remove potential outliers."]
-
-       [:p "Check out the code on "
-        [:a {:href "https://github.com/matthiasn/systems-toolbox" :target "_blank"} "GitHub"] "."]
-
+         ". Also, check for a future blog post on "
+         [:a {:href   "https://matthiasnehlsen.com" :target "_blank"} "matthiasnehlsen.com"]
+         "."]
+        [:p "Finally, if you like the layout of this page, you need to look at "
+         [:a {:href "https://edwardtufte.github.io/tufte-css/" :target "_blank"} "Tufte CSS"]
+         ". It allowed me to write this application with only around 30 lines of CSS, most of which is related to
+          the flexbox layout for histogram SVGs."]]
        [:div#jvm-stats-frame]]
       [:script {:src "/js/build/example.js"}]
       ; Google Analytics for tracking demo page

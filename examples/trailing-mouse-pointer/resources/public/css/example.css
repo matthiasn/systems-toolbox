@@ -1,5 +1,11 @@
 body {
     margin: 0;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+}
+
+article {
+    padding: 2em 0;
 }
 
 #mouse {
