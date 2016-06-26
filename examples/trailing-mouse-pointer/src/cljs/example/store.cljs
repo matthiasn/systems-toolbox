@@ -4,9 +4,9 @@
   "Handler function for mouse position messages. When message from server:
     - determine the round trip time (RTT) by subtracting the message creation timestamp
       from the timestamp when the message is finally received by the store component.
-    - determine server side processing time is determined. For this, we can use the timestamps from
-      when the ws-cmp on the server side emits a message coming from the client and when the processed
-      message is received back for delivery to the client.
+    - determine server side processing time is determined. For this, we can use the timestamps
+      from when the ws-cmp on the server side emits a message coming from the client and when the
+      processed message is received back for delivery to the client.
     - update component state with the new mouse location under :from-server.
    When message received locally, only update position in :local."
   [{:keys [current-state msg-payload msg-meta]}]

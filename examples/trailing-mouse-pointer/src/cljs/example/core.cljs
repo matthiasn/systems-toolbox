@@ -19,7 +19,8 @@
     switchboard
     [;; First, instantiate components
      [:cmd/init-comp
-      #{(sente/cmp-map :client/ws-cmp {:relay-types #{:mouse/pos :mouse/get-hist} :msgs-on-firehose true})
+      #{(sente/cmp-map :client/ws-cmp {:relay-types #{:mouse/pos :mouse/get-hist}
+                                       :msgs-on-firehose true})
         (mouse/cmp-map :client/mouse-cmp)
         (info/cmp-map  :client/info-cmp)
         (store/cmp-map :client/store-cmp)

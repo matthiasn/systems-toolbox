@@ -4,10 +4,6 @@ body {
     overflow-x: hidden;
 }
 
-article {
-    padding: 2em 0;
-}
-
 #mouse {
     position: absolute;
     top: 0;
@@ -15,6 +11,10 @@ article {
     pointer-events: none;
     z-index: 10;
     margin-left: -12.5%;
+}
+
+article {
+    padding: 2em 0;
 }
 
 #histograms {

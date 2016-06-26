@@ -3,7 +3,9 @@
             [matthiasn.systems-toolbox-ui.helpers :refer [by-id]]))
 
 ;; some SVG defaults
-(def circle-defaults {:fill "rgba(255,0,0,0.1)" :stroke "rgba(0,0,0,0.5)" :stroke-width 2 :r 15})
+(def circle-defaults {:fill "rgba(255,0,0,0.1)
+" :stroke "rgba(0,0,0,0.5)"
+                      :stroke-width 2 :r 15})
 (def text-default {:stroke "none" :fill "black" :style {:font-size 12}})
 (def text-bold (merge text-default {:style {:font-weight :bold :font-size 12}}))
 
@@ -23,15 +25,18 @@
                    :fill         fill}])])))
 
 (defn trailing-circles
-  "Displays two transparent circles. The position of the circles comes from the most recent messages,
-  one sent locally and the other with a roundtrip to the server in between.  This makes it easier to
-  visually detect any delays."
+  "Displays two transparent circles. The position of the circles comes from the most recent
+  messages, one sent locally and the other with a roundtrip to the server in between.  This
+  makes it easier to visually detect any delays."
   [state]
   (let [local-pos (:local state)
         from-server (:from-server state)]
     [:g
-     [:circle (merge circle-defaults {:cx (:x local-pos) :cy (:y local-pos)})]
-     [:circle (merge circle-defaults {:cx (:x from-server) :cy (:y from-server) :fill "rgba(0,0,255,0.1)"})]]))
+     [:circle (merge circle-defaults {:cx (:x local-pos)
+                                      :cy (:y local-pos)})]
+     [:circle (merge circle-defaults {:cx (:x from-server)
+                                      :cy (:y from-server)
+                                      :fill "rgba(0,0,255,0.1)"})]]))
 
 (defn mouse-view
   "Renders SVG with both local mouse position and the last one returned from the server,
