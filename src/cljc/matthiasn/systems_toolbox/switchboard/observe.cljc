@@ -11,5 +11,8 @@
                      (let [pub-comp (from (:components acc))
                            sub-comp (to (:components acc))]
                        (sub (:state-pub pub-comp) :app/state (:sliding-in-chan sub-comp))
-                       (update-in acc [:subs] conj {:from from :to to :msg-type :app/state :type :sub})))]
+                       (update-in acc [:subs] conj {:from     from
+                                                    :to       to
+                                                    :msg-type :app/state
+                                                    :type     :sub})))]
     {:new-state (reduce reducer-fn current-state (h/cmp-ids-set to))}))

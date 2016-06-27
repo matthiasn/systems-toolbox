@@ -37,7 +37,8 @@
         to-comp (to (:components current-state))]
     (try (do (tap sw-firehose-mult (:in-chan to-comp))
              {:new-state (update-in current-state [:fh-taps] conj {:from cmp-id :to to :type :fh-tap})})
-         #?(:clj  (catch Exception e (l/error "Could not create tap: " cmp-id " -> " to " - " (ex/format-exception e)))
+         #?(:clj  (catch Exception e
+                    (l/error "Could not create tap: " cmp-id " -> " to " - " (ex/format-exception e)))
             :cljs (catch js/Object e (l/error "Could not create tap: " cmp-id " -> " to " - " e))))))
 
 (defn send-to
@@ -67,7 +68,8 @@
    :status/system-ready    wire-all-out-channels})
 
 (defn xform-fn
-  "Transformer function for switchboard state snapshot. Allows serialization of snaphot for sending over WebSockets."
+  "Transformer function for switchboard state snapshot. Allows serialization of snaphot for sending
+  over WebSockets."
   [m]
   (update-in m [:components] (fn [cmps] (into {} (mapv (fn [[k v]] [k k]) cmps)))))
 

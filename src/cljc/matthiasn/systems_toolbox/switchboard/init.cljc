@@ -18,14 +18,16 @@
     :else #{val}))
 
 (defn wire-or-init-comp
-  "Either wire existing and already instantiated component or instantiate a component from a component map.
+  "Either wire existing and already instantiated component or instantiate a component from a
+  component map.
   Also capable of reloading component, e.g. when using Figwheel on the client side.
-  When a previous component with the same name exists, this function first of all unwires that previous
-  component by unsubscribing and untapping all connected channels. Then, the state of that previous component is
-  used in the new component in order to provide a smooth developer experience. When the either is no previous
-  component with the same name or the component ought to be reloaded, the previous one is replaced by the new one in the
-  switchboard state. Finally, the new component is tapped into the switchboard's firehose and the component is also
-  asked to publish its state once (also useful for Figwheel)."
+  When a previous component with the same name exists, this function first of all unwires that
+  previous component by unsubscribing and untapping all connected channels. Then, the state of that
+  previous component is used in the new component in order to provide a smooth developer experience.
+  When the either is no previous component with the same name or the component ought to be reloaded,
+  the previous one is replaced by the new one in the switchboard state. Finally, the new component
+  is tapped into the switchboard's firehose and the component is also asked to publish its state
+  once (also useful for Figwheel)."
   [init?]
   (fn
     [{:keys [current-state msg-payload cmp-id]}]

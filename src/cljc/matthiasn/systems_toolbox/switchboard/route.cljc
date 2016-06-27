@@ -25,7 +25,8 @@
   Also, routing can be limited to message types specified under the :only keyword. Here, either
   a single message type or a vector with multiple message types can be used."
   [{:keys [current-state msg-payload]}]
-  {:pre (empty? (set/intersection (h/cmp-ids-set (:from msg-payload)) (h/cmp-ids-set (:to msg-payload))))}
+  {:pre (empty? (set/intersection (h/cmp-ids-set (:from msg-payload))
+                                  (h/cmp-ids-set (:to msg-payload))))}
   (let [{:keys [from to only pred]} msg-payload
         connections (h/cartesian-product (h/cmp-ids-set from) (h/cmp-ids-set to))
         subscribe-reducer-fn (fn [acc [from to]]
@@ -41,7 +42,8 @@
   for which there is a specific handler. This results in both the all-msgs-handler and
   the unhandled-handler"
   [{:keys [current-state msg-payload]}]
-  {:pre (empty? (set/intersection (h/cmp-ids-set (:from msg-payload)) (h/cmp-ids-set (:to msg-payload))))}
+  {:pre (empty? (set/intersection (h/cmp-ids-set (:from msg-payload))
+                                  (h/cmp-ids-set (:to msg-payload))))}
   (let [{:keys [from to pred]} msg-payload
         components (:components current-state)
         connections (h/cartesian-product (h/cmp-ids-set from) (h/cmp-ids-set to))

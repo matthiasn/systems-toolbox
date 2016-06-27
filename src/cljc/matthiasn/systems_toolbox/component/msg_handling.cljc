@@ -12,10 +12,11 @@
        :cljs [cljs.core.async :as a :refer [chan]])))
 
 (defn put-msg
-  "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise the system easily
-  blows up when there are more than 1024 pending put operations. On the ClojureScript side, there isno equivalent
-  of the blocking put, so the asynchronous operation will have to do. But then, more than 1024 pending operations
-  in the browser wouldn't happen often, if ever."
+  "On the JVM, always use the blocking operation for putting messages on a channel, as otherwise
+  the system easily blows up when there are more than 1024 pending put operations. On the
+  ClojureScript side, there isno equivalent of the blocking put, so the asynchronous operation will
+  have to do. But then, more than 1024 pending operations in the browser wouldn't happen often,
+  if ever."
   [channel msg]
   #?(:clj  (a/>!! channel msg)
      :cljs (a/put! channel msg)))
@@ -40,8 +41,8 @@
       msg-meta)))
 
 (defn default-state-pub-handler
-  "Default handler function, can be replaced by a more application-specific handler function, for example
-  for resetting local component state when user is not logged in."
+  "Default handler function, can be replaced by a more application-specific handler function, for
+  example for resetting local component state when user is not logged in."
   [{:keys [observed msg-payload observed-xform]}]
   (let [new-state (if observed-xform (observed-xform msg-payload) msg-payload)]
     (when (not= @observed new-state)
@@ -50,22 +51,26 @@
 (defn mk-handler-return-fn
   "Returns function for handling the return value of a handler function.
   This returned map can contain :new-state, :emit-msg and :send-to-self keys."
-  [{:keys [state-reset-fn cfg put-fn] :as cmp-map} in-chan msg-meta]
+  [{:keys [state-reset-fn cfg put-fn cmp-id] :as cmp-map} in-chan msg-meta]
   (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
-    (when new-state (when-let [state-spec (:state-spec cmp-map)]
-                      (when (:validate-state cfg)
-                        (assert (s/valid-or-no-spec? state-spec new-state))))
-                    (state-reset-fn new-state))
-    (when send-to-self (if (vector? (first send-to-self))
-                         (a/onto-chan in-chan send-to-self false)
-                         (a/onto-chan in-chan [send-to-self] false)))
-    (let [emit-msg-fn (fn [msg] (put-fn (with-meta msg (or (meta msg) msg-meta))))]
+    (l/debug cmp-id "handler returned")
+    (let [emit-msg-fn (fn [msg]
+                        (put-fn (with-meta msg (or (meta msg) msg-meta))))]
+      (when new-state (when-let [state-spec (:state-spec cmp-map)]
+                        (when (:validate-state cfg)
+                          (assert (s/valid-or-no-spec? state-spec new-state))
+                          (l/debug cmp-id "returned state validated")))
+                      (state-reset-fn new-state))
+      (when send-to-self (if (vector? (first send-to-self))
+                           (a/onto-chan in-chan send-to-self false)
+                           (a/onto-chan in-chan [send-to-self] false)))
       (when emit-msg (if (vector? (first emit-msg))
                        (doseq [msg-to-emit emit-msg] (emit-msg-fn msg-to-emit))
                        (emit-msg-fn emit-msg)))
-      (when emit-msgs (l/warn "DEPRECATED: emit-msgs, use emit-msg with a message vector instead")
-                      (doseq [msg-to-emit emit-msgs]
-                        (emit-msg-fn msg-to-emit))))))
+      (when emit-msgs
+        (l/warn "DEPRECATED: emit-msgs, use emit-msg with a message vector instead")
+        (doseq [msg-to-emit emit-msgs]
+          (emit-msg-fn msg-to-emit))))))
 
 (defn msg-handler-loop
   "Constructs a map with a channel for the provided channel keyword, with the buffer
@@ -77,13 +82,16 @@
   atom directly, in which case the handler function itself would produce side effects.
   This, however, makes such handler functions somewhat more difficult to test."
   [cmp-map chan-key]
-  (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan snapshot-publish-fn
-                unhandled-handler state-snapshot-fn]
+  (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan
+                snapshot-publish-fn unhandled-handler state-snapshot-fn]
          :or {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
+      (l/debug cmp-id "msg received")
       (let [msg (a/<! in-chan)
-            msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :in) (assoc-in [cmp-id :in-ts] (h/now)))
+            msg-meta (-> (merge (meta msg) {})
+                         (add-to-msg-seq cmp-id :in)
+                         (assoc-in [cmp-id :in-ts] (h/now)))
             [msg-type msg-payload] msg
             handler-fn (msg-type handler-map)
             msg-map-fn (fn [] (merge cmp-map {:msg           (with-meta msg msg-meta)
@@ -95,24 +103,41 @@
             handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
             observed-state-handler (or state-pub-handler default-state-pub-handler)]
         (try
-          (when (:validate-in cfg) (assert (s/valid-or-no-spec? msg-type msg-payload)))
+          (when (:validate-in cfg)
+            (assert (s/valid-or-no-spec? msg-type msg-payload)))
+          (l/debug cmp-id "msg validated")
           (when (= chan-key :sliding-in-chan)
             (handler-return-fn (observed-state-handler (msg-map-fn)))
+            (l/debug cmp-id "observed-state-handler done")
             (when (and (:snapshots-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
+            (l/debug cmp-id "state snapshot published on firehose")
             (a/<! (a/timeout (:throttle-ms cfg))))
           (when (= chan-key :in-chan)
-            (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
-              (put-msg firehose-chan [:firehose/cmp-recv {:cmp-id cmp-id :msg msg :msg-meta msg-meta :ts (h/now)}]))
             (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
-            (when handler-fn (handler-return-fn (handler-fn (msg-map-fn))))
+            (when handler-fn
+              (handler-return-fn (handler-fn (msg-map-fn)))
+              (l/debug cmp-id "handler function done"))
             (when unhandled-handler
-              (when-not (contains? handler-map msg-type) (handler-return-fn (unhandled-handler (msg-map-fn)))))
-            (when all-msgs-handler (handler-return-fn (all-msgs-handler (msg-map-fn)))))
+              (when-not (contains? handler-map msg-type)
+                (handler-return-fn (unhandled-handler (msg-map-fn)))
+                (l/debug cmp-id "unhandled-handler function done")))
+            (when all-msgs-handler
+              (handler-return-fn (all-msgs-handler (msg-map-fn)))
+              (l/debug cmp-id "all-msgs-handler function done"))
+            (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
+              (put-msg firehose-chan [:firehose/cmp-recv
+                                      {:cmp-id   cmp-id
+                                       :msg      msg
+                                       :msg-meta msg-meta
+                                       :ts       (h/now)}]))
+            (l/debug cmp-id "received message published on firehose"))
           #?(:clj  (catch Exception e
-                     (l/error "Exception in" cmp-id "when receiving message:" (ex/format-exception e) (h/pp-str msg)))
+                     (l/error "Exception in" cmp-id "when receiving message:"
+                              (ex/format-exception e) (h/pp-str msg)))
              :cljs (catch js/Object e
-                     (l/error e (str "Exception in " cmp-id " when receiving message:" (h/pp-str msg))))))
+                     (l/error e (str "Exception in " cmp-id " when receiving message:"
+                                     (h/pp-str msg))))))
         (recur)))
     {chan-key in-chan}))
 
@@ -130,10 +155,13 @@
    not try call more messages than fit in the buffer before the entire system is up."
   [{:keys [cmp-id put-chan cfg firehose-chan]}]
   (fn [msg]
+    (l/debug cmp-id "put-fn called")
     (when (:validate-out cfg)
-      {:pre [(s/valid-or-no-spec? (first msg) (second msg))
-             #_(s/valid-or-no-spec? :systems-toolbox/msg-spec msg)]})
-    (let [msg-meta (-> (merge (meta msg) {}) (add-to-msg-seq cmp-id :out) (assoc-in [cmp-id :out-ts] (h/now)))
+      (assert (s/valid-or-no-spec? (first msg) (second msg)))
+      (l/debug cmp-id "put-fn msg validated"))
+    (let [msg-meta (-> (merge (meta msg) {})
+                       (add-to-msg-seq cmp-id :out)
+                       (assoc-in [cmp-id :out-ts] (h/now)))
           corr-id (h/make-uuid)
           tag (or (:tag msg-meta) (h/make-uuid))
           completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
@@ -141,6 +169,7 @@
           msg-type (first msg)
           msg-from-firehose? (= "firehose" (namespace msg-type))]
       (put-msg put-chan msg-w-meta)
+      (l/debug cmp-id "put-fn: msg sent")
       ;; Not all components should emit firehose messages. For example, messages that process
       ;; firehose messages should not do so again in order to avoid infinite messaging loops.
       ;; This behavior can be configured when the component is fired up.
@@ -153,14 +182,19 @@
         (if msg-from-firehose?
           (put-msg firehose-chan msg-w-meta)
           (put-msg firehose-chan
-                   [:firehose/cmp-put {:cmp-id cmp-id :msg msg-w-meta :msg-meta completed-meta :ts (h/now)}]))))))
+                   [:firehose/cmp-put {:cmp-id   cmp-id
+                                       :msg      msg-w-meta
+                                       :msg-meta completed-meta
+                                       :ts       (h/now)}]))
+        (l/debug cmp-id "put-fn: msg put on firehose")))))
 
 (defn send-msg
-  "Sends message to the specified component. By default, calls to this function will block when no buffer space
-  is available. Asynchronous handling is also possible (JVM only), however the implications should be understood,
-  such as that core.async will throw an exception when there are more than 1024 pending operations. Under most
-  circumstances, blocking seems like the safer bet. Note that, unless specified otherwise, the buffer for a
-  component's in-chan is of size one, see 'component-defaults'."
+  "Sends message to the specified component. By default, calls to this function will block when no
+  buffer space is available. Asynchronous handling is also possible (JVM only), however the
+  implications should be understood, such as that core.async will throw an exception when there are
+  more than 1024 pending operations. Under most circumstances, blocking seems like the safer bet.
+  Note that, unless specified otherwise, the buffer for a component's in-chan is of size one,
+  see 'component-defaults'."
   ([cmp msg] (send-msg cmp msg true))
   ([cmp msg blocking?]
    (let [in-chan (:in-chan cmp)]
@@ -170,8 +204,8 @@
         :cljs (a/put! in-chan msg)))))
 
 (defn send-msgs
-  "Sends multiple messages to a component. Takes the component itself plus a sequence with messages to send
-  to the component. Does not close the :in-chan of the component."
+  "Sends multiple messages to a component. Takes the component itself plus a sequence with messages
+  to send to the component. Does not close the :in-chan of the component."
   [cmp msgs]
   (let [in-chan (:in-chan cmp)]
     (a/onto-chan in-chan msgs false)))
