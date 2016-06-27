@@ -19,13 +19,6 @@ article {
 
 #histograms {
     margin-bottom: 1em;
-    display: flex;
-    flex-flow: row;
-}
-
-#histograms div {
-    display: flex;
-    flex-flow: column;
 }
 
 #histograms div div{

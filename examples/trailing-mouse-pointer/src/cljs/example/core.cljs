@@ -27,8 +27,9 @@
      [:cmd/route {:from :client/ws-cmp :to :client/store-cmp}]
      [:cmd/route {:from :client/info-cmp :to #{:client/store-cmp :client/ws-cmp}}]
      [:cmd/observe-state {:from :client/store-cmp
-                          :to #{:client/mouse-cmp :client/histogram-cmp :client/info-cmp}}]]))
+                          :to   #{:client/mouse-cmp :client/histogram-cmp :client/info-cmp}}]]))
 
 (init!)
+
 (metrics/init! switchboard)
 (observer/init! switchboard)
