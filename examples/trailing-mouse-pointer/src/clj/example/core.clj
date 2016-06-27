@@ -2,33 +2,24 @@
   (:require [example.spec]
             [matthiasn.systems-toolbox.switchboard :as sb]
             [matthiasn.systems-toolbox-sente.server :as sente]
-            [matthiasn.systems-toolbox-metrics.metrics :as metrics]
+            [example.metrics :as metrics]
             [example.index :as index]
             [clojure.tools.logging :as log]
             [clj-pid.core :as pid]
-            [example.pointer :as ptr]
-            [matthiasn.systems-toolbox.scheduler :as sched]))
+            [example.pointer :as ptr]))
 
 (defonce switchboard (sb/component :server/switchboard))
 
-(defn restart!
-  "Starts or restarts system by asking switchboard to fire up the provided ws-cmp, a scheduler
-  component and the ptr component, which handles and counts messages about mouse moves."
+(defn start!
+  "Starts or restarts system by asking switchboard to fire up the provided ws-cmp and the ptr
+  component, which handles and counts messages about mouse moves."
   []
   (sb/send-mult-cmd
     switchboard
     [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/sente-map)]
-     [:cmd/init-comp (sched/cmp-map :server/scheduler-cmp)]
      [:cmd/init-comp (ptr/cmp-map :server/ptr-cmp)]
-     [:cmd/init-comp (metrics/cmp-map :server/metrics-cmp)]
-     [:cmd/route-all {:from #{:server/ptr-cmp :server/metrics-cmp}
-                      :to   :server/ws-cmp}]
-     [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]
-     [:cmd/route {:from :server/scheduler-cmp :to :server/metrics-cmp}]
-     [:cmd/send {:to  :server/scheduler-cmp
-                 :msg [:cmd/schedule-new {:timeout 5000
-                                          :message [:cmd/get-jvm-stats]
-                                          :repeat true}]}]]))
+     [:cmd/route {:from :server/ptr-cmp :to :server/ws-cmp}]
+     [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]]))
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The system that is fired up
@@ -38,5 +29,6 @@
   (pid/save "example.pid")
   (pid/delete-on-shutdown! "example.pid")
   (log/info "Application started, PID" (pid/current))
-  (restart!)
+  (start!)
+  (metrics/start! switchboard)
   (Thread/sleep Long/MAX_VALUE))
