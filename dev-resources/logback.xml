@@ -38,7 +38,7 @@
 
     <!-- Enable FILE and STDOUT appenders for all log messages.
          By default, only log at level INFO and above. -->
-    <root level="DEBUG">
+    <root level="INFO">
         <!-- appender-ref ref="FILE" / -->
         <appender-ref ref="STDOUT" />
     </root>
