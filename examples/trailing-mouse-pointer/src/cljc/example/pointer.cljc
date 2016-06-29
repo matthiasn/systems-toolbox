@@ -22,7 +22,7 @@
 (defn get-mouse-hist
   "Gets the recent mouse position history from server."
   [{:keys [current-state msg-meta]}]
-  (is/inspect-tree current-state)
+  ;(is/inspect-tree current-state)
   {:emit-msg (with-meta [:mouse/hist (:mouse-moves current-state)] msg-meta)})
 
 (defn cmp-map

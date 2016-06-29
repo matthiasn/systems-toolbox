@@ -11,4 +11,4 @@
 
 (s/def :cmd/show-all #{:local :server})
 
-(s/def :mouse/hist (s/coll-of :mouse/pos []))
+(s/def :mouse/hist (s/* :mouse/pos))
