@@ -102,8 +102,7 @@
    :cljs (s/def :st.switchboard/fh-taps (s/coll-of :st.switchboard/fh-tap-map #{})))
 
 (s/def :st.switchboard/state-spec
-  (s/keys :req-un [:st.switchboard/switchboard-id
-                   :st.switchboard/components
+  (s/keys :req-un [:st.switchboard/components
                    :st.switchboard/subs
                    :st.switchboard/taps
                    :st.switchboard/fh-taps]))

@@ -1,5 +1,5 @@
 (ns matthiasn.systems-toolbox.component
-  (:require  [matthiasn.systems-toolbox.spec]
+  (:require  [matthiasn.systems-toolbox.spec :as s]
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
     #?(:clj  [io.aviso.exception :as ex])
@@ -103,7 +103,15 @@
           out-pub-chan (msg/make-chan-w-buf (:out-chan cfg))
           cmp-map (initial-cmp-map cmp-map cfg)
           put-fn (msg/make-put-fn cmp-map)
-          state-map (merge {:state (atom {}) :observed (atom {})} (when state-fn (state-fn put-fn)))
+          state-map (merge {:state (atom {})
+                            :observed (atom {})}
+                           (when state-fn
+                             (let [new-state (state-fn put-fn)]
+                               (when-let [state-spec (:state-spec cmp-map)]
+                                 (when (:validate-state cfg)
+                                   (assert (s/valid-or-no-spec? state-spec @(:state new-state)))
+                                   (l/debug (:cmp-id cmp-map) "returned state validated")))
+                               new-state)))
           state (:state state-map)
           watch-state (if-let [watch (:watch opts)] (watch state) state) ; watchable atom
           cmp-map (merge cmp-map {:watch-state watch-state})
