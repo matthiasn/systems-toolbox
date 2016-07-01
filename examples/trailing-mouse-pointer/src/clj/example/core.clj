@@ -10,7 +10,7 @@
 
 (defonce switchboard (sb/component :server/switchboard))
 
-(defn start!
+(defn restart!
   "Starts or restarts system by asking switchboard to fire up the provided ws-cmp and the ptr
   component, which handles and counts messages about mouse moves."
   []
@@ -30,5 +30,5 @@
   (pid/save "example.pid")
   (pid/delete-on-shutdown! "example.pid")
   (log/info "Application started, PID" (pid/current))
-  (start!)
+  (restart!)
   (Thread/sleep Long/MAX_VALUE))
