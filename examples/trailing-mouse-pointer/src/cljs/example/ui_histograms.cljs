@@ -1,6 +1,7 @@
 (ns example.ui-histograms
   (:require [matthiasn.systems-toolbox-ui.reagent :as r]
-            [matthiasn.systems-toolbox-ui.charts.histogram :as h]))
+            [matthiasn.systems-toolbox-ui.charts.histogram :as h]
+            [matthiasn.systems-toolbox-ui.charts.math :as m]))
 
 (defn histograms-view
   "Renders histograms with different data sets, labels and colors."
@@ -13,12 +14,12 @@
      [:div
       [h/histogram-view rtt-times "Roundtrip t/ms" "#D94B61"]
       [h/histogram-view
-       (h/percentile-range rtt-times 99) "Roundtrip t/ms (within 99th percentile)" "#D94B61"]
+       (m/percentile-range rtt-times 99) "Roundtrip t/ms (within 99th percentile)" "#D94B61"]
       [h/histogram-view
-       (h/percentile-range rtt-times 95) "Roundtrip t/ms (within 95th percentile)" "#D94B61"]]
+       (m/percentile-range rtt-times 95) "Roundtrip t/ms (within 95th percentile)" "#D94B61"]]
      [:div
       [h/histogram-view network-times "Network time t/ms (within 99th percentile)" "#66A9A5"]
-      [h/histogram-view (h/percentile-range network-times 95)
+      [h/histogram-view (m/percentile-range network-times 95)
        "Network time t/ms (within 95th percentile)" "#66A9A5"]
       [h/histogram-view server-proc-times "Server processing time t/ms" "#F1684D"]]]))
 
