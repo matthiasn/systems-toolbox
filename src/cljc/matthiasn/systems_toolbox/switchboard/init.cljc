@@ -1,8 +1,8 @@
 (ns matthiasn.systems-toolbox.switchboard.init
   (:require  [matthiasn.systems-toolbox.component :as comp]
-             [matthiasn.systems-toolbox.switchboard.spec :as spec]
-    #?(:clj  [clojure.core.async :refer [put! tap untap-all unsub-all]]
-       :cljs [cljs.core.async :refer [put! tap untap-all unsub-all]])
+             [matthiasn.systems-toolbox.switchboard.spec]
+    #?(:clj  [clojure.core.async :refer [put! tap untap-all untap unsub-all close!]]
+       :cljs [cljs.core.async :refer [put! tap untap-all untap unsub-all close!]])
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
     #?(:clj  [clojure.spec :as s]
@@ -37,26 +37,39 @@
                              firehose-chan (:firehose-chan (cmp-id (:components current-state)))
                              reload? (:reload-cmp (merge comp/component-defaults (:opts cmp)))
                              prev-cmp (get-in current-state [:components cmp-id-to-wire])]
-                         (when (or (not prev-cmp) reload?)
-                           (when prev-cmp (untap-all (:firehose-mult prev-cmp))
-                                          (unsub-all (:out-pub prev-cmp))
-                                          (unsub-all (:state-pub prev-cmp))
-                                          (when-let [shutdown-fn (:shutdown-fn prev-cmp)]
-                                            (shutdown-fn)))
-                           (let [cmp (if init? (comp/make-component cmp) cmp)]
-                             (if cmp
-                               (let [in-chan (:in-chan cmp)
-                                     new-state (-> acc
-                                                   (assoc-in [:components cmp-id-to-wire] cmp)
-                                                   (update-in [:fh-taps] conj {:from cmp-id-to-wire
-                                                                               :to cmp-id
-                                                                               :type :fh-tap}))]
-                                 (when-let [prev-state (:watch-state prev-cmp)]
-                                   (reset! (:watch-state cmp) @prev-state))
-                                 (tap (:firehose-mult cmp) firehose-chan)
-                                 (let [known-cmp-ids (set (keys (:components new-state)))]
-                                   (s/def :st.switchboard/cmp known-cmp-ids))
-                                 (put! in-chan [:cmd/publish-state])
-                                 new-state)
-                               acc)))))]
+                         (when prev-cmp
+                           (untap-all (:firehose-mult prev-cmp))
+                           (untap (:firehose-mult (cmp-id (:components current-state)))
+                                  (:in-chan prev-cmp))
+                           (unsub-all (:out-pub prev-cmp))
+                           (unsub-all (:state-pub prev-cmp)))
+                         (when (and prev-cmp reload?)
+                           (when-let [shutdown-fn (:shutdown-fn prev-cmp)]
+                             (shutdown-fn)))
+                         (let [cmp (if (or (not prev-cmp) reload?)
+                                     (if init? (comp/make-component cmp) cmp)
+                                     prev-cmp)]
+                           (if cmp
+                             (let [in-chan (:in-chan cmp)
+                                   new-state (-> acc
+                                                 (assoc-in [:components cmp-id-to-wire] cmp)
+                                                 (update-in [:fh-taps] conj {:from cmp-id-to-wire
+                                                                             :to   cmp-id
+                                                                             :type :fh-tap}))]
+                               (when-let [prev-state (:watch-state prev-cmp)]
+                                 (reset! (:watch-state cmp) @prev-state))
+                               (tap (:firehose-mult cmp) firehose-chan)
+                               (let [known-cmp-ids (set (keys (:components new-state)))]
+                                 (s/def :st.switchboard/cmp known-cmp-ids))
+                               (put! in-chan [:cmd/publish-state])
+                               new-state)
+                             acc))))]
       {:new-state (reduce reducer-fn current-state cmp-maps-set)})))
+
+(defn shutdown-all
+  "Call shutdown function on each component to prepare for reload."
+  [{:keys [current-state]}]
+  (let [cmps (:components current-state)]
+    (doseq [cmp (vals cmps)]
+      (when-let [shutdown-fn (:shutdown-fn cmp)]
+        (shutdown-fn)))))

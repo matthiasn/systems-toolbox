@@ -19,7 +19,8 @@
     [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/sente-map)]
      [:cmd/init-comp (ptr/cmp-map   :server/ptr-cmp)]
      [:cmd/route {:from :server/ptr-cmp :to :server/ws-cmp}]
-     [:cmd/route {:from :server/ws-cmp  :to :server/ptr-cmp}]]))
+     [:cmd/route {:from :server/ws-cmp  :to :server/ptr-cmp}]])
+  (metrics/start! switchboard))
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The system that is fired up
@@ -30,5 +31,4 @@
   (pid/delete-on-shutdown! "example.pid")
   (log/info "Application started, PID" (pid/current))
   (start!)
-  (metrics/start! switchboard)
   (Thread/sleep Long/MAX_VALUE))

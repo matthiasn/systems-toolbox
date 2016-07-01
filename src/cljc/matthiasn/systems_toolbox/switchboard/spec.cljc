@@ -90,16 +90,14 @@
                    :st.switchboard.sub/to
                    :st.switchboard.sub/msg-type
                    :st.switchboard.sub/type]))
-#?(:clj  (s/def :st.switchboard/subs (s/coll-of :st.switchboard/sub-map))
-   :cljs (s/def :st.switchboard/subs (s/coll-of :st.switchboard/sub-map #{})))
+(s/def :st.switchboard/subs (s/* :st.switchboard/sub-map))
 
 (s/def :st.switchboard.fh-tap/type #{:fh-tap})
 (s/def :st.switchboard/fh-tap-map
   (s/keys :req-un [:st.switchboard.sub/from
                    :st.switchboard.sub/to
                    :st.switchboard.fh-tap/type]))
-#?(:clj  (s/def :st.switchboard/fh-taps (s/coll-of :st.switchboard/fh-tap-map))
-   :cljs (s/def :st.switchboard/fh-taps (s/coll-of :st.switchboard/fh-tap-map #{})))
+(s/def :st.switchboard/fh-taps (s/* :st.switchboard/fh-tap-map))
 
 (s/def :st.switchboard/state-spec
   (s/keys :req-un [:st.switchboard/components

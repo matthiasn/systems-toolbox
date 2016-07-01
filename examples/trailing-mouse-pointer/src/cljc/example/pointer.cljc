@@ -3,11 +3,7 @@
   counter, and sends them back. Here, this provides a way to measure roundtrip time from the UI,
   as timestamps are recorded as the message flows through the system.
   Also records a recent history of mouse positions for all clients, which the component provides
-  to clients upon request."
-  (:require [clojure.inspector :as is]
-            [clojure.inspector :as is]
-            [clojure.inspector :as is]
-            [clojure.inspector :as is]))
+  to clients upon request.")
 
 (defn process-mouse-pos
   "Handler function for received mouse positions, increments counter and returns mouse position
@@ -22,7 +18,6 @@
 (defn get-mouse-hist
   "Gets the recent mouse position history from server."
   [{:keys [current-state msg-meta]}]
-  ;(is/inspect-tree current-state)
   {:emit-msg (with-meta [:mouse/hist (:mouse-moves current-state)] msg-meta)})
 
 (defn cmp-map

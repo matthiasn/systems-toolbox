@@ -61,6 +61,7 @@
    :cmd/route-all          rt/route-all-handler
    :cmd/wire-comp          (i/wire-or-init-comp false)
    :cmd/init-comp          (i/wire-or-init-comp true)
+   :cmd/shutdown-all       i/shutdown-all
    :cmd/attach-to-firehose attach-to-firehose
    :cmd/self-register      self-register
    :cmd/observe-state      obs/observe-state

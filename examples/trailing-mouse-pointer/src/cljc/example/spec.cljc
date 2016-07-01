@@ -3,8 +3,8 @@
     #?(:clj  [clojure.spec :as s]
        :cljs [cljs.spec :as s])))
 
-(s/def :ex/x pos-int?)
-(s/def :ex/y pos-int?)
+(s/def :ex/x integer?)
+(s/def :ex/y integer?)
 
 (s/def :mouse/pos
   (s/keys :req-un [:ex/x :ex/y]))
