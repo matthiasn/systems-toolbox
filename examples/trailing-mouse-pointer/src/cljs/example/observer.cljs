@@ -10,4 +10,6 @@
   (sb/send-mult-cmd
     switchboard
     [[:cmd/init-comp (obs/cmp-map :client/observer-cmp conf/observer-cfg-map)]
-     [:cmd/attach-to-firehose :client/observer-cmp]]))
+     [:cmd/attach-to-firehose :client/observer-cmp]
+     ; let WebSockets component receive all messages from firehose
+     [:cmd/attach-to-firehose :client/ws-cmp]]))

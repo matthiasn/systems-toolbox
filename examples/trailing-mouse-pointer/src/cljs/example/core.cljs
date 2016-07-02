@@ -13,11 +13,17 @@
 
 (defonce switchboard (sb/component :client/switchboard))
 
+; TODO: maybe firehose messages should implicitly be relayed?
 (defn init! []
   (sb/send-mult-cmd
     switchboard
     [[:cmd/init-comp
-      #{(sente/cmp-map :client/ws-cmp {:relay-types      #{:mouse/pos :mouse/get-hist}
+      #{(sente/cmp-map :client/ws-cmp {:relay-types      #{:mouse/pos
+                                                           :mouse/get-hist
+                                                           :firehose/cmp-put
+                                                           :firehose/cmp-recv
+                                                           :firehose/cmp-publish-state
+                                                           :firehose/cmp-recv-state}
                                        :msgs-on-firehose true})
         (mouse/cmp-map :client/mouse-cmp)
         (info/cmp-map :client/info-cmp)
