@@ -25,4 +25,6 @@
   {:cmp-id      cmp-id
    :state-fn    (fn [_] {:state (atom {:count 0 :mouse-moves []})})
    :handler-map {:mouse/pos      process-mouse-pos
-                 :mouse/get-hist get-mouse-hist}})
+                 :mouse/get-hist get-mouse-hist}
+   :opts        {:msgs-on-firehose      true
+                 :snapshots-on-firehose true}})

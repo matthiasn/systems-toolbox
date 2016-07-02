@@ -3,6 +3,7 @@
             [matthiasn.systems-toolbox.switchboard :as sb]
             [matthiasn.systems-toolbox-sente.server :as sente]
             [example.metrics :as metrics]
+            [matthiasn.systems-toolbox-observer.probe :as probe]
             [example.index :as index]
             [clojure.tools.logging :as log]
             [clj-pid.core :as pid]
@@ -16,11 +17,12 @@
   []
   (sb/send-mult-cmd
     switchboard
-    [[:cmd/init-comp (sente/cmp-map :server/ws-cmp index/sente-map)]
-     [:cmd/init-comp (ptr/cmp-map   :server/ptr-cmp)]
+    [[:cmd/init-comp #{(sente/cmp-map :server/ws-cmp index/sente-map)
+                       (ptr/cmp-map :server/ptr-cmp)}]
      [:cmd/route {:from :server/ptr-cmp :to :server/ws-cmp}]
-     [:cmd/route {:from :server/ws-cmp  :to :server/ptr-cmp}]])
-  (metrics/start! switchboard))
+     [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]])
+  (metrics/start! switchboard)
+  (probe/start! switchboard))
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The system that is fired up
