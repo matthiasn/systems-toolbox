@@ -15,7 +15,7 @@
 
   :plugins [[lein-codox "0.9.5"]
             [test2junit "1.2.2"]
-            [lein-doo "0.1.6"]
+            [lein-doo "0.1.7"]
             [com.jakemccrary/lein-test-refresh "0.16.0"]
             [lein-cljsbuild "1.1.3"]]
 

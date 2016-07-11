@@ -22,9 +22,8 @@
      [:cmd/route {:from :server/ptr-cmp :to :server/ws-cmp}]
      [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]])
   (metrics/start! switchboard)
-  (probe/start! switchboard)
-  ; TODO: maybe firehose messages received by ws-cmp should implicitly be put on local firehose?
-  (sb/send-cmd switchboard [:cmd/route {:from :server/ws-cmp :to :server/redis-cmp}]))
+  #_
+  (probe/start! switchboard))
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The system that is fired up
