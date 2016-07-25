@@ -5,7 +5,7 @@
 
 (defn init!
   "Initialize display of some JVM metrics in the UI by firing up component and
-  then wiring messages as needed."
+   then wiring messages as needed."
   [switchboard]
   (sb/send-mult-cmd
     switchboard

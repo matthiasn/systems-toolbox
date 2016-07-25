@@ -25,9 +25,9 @@
                    :fill         fill}])])))
 
 (defn trailing-circles
-  "Displays two transparent circles. The position of the circles comes from the most recent
-  messages, one sent locally and the other with a roundtrip to the server in between.  This
-  makes it easier to visually detect any delays."
+  "Displays two transparent circles. The position of the circles comes from
+   the most recent messages, one sent locally and the other with a roundtrip to
+   the server in between. This makes it easier to visually detect any delays."
   [state]
   (let [local-pos (:local state)
         from-server (:from-server state)]
@@ -39,13 +39,14 @@
                                       :fill "rgba(0,0,255,0.1)"})]]))
 
 (defn mouse-view
-  "Renders SVG with both local mouse position and the last one returned from the server,
-  in an area that covers the entire visible page."
+  "Renders SVG with both local mouse position and the last one returned from the
+   server, in an area that covers the entire visible page."
   [{:keys [observed local]}]
   (let [state-snapshot @observed
         mouse-div (by-id "mouse")
-        update-dim #(do (swap! local assoc :width (- (.-offsetWidth mouse-div) 2))
-                        (swap! local assoc :height (aget js/document "body" "scrollHeight")))]
+        update-dim
+        #(do (swap! local assoc :width (- (.-offsetWidth mouse-div) 2))
+             (swap! local assoc :height (aget js/document "body" "scrollHeight")))]
     (update-dim)
     (aset js/window "onresize" update-dim)
     [:div
@@ -53,9 +54,11 @@
             :height (:height @local)}
       (trailing-circles state-snapshot)
       (when (-> state-snapshot :show-all :local)
-        [mouse-hist-view state-snapshot :local-hist "rgba(0,0,0,0.06)" "rgba(0,255,0,0.05)"])
+        [mouse-hist-view state-snapshot :local-hist
+         "rgba(0,0,0,0.06)" "rgba(0,255,0,0.05)"])
       (when (-> state-snapshot :show-all :server)
-        [mouse-hist-view state-snapshot :server-hist "rgba(0,0,0,0.06)" "rgba(0,0,128,0.05)"])]]))
+        [mouse-hist-view state-snapshot :server-hist
+         "rgba(0,0,0,0.06)" "rgba(0,0,128,0.05)"])]]))
 
 (defn init-fn
   "Listen to onmousemove events for entire page, emit message when fired.

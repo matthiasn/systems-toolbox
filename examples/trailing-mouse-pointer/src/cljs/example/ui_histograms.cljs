@@ -13,15 +13,18 @@
     [:div
      [:div
       [h/histogram-view rtt-times "Roundtrip t/ms" "#D94B61"]
-      [h/histogram-view
-       (m/percentile-range rtt-times 99) "Roundtrip t/ms (within 99th percentile)" "#D94B61"]
-      [h/histogram-view
-       (m/percentile-range rtt-times 95) "Roundtrip t/ms (within 95th percentile)" "#D94B61"]]
+      [h/histogram-view (m/percentile-range rtt-times 99)
+       "Roundtrip t/ms (within 99th percentile)" "#D94B61"]
+      [h/histogram-view (m/percentile-range rtt-times 95)
+       "Roundtrip t/ms (within 95th percentile)" "#D94B61"]]
      [:div
-      [h/histogram-view network-times "Network time t/ms (within 99th percentile)" "#66A9A5"]
-      [h/histogram-view (m/percentile-range network-times 95)
+      [h/histogram-view network-times
+       "Network time t/ms (within 99th percentile)" "#66A9A5"]
+      [h/histogram-view
+       (m/percentile-range network-times 95)
        "Network time t/ms (within 95th percentile)" "#66A9A5"]
-      [h/histogram-view server-proc-times "Server processing time t/ms" "#F1684D"]]]))
+      [h/histogram-view server-proc-times
+       "Server processing time t/ms" "#F1684D"]]]))
 
 (defn cmp-map
   [cmp-id]

@@ -7,8 +7,9 @@
 (defonce switchboard (sb/component :server/switchboard))
 
 (defn restart!
-  "Starts or restarts system by asking switchboard to fire up the provided ws-cmp, a scheduler
-  component and the ptr component, which handles and counts messages about mouse moves."
+  "Starts or restarts system by asking switchboard to fire up the provided
+   ws-cmp, a scheduler component and the ptr component, which handles and counts
+   messages about mouse moves."
   [ws-cmp]
   (sb/send-mult-cmd
     switchboard
