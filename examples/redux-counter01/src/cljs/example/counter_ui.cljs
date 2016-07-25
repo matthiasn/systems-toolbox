@@ -3,7 +3,8 @@
             [matthiasn.systems-toolbox-ui.helpers :as h]))
 
 (defn counter-view
-  "Renders individual counter view, with buttons for increasing or decreasing the value."
+  "Renders individual counter view, with buttons for increasing or decreasing
+   the value."
   [idx v put-fn]
   [:div
    [:h1 v]
