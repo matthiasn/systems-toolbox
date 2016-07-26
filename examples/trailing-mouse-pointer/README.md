@@ -4,8 +4,6 @@
 
 Before the first usage, you want to install the **[Bower](http://bower.io)** dependencies:
 
-    $ bower install
-
     $ cd resources/public/css/
     $ git clone https://github.com/edwardtufte/tufte-css.git
 
