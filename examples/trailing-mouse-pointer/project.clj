@@ -1,4 +1,4 @@
-(defproject matthiasn/trailing-mouse-pointer "0.5.1-SNAPSHOT"
+(defproject matthiasn/trailing-mouse-pointer "0.6.1-SNAPSHOT"
   :description "Sample application built with systems-toolbox library"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -11,8 +11,8 @@
                  [hiccup "1.0.5"]
                  [hiccup-bridge "1.0.1"]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.6.1-alpha1"]
-                 [matthiasn/systems-toolbox-ui "0.6.1-alpha5"]
+                 [matthiasn/systems-toolbox "0.6.1-alpha2"]
+                 [matthiasn/systems-toolbox-ui "0.6.1-alpha6"]
                  [matthiasn/systems-toolbox-sente "0.6.1-alpha3"]
                  [matthiasn/systems-toolbox-metrics "0.6.1-alpha1"]
                  [matthiasn/systems-toolbox-redis "0.6.1-alpha1"]
@@ -32,6 +32,9 @@
 
   :figwheel {:server-port 3450
              :css-dirs    ["resources/public/css"]}
+
+  :profiles {:uberjar {:aot :all
+                       :auto-clean false}}
 
   :cljsbuild {:builds [{:id           "dev"
                         :source-paths ["src/cljc/" "src/cljs" "env/dev/cljs"]

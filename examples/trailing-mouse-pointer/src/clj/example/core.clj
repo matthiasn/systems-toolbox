@@ -7,7 +7,8 @@
             [example.index :as index]
             [clojure.tools.logging :as log]
             [clj-pid.core :as pid]
-            [example.pointer :as ptr]))
+            [example.pointer :as ptr])
+  (:gen-class))
 
 (defonce switchboard (sb/component :server/switchboard))
 
