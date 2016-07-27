@@ -3,7 +3,8 @@
             [matthiasn.systems-toolbox-sente.server :as sente]
             [example.index :as idx]
             [clojure.tools.logging :as log]
-            [clj-pid.core :as pid]))
+            [clj-pid.core :as pid])
+  (:gen-class))
 
 (defonce switchboard (sb/component :server/switchboard))
 

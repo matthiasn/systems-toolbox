@@ -25,6 +25,9 @@
   :figwheel {:server-port 3450
              :css-dirs    ["resources/public/css"]}
 
+  :profiles {:uberjar {:aot :all
+                       :auto-clean false}}
+
   :cljsbuild
   {:builds [{:id           "dev"
              :source-paths ["src/cljs" "env/dev/cljs"]
