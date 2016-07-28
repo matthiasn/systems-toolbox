@@ -3,7 +3,8 @@
             [matthiasn.systems-toolbox-sente.server :as sente]
             [example.index :as idx]
             [clojure.tools.logging :as log]
-            [clj-pid.core :as pid])
+            [clj-pid.core :as pid]
+            [matthiasn.systemd-watchdog.core :as wd])
   (:gen-class))
 
 (defonce switchboard (sb/component :server/switchboard))
@@ -27,4 +28,5 @@
   (pid/delete-on-shutdown! "example.pid")
   (log/info "Application started, PID" (pid/current))
   (restart!)
+  (wd/start-watchdog! 5000)
   (Thread/sleep Long/MAX_VALUE))
