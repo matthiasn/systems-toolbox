@@ -8,6 +8,7 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [ch.qos.logback/logback-classic "1.1.7"]
+                 [matthiasn/systemd-watchdog "0.1.2"]
                  [hiccup "1.0.5"]
                  [hiccup-bridge "1.0.1"]
                  [clj-pid "0.1.2"]

@@ -7,6 +7,7 @@
             [example.index :as index]
             [clojure.tools.logging :as log]
             [clj-pid.core :as pid]
+            [matthiasn.systemd-watchdog.core :as wd]
             [example.pointer :as ptr])
   (:gen-class))
 
@@ -34,7 +35,8 @@
    the current thread is out of work, we just put it to sleep."
   [& args]
   (pid/save "example.pid")
-  (pid/delete-on-shutdown! "example.pid")
+  (pid/delete-on-shutdown! "ws-example.pid")
   (log/info "Application started, PID" (pid/current))
   (restart!)
+  (wd/start-watchdog! 5000)
   (Thread/sleep Long/MAX_VALUE))
