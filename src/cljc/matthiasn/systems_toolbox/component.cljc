@@ -1,5 +1,5 @@
 (ns matthiasn.systems-toolbox.component
-  (:require  [matthiasn.systems-toolbox.spec :as s]
+  (:require [matthiasn.systems-toolbox.spec :as s]
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
     #?(:clj  [io.aviso.exception :as ex])
@@ -29,37 +29,46 @@
    :validate-state        true})
 
 (defn make-snapshot-publish-fn
-  "Creates a function for publishing changes to the component state atom as snapshot messages."
-  [{:keys [watch-state snapshot-xform-fn cmp-id sliding-out-chan cfg firehose-chan]}]
+  "Creates a function for publishing changes to the component state atom as
+   snapshot messages."
+  [{:keys [watch-state snapshot-xform-fn cmp-id sliding-out-chan cfg
+           firehose-chan]}]
   (fn []
     (when (:publish-snapshots cfg)
       (let [snapshot @watch-state
-            snapshot-xform (if snapshot-xform-fn (snapshot-xform-fn snapshot) snapshot)
+            snapshot-xform (if snapshot-xform-fn
+                             (snapshot-xform-fn snapshot)
+                             snapshot)
             snapshot-msg (with-meta [:app/state snapshot-xform] {:from cmp-id})
             state-firehose-chan (chan (a/sliding-buffer 1))]
         (a/pipe state-firehose-chan firehose-chan)
         (msg/put-msg sliding-out-chan snapshot-msg)
         (when (:snapshots-on-firehose cfg)
           (msg/put-msg state-firehose-chan
-                       [:firehose/cmp-publish-state {:cmp-id   cmp-id
-                                                     :snapshot snapshot-xform
-                                                     :ts       (now)}]))))))
+                       [:firehose/cmp-publish-state {:cmp-id      cmp-id
+                                                     :firehose-id (h/make-uuid)
+                                                     :snapshot    snapshot-xform
+                                                     :ts          (now)}]))))))
 
 (defn detect-changes
-  "Detect changes to the component state atom and then publish a snapshot using the
-  'snapshot-publish-fn'."
+  "Detect changes to the component state atom and then publish a snapshot using
+   the 'snapshot-publish-fn'."
   [{:keys [watch-state cmp-id snapshot-publish-fn]}]
   (try
-    (add-watch watch-state :watcher (fn [_ _ _ _new-state] (snapshot-publish-fn)))
+    (add-watch watch-state :watcher (fn [_ _ _ _new-state]
+                                      (snapshot-publish-fn)))
     #?(:clj  (catch Exception e
-               (l/error "Failed watching atom" cmp-id (ex/format-exception e) (h/pp-str watch-state)))
-       :cljs (catch js/Object e (l/error e "Failed watching atom" cmp-id (h/pp-str watch-state))))))
+               (l/error "Failed watching atom" cmp-id
+                        (ex/format-exception e)
+                        (h/pp-str watch-state)))
+       :cljs (catch js/Object e (l/error e "Failed watching atom" cmp-id
+                                         (h/pp-str watch-state))))))
 
 (defn make-system-ready-fn
-  "This function is called by the switchboard that wired this component when all other
-  components are up and the channels between them connected. At this point, messages that
-  were accumulated on the 'put-chan' buffer since startup are released. Also, the
-  component state is published."
+  "This function is called by the switchboard that wired this component when all
+   other components are up and the channels between them connected. At this
+   point, messages that were accumulated on the 'put-chan' buffer since startup
+   are released. Also, the component state is published."
   [{:keys [put-chan out-chan snapshot-publish-fn]}]
   (fn []
     (a/pipe put-chan out-chan)
@@ -69,8 +78,8 @@
   "Assembles initial component map with actual channels."
   [cmp-map cfg]
   (merge cmp-map
-         {:put-chan         (msg/make-chan-w-buf (:out-chan cfg))      ; used in put-fn, not connected at first
-          :out-chan         (msg/make-chan-w-buf (:out-chan cfg))      ; outgoing chan, used in mult and pub
+         {:put-chan         (msg/make-chan-w-buf (:out-chan cfg)) ; used in put-fn, not connected at first
+          :out-chan         (msg/make-chan-w-buf (:out-chan cfg)) ; outgoing chan, used in mult and pub
           :cfg              cfg
           :firehose-chan    (msg/make-chan-w-buf (:firehose-chan cfg)) ; channel for all messages
           :sliding-out-chan (msg/make-chan-w-buf (:sliding-out-chan cfg))})) ; chan for snapshots
@@ -103,34 +112,42 @@
           out-pub-chan (msg/make-chan-w-buf (:out-chan cfg))
           cmp-map (initial-cmp-map cmp-map cfg)
           put-fn (msg/make-put-fn cmp-map)
-          state-map (merge {:state (atom {})
-                            :observed (atom {})}
-                           (when state-fn
-                             (let [new-state (state-fn put-fn)]
-                               (when-let [state-spec (:state-spec cmp-map)]
-                                 (when (:validate-state cfg)
-                                   (assert (s/valid-or-no-spec? state-spec @(:state new-state)))
-                                   (l/debug (:cmp-id cmp-map) "returned state validated")))
-                               new-state)))
+          state-map
+          (merge
+            {:state    (atom {})
+             :observed (atom {})}
+            (when state-fn
+              (let [new-state (state-fn put-fn)]
+                (when-let [state-spec (:state-spec cmp-map)]
+                  (when (:validate-state cfg)
+                    (assert (s/valid-or-no-spec? state-spec @(:state new-state)))
+                    (l/debug (:cmp-id cmp-map) "returned state validated")))
+                new-state)))
           state (:state state-map)
           watch-state (if-let [watch (:watch opts)] (watch state) state) ; watchable atom
           cmp-map (merge cmp-map {:watch-state watch-state})
-          cmp-map (merge cmp-map {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map)})
-          cmp-map (merge cmp-map {:out-mult          (a/mult (:out-chan cmp-map))
-                                  :firehose-mult     (a/mult (:firehose-chan cmp-map))
-                                  :out-pub           (a/pub out-pub-chan first)
-                                  :state-pub         (a/pub (:sliding-out-chan cmp-map) first)
-                                  :cmp-state         state
-                                  :observed          (:observed state-map)
-                                  :put-fn            put-fn
-                                  :system-ready-fn   (make-system-ready-fn cmp-map)
-                                  :shutdown-fn       (:shutdown-fn state-map)
-                                  :state-snapshot-fn (fn [] @watch-state)
-                                  :state-reset-fn    (fn [new-state] (reset! watch-state new-state))})]
-      (a/tap (:out-mult cmp-map) out-pub-chan)        ; connect out-pub-chan to out-mult
-      (detect-changes cmp-map)                        ; publish snapshots when changes are detected
+          cmp-map (merge
+                    cmp-map
+                    {:snapshot-publish-fn (make-snapshot-publish-fn cmp-map)})
+          cmp-map
+          (merge cmp-map
+                 {:out-mult          (a/mult (:out-chan cmp-map))
+                  :firehose-mult     (a/mult (:firehose-chan cmp-map))
+                  :out-pub           (a/pub out-pub-chan first)
+                  :state-pub         (a/pub (:sliding-out-chan cmp-map) first)
+                  :cmp-state         state
+                  :observed          (:observed state-map)
+                  :put-fn            put-fn
+                  :system-ready-fn   (make-system-ready-fn cmp-map)
+                  :shutdown-fn       (:shutdown-fn state-map)
+                  :state-snapshot-fn (fn [] @watch-state)
+                  :state-reset-fn    (fn [new-state]
+                                       (reset! watch-state new-state))})]
+      (a/tap (:out-mult cmp-map) out-pub-chan)              ; connect out-pub-chan to out-mult
+      (detect-changes cmp-map)                              ; publish snapshots when changes are detected
       (merge cmp-map
              (msg/msg-handler-loop cmp-map :in-chan)
              (msg/msg-handler-loop cmp-map :sliding-in-chan)))
-    #?(:clj  (catch Exception e (l/error "Failed to init" (:cmp-id cmp-map) (ex/format-exception e)))
+    #?(:clj  (catch Exception e (l/error "Failed to init" (:cmp-id cmp-map)
+                                         (ex/format-exception e)))
        :cljs (catch js/Object e (l/error "Failed to init" (:cmp-id cmp-map) e)))))

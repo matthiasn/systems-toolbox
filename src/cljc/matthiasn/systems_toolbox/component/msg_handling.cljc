@@ -1,7 +1,7 @@
 (ns matthiasn.systems-toolbox.component.msg-handling
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
-                            [cljs.core :refer [exists?]]))
-  (:require  [matthiasn.systems-toolbox.spec :as s]
+             [cljs.core :refer [exists?]]))
+  (:require [matthiasn.systems-toolbox.spec :as s]
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
              [matthiasn.systems-toolbox.component.helpers :as h]
@@ -26,7 +26,7 @@
   [config]
   (match config
          [:sliding n] (chan (a/sliding-buffer n))
-         [:buffer  n] (chan (a/buffer n))
+         [:buffer n] (chan (a/buffer n))
          :else (prn "invalid: " config)))
 
 (defn add-to-msg-seq
@@ -84,7 +84,7 @@
   [cmp-map chan-key]
   (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan
                 snapshot-publish-fn unhandled-handler state-snapshot-fn]
-         :or {handler-map {}}} cmp-map
+         :or   {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
       (l/debug cmp-id "msg received")
@@ -127,10 +127,11 @@
               (l/debug cmp-id "all-msgs-handler function done"))
             (when (and (:msgs-on-firehose cfg) (not= "firehose" (namespace msg-type)))
               (put-msg firehose-chan [:firehose/cmp-recv
-                                      {:cmp-id   cmp-id
-                                       :msg      msg
-                                       :msg-meta msg-meta
-                                       :ts       (h/now)}]))
+                                      {:cmp-id      cmp-id
+                                       :firehose-id (h/make-uuid)
+                                       :msg         msg
+                                       :msg-meta    msg-meta
+                                       :ts          (h/now)}]))
             (l/debug cmp-id "received message published on firehose"))
           #?(:clj  (catch Exception e
                      (l/error "Exception in" cmp-id "when receiving message:"
@@ -180,12 +181,13 @@
         ;; message should go on the firehose channel on the receiving end as such, not
         ;; wrapped as other messages would (see the second case in the if-clause).
         (if msg-from-firehose?
-          (put-msg firehose-chan msg-w-meta)
+          ;(put-msg firehose-chan msg-w-meta)
           (put-msg firehose-chan
-                   [:firehose/cmp-put {:cmp-id   cmp-id
-                                       :msg      msg-w-meta
-                                       :msg-meta completed-meta
-                                       :ts       (h/now)}]))
+                   [:firehose/cmp-put {:cmp-id      cmp-id
+                                       :firehose-id (h/make-uuid)
+                                       :msg         msg-w-meta
+                                       :msg-meta    completed-meta
+                                       :ts          (h/now)}]))
         (l/debug cmp-id "put-fn: msg put on firehose")))))
 
 (defn send-msg
