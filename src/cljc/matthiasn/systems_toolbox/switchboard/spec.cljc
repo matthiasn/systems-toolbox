@@ -7,7 +7,8 @@
 ;; Spec for :cmd/init-comp
 (s/def :st.switchboard.init/cmp-id sts/namespaced-keyword?)
 (s/def :st.switchboard.init/state-fn fn?)
-(s/def :st.switchboard.init/handler-map (s/nilable (s/map-of sts/namespaced-keyword? fn?)))
+(s/def :st.switchboard.init/handler-map
+  (s/nilable (s/map-of sts/namespaced-keyword? fn?)))
 (s/def :st.switchboard.init/all-msgs-handler fn?)
 (s/def :st.switchboard.init/state-pub-handler (s/nilable fn?))
 (s/def :st.switchboard.init/observed-xform (s/nilable fn?))

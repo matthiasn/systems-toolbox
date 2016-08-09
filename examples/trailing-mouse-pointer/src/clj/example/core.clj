@@ -25,8 +25,8 @@
      [:cmd/route {:from :server/ptr-cmp :to :server/ws-cmp}]
      [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]])
   (metrics/start! switchboard)
-  #_
-  (probe/start! switchboard))
+  (when (get (System/getenv) "PROBE")
+    (probe/start! switchboard)))
 
 (defn -main
   "Starts the application from command line, saves and logs process ID. The

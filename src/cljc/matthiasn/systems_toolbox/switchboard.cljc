@@ -15,8 +15,8 @@
 
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful
-  for communication with the outside world / within hierarchies where a subsystem
-  has its own switchboard."
+   for communication with the outside world / within hierarchies where a
+   subsystem has its own switchboard."
   [{:keys [cmp-state msg-payload cmp-id]}]
   (swap! cmp-state assoc-in [:components cmp-id] msg-payload)
   (swap! cmp-state assoc-in [:switchboard-id] cmp-id))
@@ -30,16 +30,23 @@
                  :fh-taps #{}})})
 
 (defn attach-to-firehose
-  "Attaches a component to firehose channel. For example for observational components."
+  "Attaches a component to firehose channel. For example for observational
+   components."
   [{:keys [current-state msg-payload cmp-id]}]
   (let [to msg-payload
         sw-firehose-mult (:firehose-mult (cmp-id (:components current-state)))
         to-comp (to (:components current-state))]
-    (try (do (tap sw-firehose-mult (:in-chan to-comp))
-             {:new-state (update-in current-state [:fh-taps] conj {:from cmp-id :to to :type :fh-tap})})
-         #?(:clj  (catch Exception e
-                    (l/error "Could not create tap: " cmp-id " -> " to " - " (ex/format-exception e)))
-            :cljs (catch js/Object e (l/error "Could not create tap: " cmp-id " -> " to " - " e))))))
+    (try
+      (do
+        (tap sw-firehose-mult (:in-chan to-comp))
+        {:new-state (update-in current-state [:fh-taps] conj {:from cmp-id
+                                                              :to   to
+                                                              :type :fh-tap})})
+      #?(:clj  (catch Exception e
+                 (l/error "Could not create tap: " cmp-id " -> " to " - "
+                          (ex/format-exception e)))
+         :cljs (catch js/Object e (l/error "Could not create tap: " cmp-id
+                                           " -> " to " - " e))))))
 
 (defn send-to
   "Send message to specified component."
@@ -49,9 +56,9 @@
     (put! (:in-chan dest-comp) msg)))
 
 (defn wire-all-out-channels
-  "Function for calling the system-ready-fn on each component, which will pipe the channel used by
-  the put-fn to the out-chan when the system is connected. Otherwise, messages sent before all
-  channels are wired would get lost."
+  "Function for calling the system-ready-fn on each component, which will pipe
+   the channel used by the put-fn to the out-chan when the system is connected.
+   Otherwise, messages sent before all channels are wired would get lost."
   [{:keys [cmp-state]}]
   (doseq [[_ cmp] (:components @cmp-state)]
     ((:system-ready-fn cmp))))
@@ -69,14 +76,15 @@
    :status/system-ready    wire-all-out-channels})
 
 (defn xform-fn
-  "Transformer function for switchboard state snapshot. Allows serialization of snaphot for sending
-  over WebSockets."
+  "Transformer function for switchboard state snapshot. Allows serialization of
+   snaphot for sending over WebSockets."
   [m]
-  (update-in m [:components] (fn [cmps] (into {} (mapv (fn [[k v]] [k k]) cmps)))))
+  (update-in m [:components] (fn [cmps]
+                               (into {} (mapv (fn [[k v]] [k k]) cmps)))))
 
 (defn component
-  "Creates a switchboard component that wires individual components together into
-  a communicating system."
+  "Creates a switchboard component that wires individual components together
+   into a communicating system."
   [switchboard-id]
   (let [switchboard (comp/make-component
                       {:cmp-id            switchboard-id

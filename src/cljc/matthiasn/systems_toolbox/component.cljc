@@ -75,37 +75,48 @@
     (snapshot-publish-fn)))
 
 (defn initial-cmp-map
-  "Assembles initial component map with actual channels."
+  "Assembles initial component map with core.async channels.
+    - :put-chan is used in component's put-fn, not connected at first
+    - :out-chan is the outgoing channel
+    - :firehose-chan is for where all messages go (for debugging)
+    - :sliding-out-chan is for state snapshots
+    "
   [cmp-map cfg]
   (merge cmp-map
-         {:put-chan         (msg/make-chan-w-buf (:out-chan cfg)) ; used in put-fn, not connected at first
-          :out-chan         (msg/make-chan-w-buf (:out-chan cfg)) ; outgoing chan, used in mult and pub
+         {:put-chan         (msg/make-chan-w-buf (:out-chan cfg))
+          :out-chan         (msg/make-chan-w-buf (:out-chan cfg))
           :cfg              cfg
-          :firehose-chan    (msg/make-chan-w-buf (:firehose-chan cfg)) ; channel for all messages
-          :sliding-out-chan (msg/make-chan-w-buf (:sliding-out-chan cfg))})) ; chan for snapshots
+          :firehose-chan    (msg/make-chan-w-buf (:firehose-chan cfg))
+          :sliding-out-chan (msg/make-chan-w-buf (:sliding-out-chan cfg))}))
 
 (defn make-component
-  "Creates a component with attached in-chan, out-chan, sliding-in-chan and sliding-out-chan.
-  It takes the initial state atom, the handler function for messages on in-chan, and the
-  sliding-handler function, which handles messages on sliding-in-chan.
-  By default, in-chan and out-chan have standard buffers of size one, whereas sliding-in-chan
-  and sliding-out-chan have sliding buffers of size one. The buffer sizes can be configured.
-  The sliding-channels are meant for events where only ever the latest version is of interest,
-  such as mouse moves or published state snapshots in the case of UI components rendering
-  state snapshots from other components.
-  Components send messages by using the put-fn, which is provided to the component when
-  creating it's initial state, and then subsequently in every call to any of the handler
-  functions. On every message send, a unique correlation ID is attached to every message.
-  Also, messages are automatically assigned a tag, which is a unique ID that doesn't change
-  when a message flows through the system. This tag can also be assigned manually by
-  initially sending a message with the tag set on the metadata, as this tag will not be
-  touched by the library whenever it exists already.
-  The configuration of a component comes from merging the component defaults with the opts
-  map that is passed on component creation the :opts key. The order of the merge operation
-  allows overwriting the default settings.
-  An observed-xform function can be provided, which transforms the observed state before
-  resetting the respective observed state. This function takes a single argument, the observed
-  state snapshot, and is expected to return a single map with the transformed snapshot."
+  "Creates a component with attached in-chan, out-chan, sliding-in-chan and
+   sliding-out-chan.
+   It takes the initial state atom, the handler function for messages on
+   the in-chan, and the sliding-handler function, which handles messages on
+   :sliding-in-chan.
+   By default, in-chan and out-chan have standard buffers of size one, whereas
+   sliding-in-chan and sliding-out-chan have sliding buffers of size one.
+   The buffer sizes can be configured.
+   The sliding-channels are meant for events where only ever the latest version
+   is of interest, such as whenUI components rendering state snapshots from
+   other components.
+   Components send messages by using the put-fn, which is provided to the
+   component when creating it's initial state, and then subsequently in every
+   call to any of the handler functions. On every message send, a unique
+   correlation ID is attached to every message.
+   Also, messages are automatically assigned a tag, which is a unique ID that
+   doesn't change when a message flows through the system. This tag can also be
+   assigned manually by initially sending a message with the tag set on the
+   metadata, as this tag will not be touched by the library whenever it exists
+   already.
+   The configuration of a component comes from merging the component defaults
+   with the opts map that is passed on component creation the :opts key. The
+   order of the merge operation allows overwriting the default settings.
+   An observed-xform function can be provided, which transforms the observed
+   state before resetting the respective observed state. This function takes a
+   single argument, the observed state snapshot, and is expected to return a
+   single map with the transformed snapshot."
   [{:keys [state-fn opts] :as cmp-map}]
   (try
     (let [cfg (merge component-defaults opts)
@@ -124,7 +135,9 @@
                     (l/debug (:cmp-id cmp-map) "returned state validated")))
                 new-state)))
           state (:state state-map)
-          watch-state (if-let [watch (:watch opts)] (watch state) state) ; watchable atom
+          watch-state (if-let [watch (:watch opts)]  ; watchable atom
+                        (watch state)
+                        state)
           cmp-map (merge cmp-map {:watch-state watch-state})
           cmp-map (merge
                     cmp-map
@@ -143,8 +156,8 @@
                   :state-snapshot-fn (fn [] @watch-state)
                   :state-reset-fn    (fn [new-state]
                                        (reset! watch-state new-state))})]
-      (a/tap (:out-mult cmp-map) out-pub-chan)              ; connect out-pub-chan to out-mult
-      (detect-changes cmp-map)                              ; publish snapshots when changes are detected
+      (a/tap (:out-mult cmp-map) out-pub-chan) ; connect out-pub-chan to out-mult
+      (detect-changes cmp-map)     ; publish snapshots when changes are detected
       (merge cmp-map
              (msg/msg-handler-loop cmp-map :in-chan)
              (msg/msg-handler-loop cmp-map :sliding-in-chan)))
