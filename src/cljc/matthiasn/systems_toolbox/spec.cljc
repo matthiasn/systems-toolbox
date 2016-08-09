@@ -6,8 +6,8 @@
        :cljs [matthiasn.systems-toolbox.log :as l])))
 
 (defn valid-or-no-spec?
-  "If spec exists, validate spec and warn if x is invalid, with detailed explanation.
-  If spec does not exist, log warning."
+  "If spec exists, validate spec and warn if x is invalid, with detailed
+   explanation. If spec does not exist, log warning."
   [spec x]
   (if (contains? (s/registry) spec)
     (if (s/valid? spec x)

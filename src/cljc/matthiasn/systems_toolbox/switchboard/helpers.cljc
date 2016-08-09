@@ -15,10 +15,11 @@
           (let [increment
                 (fn [v-seqs]
                   (loop [i (dec (count v-seqs)), v-seqs v-seqs]
-                    (if (= i -1) nil
-                                 (if-let [rst (next (v-seqs i))]
-                                   (assoc v-seqs i rst)
-                                   (recur (dec i) (assoc v-seqs i (v-original-seqs i)))))))]
+                    (if (= i -1)
+                      nil
+                      (if-let [rst (next (v-seqs i))]
+                        (assoc v-seqs i rst)
+                        (recur (dec i) (assoc v-seqs i (v-original-seqs i)))))))]
             (when v-seqs
               (cons (map first v-seqs)
                     (lazy-seq (step (increment v-seqs)))))))]
@@ -30,5 +31,7 @@
   [val]
   (cond (set? val) val
         (spec/namespaced-keyword? val) #{val}
-        (vector? val) (do (l/warn "Use of vector is deprecated, use a set instead:" val)
-                          (set val))))
+
+        (vector? val)
+        (do (l/warn "Use of vector is deprecated, use a set instead:" val)
+            (set val))))
