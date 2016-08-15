@@ -42,7 +42,7 @@
 (s/def :cnt/dec (s/keys :req-un [:redux-ex1/counter]))
 
 ;; validate component state using clojure.spec
-(s/def :redux-ex1/counters (s/coll-of integer? []))
+(s/def :redux-ex1/counters (s/coll-of integer?))
 (s/def :redux-ex1/store-spec (s/keys :req-un [:redux-ex1/counters]))
 
 (defn cmp-map

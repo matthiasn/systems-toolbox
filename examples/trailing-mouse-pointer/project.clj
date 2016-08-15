@@ -4,20 +4,20 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
-                 [org.clojure/clojurescript "1.9.93"]
+                 [org.clojure/clojurescript "1.9.198"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [ch.qos.logback/logback-classic "1.1.7"]
                  [matthiasn/systemd-watchdog "0.1.2"]
-                 [com.taoensso/encore "2.74.0"]
+                 [com.taoensso/encore "2.75.0"]
                  [hiccup "1.0.5"]
                  [hiccup-bridge "1.0.1"]
                  [clj-pid "0.1.2"]
                  [matthiasn/systems-toolbox "0.6.1-alpha4"]
-                 [matthiasn/systems-toolbox-ui "0.6.1-alpha6"]
+                 [matthiasn/systems-toolbox-ui "0.6.1-alpha7"]
                  [matthiasn/systems-toolbox-sente "0.6.1-alpha5"]
                  [matthiasn/systems-toolbox-metrics "0.6.1-alpha1"]
-                 [matthiasn/systems-toolbox-observer "0.6.1-alpha2"]
+                 ;[matthiasn/systems-toolbox-observer "0.6.1-alpha2"]
                  [incanter "1.5.6"]
                  [clj-time "0.12.0"]]
 
@@ -29,7 +29,7 @@
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-figwheel "0.5.4-7"]
-            [lein-codox "0.9.5"]]
+            [lein-codox "0.9.6"]]
 
   :figwheel {:server-port 3450
              :css-dirs    ["resources/public/css"]}

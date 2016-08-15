@@ -14,7 +14,7 @@
                  [io.aviso/pretty "0.1.29"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]
 
-  :plugins [[lein-codox "0.9.5"]
+  :plugins [[lein-codox "0.9.6"]
             [test2junit "1.2.2"]
             [lein-doo "0.1.7"]
             [com.jakemccrary/lein-test-refresh "0.16.0"]
@@ -30,7 +30,7 @@
   ;:test-paths ["test" "perf"]
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha10"]
-                                  [org.clojure/clojurescript "1.9.93"
+                                  [org.clojure/clojurescript "1.9.198"
                                    :exclusions [org.clojure/tools.reader]]
                                   [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7"]]}}

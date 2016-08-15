@@ -3,7 +3,7 @@
             [matthiasn.systems-toolbox.switchboard :as sb]
             [matthiasn.systems-toolbox-sente.server :as sente]
             [example.metrics :as metrics]
-            [matthiasn.systems-toolbox-observer.probe :as probe]
+    ;[matthiasn.systems-toolbox-observer.probe :as probe]
             [example.index :as index]
             [clojure.tools.logging :as log]
             [clj-pid.core :as pid]
@@ -25,6 +25,7 @@
      [:cmd/route {:from :server/ptr-cmp :to :server/ws-cmp}]
      [:cmd/route {:from :server/ws-cmp :to :server/ptr-cmp}]])
   (metrics/start! switchboard)
+  #_
   (when (get (System/getenv) "PROBE")
     (probe/start! switchboard)))
 
