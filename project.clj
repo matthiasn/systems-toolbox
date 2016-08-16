@@ -30,7 +30,7 @@
   ;:test-paths ["test" "perf"]
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha10"]
-                                  [org.clojure/clojurescript "1.9.198"
+                                  [org.clojure/clojurescript "1.9.216"
                                    :exclusions [org.clojure/tools.reader]]
                                   [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.1.7"]]}}
