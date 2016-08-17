@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
-                 [org.clojure/clojurescript "1.9.198"]
+                 [org.clojure/clojurescript "1.9.216"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.11"]
                  [ch.qos.logback/logback-classic "1.1.7"]
@@ -15,7 +15,7 @@
                  [clj-pid "0.1.2"]
                  [matthiasn/systems-toolbox "0.6.1-alpha4"]
                  [matthiasn/systems-toolbox-ui "0.6.1-alpha7"]
-                 [matthiasn/systems-toolbox-sente "0.6.1-alpha5"]
+                 [matthiasn/systems-toolbox-sente "0.6.1-alpha6"]
                  [matthiasn/systems-toolbox-metrics "0.6.1-alpha1"]
                  ;[matthiasn/systems-toolbox-observer "0.6.1-alpha2"]
                  [incanter "1.5.6"]

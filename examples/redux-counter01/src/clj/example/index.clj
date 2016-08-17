@@ -18,4 +18,5 @@
 (def sente-map
   "Configuration map for sente-cmp."
   {:index-page-fn index-page
+   :port          8764
    :relay-types   #{}})
