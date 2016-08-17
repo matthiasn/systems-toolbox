@@ -15,8 +15,7 @@
           (let [increment
                 (fn [v-seqs]
                   (loop [i (dec (count v-seqs)), v-seqs v-seqs]
-                    (if (= i -1)
-                      nil
+                    (when-not (= i -1)
                       (if-let [rst (next (v-seqs i))]
                         (assoc v-seqs i rst)
                         (recur (dec i) (assoc v-seqs i (v-original-seqs i)))))))]

@@ -52,7 +52,7 @@
     (testing "only handled messages were routed and received by all-msgs-handler"
       (is (= (:all-msg-handler-sum @recv-state-1) 5050)))
     (testing "unhandled messages were not routed"
-      (is (= (:unhandled-handler-sum @recv-state-1) 0)))))
+      (is (zero? (:unhandled-handler-sum @recv-state-1))))))
 
 (deftest route-2-1-test
   "Two senders, one receiver, 100 messages of handled type and 100 messages of unhandled type sent from each sender.
@@ -77,7 +77,7 @@
     (testing "only handled messages were routed and received by all-msgs-handler"
       (is (= (:all-msg-handler-sum @recv-state-1) 10100)))
     (testing "unhandled messages were not routed"
-      (is (= (:unhandled-handler-sum @recv-state-1) 0)))))
+      (is (zero? (:unhandled-handler-sum @recv-state-1))))))
 
 (deftest route-2-3-test
   "Two senders, three receivers, 100 messages of handled type and 100 messages of unhandled type sent from each sender.
@@ -111,9 +111,9 @@
       (is (= (:all-msg-handler-sum @recv-state-2) 10100))
       (is (= (:all-msg-handler-sum @recv-state-3) 10100)))
     (testing "unhandled messages were not routed and thus not received"
-      (is (= (:unhandled-handler-sum @recv-state-1) 0))
-      (is (= (:unhandled-handler-sum @recv-state-2) 0))
-      (is (= (:unhandled-handler-sum @recv-state-3) 0)))))
+      (is (zero? (:unhandled-handler-sum @recv-state-1)))
+      (is (zero? (:unhandled-handler-sum @recv-state-2)))
+      (is (zero? (:unhandled-handler-sum @recv-state-3))))))
 
 
 ;; Tests for components connected via :cmd/routeall. This command connects two components, no matter if the recipient
@@ -201,7 +201,7 @@
       (is (= (:all-msg-handler-sum @recv-state-2) 10100))
       (is (= (:all-msg-handler-sum @recv-state-3) 10100)))
     (testing "unhandled messages were routed and received by unhandled-handler"
-      (is (= (:unhandled-handler-sum @recv-state-1) 0))
-      (is (= (:unhandled-handler-sum @recv-state-2) 0))
-      (is (= (:unhandled-handler-sum @recv-state-3) 0)))))
+      (is (zero? (:unhandled-handler-sum @recv-state-1)))
+      (is (zero? (:unhandled-handler-sum @recv-state-2)))
+      (is (zero? (:unhandled-handler-sum @recv-state-3))))))
 
