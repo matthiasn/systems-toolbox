@@ -93,57 +93,58 @@
          :or   {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))]
     (go-loop []
-      (l/debug cmp-id "msg received")
-      (let [msg (a/<! in-chan)
-            msg-meta (-> (merge (meta msg) {})
-                         (add-to-msg-seq cmp-id :in)
-                         (assoc-in [cmp-id :in-ts] (h/now)))
-            [msg-type msg-payload] msg
-            handler-fn (msg-type handler-map)
-            msg-map-fn
-            (fn []
-              (merge cmp-map {:msg           (with-meta msg msg-meta)
-                              :msg-type      msg-type
-                              :msg-meta      msg-meta
-                              :msg-payload   msg-payload
-                              :onto-in-chan  #(a/onto-chan in-chan % false)
-                              :current-state (state-snapshot-fn)}))
-            handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
-            observed-state-handler (or state-pub-handler default-state-pub-handler)]
+      (let [msg (a/<! in-chan)]
+        (l/debug cmp-id "msg received" msg)
         (try
-          (when (:validate-in cfg)
-            (assert (s/valid-or-no-spec? msg-type msg-payload)))
-          (l/debug cmp-id "msg validated")
-          (when (= chan-key :sliding-in-chan)
-            (handler-return-fn (observed-state-handler (msg-map-fn)))
-            (l/debug cmp-id "observed-state-handler done")
-            (when (and (:snapshots-on-firehose cfg)
-                       (not= "firehose" (namespace msg-type)))
-              (put-msg firehose-chan
-                       [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
-            (l/debug cmp-id "state snapshot published on firehose")
-            (a/<! (a/timeout (:throttle-ms cfg))))
-          (when (= chan-key :in-chan)
-            (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
-            (when handler-fn
-              (handler-return-fn (handler-fn (msg-map-fn)))
-              (l/debug cmp-id "handler function done"))
-            (when unhandled-handler
-              (when-not (contains? handler-map msg-type)
-                (handler-return-fn (unhandled-handler (msg-map-fn)))
-                (l/debug cmp-id "unhandled-handler function done")))
-            (when all-msgs-handler
-              (handler-return-fn (all-msgs-handler (msg-map-fn)))
-              (l/debug cmp-id "all-msgs-handler function done"))
-            (when (and (:msgs-on-firehose cfg)
-                       (not= "firehose" (namespace msg-type)))
-              (put-msg firehose-chan [:firehose/cmp-recv
-                                      {:cmp-id      cmp-id
-                                       :firehose-id (h/make-uuid)
-                                       :msg         msg
-                                       :msg-meta    msg-meta
-                                       :ts          (h/now)}]))
-            (l/debug cmp-id "received message published on firehose"))
+          (let [msg-meta (-> (merge (meta msg) {})
+                             (add-to-msg-seq cmp-id :in)
+                             (assoc-in [cmp-id :in-ts] (h/now)))
+                [msg-type msg-payload] msg
+                handler-fn (msg-type handler-map)
+                msg-map-fn
+                (fn []
+                  (merge cmp-map {:msg           (with-meta msg msg-meta)
+                                  :msg-type      msg-type
+                                  :msg-meta      msg-meta
+                                  :msg-payload   msg-payload
+                                  :onto-in-chan  #(a/onto-chan in-chan % false)
+                                  :current-state (state-snapshot-fn)}))
+                handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
+                observed-state-handler (or state-pub-handler
+                                           default-state-pub-handler)]
+            (when (:validate-in cfg)
+              (assert (s/valid-or-no-spec? msg-type msg-payload)))
+            (l/debug cmp-id "msg validated")
+            (when (= chan-key :sliding-in-chan)
+              (handler-return-fn (observed-state-handler (msg-map-fn)))
+              (l/debug cmp-id "observed-state-handler done")
+              (when (and (:snapshots-on-firehose cfg)
+                         (not= "firehose" (namespace msg-type)))
+                (put-msg firehose-chan
+                         [:firehose/cmp-recv-state {:cmp-id cmp-id :msg msg}]))
+              (l/debug cmp-id "state snapshot published on firehose")
+              (a/<! (a/timeout (:throttle-ms cfg))))
+            (when (= chan-key :in-chan)
+              (when (= msg-type :cmd/publish-state) (snapshot-publish-fn))
+              (when handler-fn
+                (handler-return-fn (handler-fn (msg-map-fn)))
+                (l/debug cmp-id "handler function done"))
+              (when unhandled-handler
+                (when-not (contains? handler-map msg-type)
+                  (handler-return-fn (unhandled-handler (msg-map-fn)))
+                  (l/debug cmp-id "unhandled-handler function done")))
+              (when all-msgs-handler
+                (handler-return-fn (all-msgs-handler (msg-map-fn)))
+                (l/debug cmp-id "all-msgs-handler function done"))
+              (when (and (:msgs-on-firehose cfg)
+                         (not= "firehose" (namespace msg-type)))
+                (put-msg firehose-chan [:firehose/cmp-recv
+                                        {:cmp-id      cmp-id
+                                         :firehose-id (h/make-uuid)
+                                         :msg         msg
+                                         :msg-meta    msg-meta
+                                         :ts          (h/now)}]))
+              (l/debug cmp-id "received message published on firehose")))
           #?(:clj  (catch Exception e
                      (l/error "Exception in" cmp-id "when receiving message:"
                               (ex/format-exception e) (h/pp-str msg)))
