@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.1-alpha6] - 2016-08-24
+### Changed
+- tests with Clojure 1.9.0-alpha11
+
 ## [0.6.1-alpha5] - 2016-08-20
 ### Changed
 - improved error handling in msg-handler-loop
