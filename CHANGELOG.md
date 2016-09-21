@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.1-alpha7] - 2016-09-21
+### Changed
+- tests with Clojure 1.9.0-alpha12
+- latest core.async
+
 ## [0.6.1-alpha6] - 2016-08-24
 ### Changed
 - tests with Clojure 1.9.0-alpha11
