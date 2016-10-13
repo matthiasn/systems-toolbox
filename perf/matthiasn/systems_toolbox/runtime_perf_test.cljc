@@ -32,7 +32,7 @@
         state (atom 0)]
     (dotimes [_ cnt] (swap! state inc))
     (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-      (log/debug "Atom swaps/s:" ops-per-sec)
+      (log/info "Atom swaps/s:" ops-per-sec)
       (is (> ops-per-sec 1000)))))
 
 (deftest swap-atom-repeatedly
@@ -50,7 +50,7 @@
     (add-watch state :watcher (fn [_ _ _ _new-state] #()))
     (dotimes [_ cnt] (swap! state inc))
     (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-      (log/debug "Watched atom swaps/s:" ops-per-sec)
+      (log/info "Watched atom swaps/s:" ops-per-sec)
       (is (> ops-per-sec 1000)))))
 
 (deftest swap-watched-atom-repeatedly
@@ -68,7 +68,7 @@
         state (atom 0)]
     (dotimes [n cnt] (reset! state n))
     (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-      (log/debug "Atom resets/s:" ops-per-sec)
+      (log/info "Atom resets/s:" ops-per-sec)
       (is (> ops-per-sec 1000)))))
 
 (deftest reset-atom-repeatedly
@@ -85,7 +85,7 @@
         state (atom {:foo 1000})]
     (dotimes [n cnt] (/ (:foo @state) 10))
     (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-      (log/debug "Atom derefs/s:" ops-per-sec)
+      (log/info "Atom derefs/s:" ops-per-sec)
       (is (> ops-per-sec 1000)))))
 
 (deftest deref-atom-repeatedly
@@ -108,7 +108,7 @@
                         (testing "all messages received"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                          (log/debug "Channel puts/s:" ops-per-sec)
+                          (log/info "Channel puts/s:" ops-per-sec)
                           (is (> ops-per-sec 1000)))))))
 
 
@@ -140,7 +140,7 @@
                         (testing "all messages received"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                          (log/debug "Channel puts and consume/s:" ops-per-sec)
+                          (log/info "Channel puts and consume/s:" ops-per-sec)
                           (is (> ops-per-sec 1000)))
                         (testing "all messages received (sum of all number sent matches)"
                           (is (= @state (reduce + (range cnt)))))))))
@@ -170,7 +170,7 @@
                         (testing "all messages received"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                          (log/debug "Channel puts and consume from mult/s:" ops-per-sec)
+                          (log/info "Channel puts and consume from mult/s:" ops-per-sec)
                           (is (> ops-per-sec 1000)))
                         (testing "all messages received (sum of all number sent matches)"
                           (is (= @state (reduce + (range cnt)))))))))
@@ -207,7 +207,7 @@
                         (testing "promise delivered"
                           (is (true? (<! done))))
                         (let [ops-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                          (log/debug "Channel puts and consume from mult/s (w/pub):" ops-per-sec)
+                          (log/info "Channel puts and consume from mult/s (w/pub):" ops-per-sec)
                           (is (> ops-per-sec 1000)))
                         (testing "all messages received (sum of all number sent matches)"
                           (is (= @state (reduce + (range cnt)))))

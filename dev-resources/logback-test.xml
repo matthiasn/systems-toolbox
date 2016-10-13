@@ -35,7 +35,6 @@
         </filter>
     </appender>
 
-
     <!-- Enable FILE and STDOUT appenders for all log messages.
          By default, only log at level INFO and above. -->
     <root level="INFO">
@@ -43,7 +42,6 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <!-- For loggers in the these namespaces, log at all levels. -->
-    <logger name="user" level="ALL" />
+    <logger name="matthiasn.systems-toolbox.runtime-perf-test" level="ALL"/>
 
 </configuration>
