@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.1-alpha8] - 2016-10-13
+### Changed
+- latest dependencies
+
 ## [0.6.1-alpha7] - 2016-09-21
 ### Changed
 - tests with Clojure 1.9.0-alpha12
