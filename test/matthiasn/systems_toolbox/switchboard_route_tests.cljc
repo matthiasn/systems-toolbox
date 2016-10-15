@@ -47,7 +47,7 @@
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-1 :msg [:test/unhandled {:n n}]}])
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-1 :msg [:test/sum {:n n}]}]))
     (testing "receives all handled messages"
-      (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
+      (tp/w-timeout 10000 (go (while (not (test-pred @recv-state-1)))))
       (is (test-pred @recv-state-1)))
     (testing "only handled messages were routed and received by all-msgs-handler"
       (is (= (:all-msg-handler-sum @recv-state-1) 5050)))
@@ -72,7 +72,7 @@
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/unhandled {:n n}]}])
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/sum {:n n}]}]))
     (testing "receives all handled messages"
-      (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
+      (tp/w-timeout 10000 (go (while (not (test-pred @recv-state-1)))))
       (is (test-pred @recv-state-1)))
     (testing "only handled messages were routed and received by all-msgs-handler"
       (is (= (:all-msg-handler-sum @recv-state-1) 10100)))
@@ -102,7 +102,9 @@
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/unhandled {:n n}]}])
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/sum {:n n}]}]))
     (testing "receives all handled messages"
-      (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
+      (tp/w-timeout 10000 (go (while (not (and (test-pred @recv-state-1)
+                                               (test-pred @recv-state-2)
+                                               (test-pred @recv-state-3))))))
       (is (test-pred @recv-state-1))
       (is (test-pred @recv-state-2))
       (is (test-pred @recv-state-3)))
@@ -135,7 +137,7 @@
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-1 :msg [:test/unhandled {:n n}]}])
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-1 :msg [:test/sum {:n n}]}]))
     (testing "receives all handled messages"
-      (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
+      (tp/w-timeout 10000 (go (while (not (test-pred @recv-state-1)))))
       (is (test-pred @recv-state-1)))
     (testing "all-msgs-handler receives both handled and unhandled messages"
       (is (= (:all-msg-handler-sum @recv-state-1) 10100)))
@@ -161,7 +163,7 @@
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/unhandled {:n n}]}])
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/sum {:n n}]}]))
     (testing "receives all handled messages"
-      (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
+      (tp/w-timeout 10000 (go (while (not (test-pred @recv-state-1)))))
       (is (test-pred @recv-state-1)))
     (testing "all-msgs-handler receives both handled and unhandled messages"
       (is (= (:all-msg-handler-sum @recv-state-1) 20200)))
@@ -192,7 +194,9 @@
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/unhandled {:n n}]}])
       (sb/send-cmd switchboard [:cmd/send {:to :test/send-cmp-2 :msg [:test/sum {:n n}]}]))
     (testing "receives all handled messages"
-      (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
+      (tp/w-timeout 10000 (go (while (not (and (test-pred @recv-state-1)
+                                               (test-pred @recv-state-2)
+                                               (test-pred @recv-state-3))))))
       (is (test-pred @recv-state-1))
       (is (test-pred @recv-state-2))
       (is (test-pred @recv-state-3)))

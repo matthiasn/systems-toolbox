@@ -25,14 +25,15 @@
 
   :test-refresh {:notify-on-success false
                  :changes-only      false}
-
-  ;:test-paths ["test"]
-  :test-paths ["dev-resources" "test" "perf"]
+  
+  :test-paths ["test"]
+  ;:test-paths ["dev-resources" "test" "perf"]
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha13"]
                                   [org.clojure/clojurescript "1.9.229"]
                                   [org.clojure/tools.logging "0.3.1"]
-                                  [ch.qos.logback/logback-classic "1.1.7"]]}}
+                                  [ch.qos.logback/logback-classic "1.1.7"]]
+                   :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}
 
   :cljsbuild
   {:builds [{:id           "cljs-test"
