@@ -1,7 +1,8 @@
 (ns matthiasn.systems-toolbox.scheduler
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go-loop]]))
   (:require  [matthiasn.systems-toolbox.component :as comp]
-             [matthiasn.systems-toolbox.log :as l]
+    #?(:clj  [clojure.tools.logging :as l]
+       :cljs [matthiasn.systems-toolbox.log :as l])
     #?(:clj  [clojure.core.async :refer [<! go-loop timeout]])
     #?(:cljs [cljs.core.async :refer [<! timeout]])))
 
@@ -34,14 +35,14 @@
 (defn start-loop
   "Starts a loop for sending messages at set intervals."
   [{:keys [current-state cmp-state put-fn msg-payload]}]
-  (let [timout-ms (:timeout msg-payload)
+  (let [timeout-ms (:timeout msg-payload)
         msg-to-send (:message msg-payload)
         scheduler-id (or (:id msg-payload) (first msg-to-send))]
     (if (get-in current-state [:active-timers scheduler-id])
-      (l/warn (str "Timer " (:id msg-payload) " already scheduled - ignoring."))
+      (l/debug (str "Timer " scheduler-id " already scheduled - ignoring."))
       (do (when (:initial msg-payload) (put-fn msg-to-send))
           (go-loop []
-            (<! (timeout timout-ms))
+            (<! (timeout timeout-ms))
             (let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
               (put-fn msg-to-send)
               (if active-timer

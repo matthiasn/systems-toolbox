@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.1-alpha9] - 2016-11-02
+### Changed
+- improvements in scheduler
+
 ## [0.6.1-alpha8] - 2016-10-13
 ### Changed
 - latest dependencies
