@@ -60,11 +60,18 @@
       {:new-state (update-in current-state [:active-timers scheduler-id] msg-payload)}
       (l/warn (str "Timer with id: " (:id msg-payload) " not found - did not stop.")))))
 
+(defn state-fn
+  [_put-fn]
+  (let [initial-state {:active-timers {}}
+        state-atom (atom initial-state)]
+    {:state state-atom
+     :shutdown-fn #(reset! state-atom initial-state)}))
+
 (defn cmp-map
   {:added "0.3.1"}
   [cmp-id]
   {:cmp-id      cmp-id
-   :state-fn    (fn [_] {:state (atom {:active-timers {}})})
+   :state-fn    state-fn
    :handler-map {:cmd/schedule-new    start-loop
                  :cmd/schedule-delete stop-loop}
    :opts        {:reload-cmp false}})
