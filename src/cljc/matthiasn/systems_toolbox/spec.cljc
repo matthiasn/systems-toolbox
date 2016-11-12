@@ -12,7 +12,7 @@
   (if (contains? (s/registry) spec)
     (if (s/valid? spec x)
       true
-      (do (l/warn "VALIDATION FAILED for" spec "," (s/explain-str spec x)) false))
+      (do (l/error "VALIDATION FAILED for" spec "," (s/explain-str spec x)) false))
     (if x  ; only check for spec when x is truthy
       (do (l/warn (str "UNDEFINED SPEC " spec)) true)
       true)))
