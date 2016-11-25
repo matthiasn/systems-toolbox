@@ -3,7 +3,7 @@
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha13"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [org.clojure/clojurescript "1.9.293"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/tools.namespace "0.2.11"]
@@ -11,13 +11,12 @@
                  [matthiasn/systemd-watchdog "0.1.2"]
                  [hiccup "1.0.5"]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.6.1-alpha8"]
-                 [matthiasn/systems-toolbox-ui "0.6.1-alpha11"]
-                 [matthiasn/systems-toolbox-sente "0.6.1-alpha13"]
-                 [matthiasn/systems-toolbox-metrics "0.6.1-alpha1"]
+                 [matthiasn/systems-toolbox "0.6.2"]
+                 [matthiasn/systems-toolbox-ui "0.6.1"]
+                 [matthiasn/systems-toolbox-sente "0.6.1"]
+                 [matthiasn/systems-toolbox-metrics "0.6.1"]
                  ;[matthiasn/systems-toolbox-observer "0.6.1-alpha2"]
-                 [incanter "1.5.6"]
-                 [clj-time "0.12.0"]]
+                 [clj-time "0.12.2"]]
 
   :source-paths ["src/cljc/" "src/clj/"]
 
