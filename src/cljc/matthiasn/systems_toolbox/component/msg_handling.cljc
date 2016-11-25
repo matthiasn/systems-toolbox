@@ -91,7 +91,8 @@
                 firehose-chan snapshot-publish-fn unhandled-handler
                 state-snapshot-fn]
          :or   {handler-map {}}} cmp-map
-        in-chan (make-chan-w-buf (chan-key cfg))]
+        in-chan (make-chan-w-buf (chan-key cfg))
+        onto-in-chan #(a/onto-chan in-chan % false)]
     (go-loop []
       (let [msg (a/<! in-chan)]
         (l/debug cmp-id "msg received" msg)
@@ -107,7 +108,7 @@
                                   :msg-type      msg-type
                                   :msg-meta      msg-meta
                                   :msg-payload   msg-payload
-                                  :onto-in-chan  #(a/onto-chan in-chan % false)
+                                  :onto-in-chan  onto-in-chan
                                   :current-state (state-snapshot-fn)}))
                 handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
                 observed-state-handler (or state-pub-handler
