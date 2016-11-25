@@ -1,10 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
-## [0.6.23] - 2016-11-25
+## [0.5.24] - 2016-11-25
 ### Changed
 - Fix for issue #38
-- cherry-picked from master
 
 ## [0.5.22] - 2016-06-06
 ### Changed

@@ -102,7 +102,8 @@
   (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id firehose-chan snapshot-publish-fn
                 unhandled-handler state-reset-fn state-snapshot-fn put-fn]
          :or {handler-map {}}} cmp-map
-        in-chan (make-chan-w-buf (chan-key cfg))]
+        in-chan (make-chan-w-buf (chan-key cfg))
+        onto-in-chan #(a/onto-chan in-chan % false)]
     (go-loop []
       (let [msg (a/<! in-chan)
             msg-meta (-> (merge (meta msg) {})
@@ -114,7 +115,7 @@
                                     :msg-type      msg-type
                                     :msg-meta      msg-meta
                                     :msg-payload   msg-payload
-                                    :onto-in-chan  #(a/onto-chan in-chan % false)
+                                    :onto-in-chan  onto-in-chan
                                     :current-state (state-snapshot-fn)})
             state-change-emit-handler (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
                                         (when new-state (state-reset-fn new-state))
