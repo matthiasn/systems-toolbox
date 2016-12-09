@@ -15,7 +15,8 @@
                  [matthiasn/systems-toolbox-ui "0.6.1"]
                  [matthiasn/systems-toolbox-sente "0.6.1"]
                  [matthiasn/systems-toolbox-metrics "0.6.1"]
-                 ;[matthiasn/systems-toolbox-observer "0.6.1-alpha2"]
+                 ;[matthiasn/systems-toolbox-probe "0.6.2"]
+                 [re-frame "0.8.0"]
                  [clj-time "0.12.2"]]
 
   :source-paths ["src/cljc/" "src/clj/"]
@@ -24,7 +25,7 @@
 
   :main example.core
 
-  :plugins [[lein-cljsbuild "1.1.4"]
+  :plugins [[lein-cljsbuild "1.1.5"]
             [lein-figwheel "0.5.8"]]
 
   :figwheel {:server-port 3451

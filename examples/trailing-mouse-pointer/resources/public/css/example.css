@@ -24,4 +24,11 @@ article {
 #histograms div div{
     display: flex;
     flex-flow: row;
+    align-items: flex-start;
+}
+
+.show {
+    background-color: wheat;
+    padding: 2px 5px;
+    cursor: pointer;
 }

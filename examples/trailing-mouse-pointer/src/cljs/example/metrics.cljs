@@ -11,6 +11,7 @@
     switchboard
     [[:cmd/init-comp (jvmstats/cmp-map :client/jvmstats-cmp
                                        {:dom-id           "jvm-stats-frame"
-                                        :msgs-on-firehose true})]
+                                        ;:msgs-on-firehose true
+                                        })]
      [:cmd/route {:from :client/ws-cmp
                   :to   :client/jvmstats-cmp}]]))
