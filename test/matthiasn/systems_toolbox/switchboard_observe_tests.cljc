@@ -1,29 +1,33 @@
 (ns matthiasn.systems-toolbox.switchboard-observe-tests
   "Here, we test the route and route-all wiring between components."
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go]]))
-  (:require  [matthiasn.systems-toolbox.test-spec]
-    #?(:clj  [clojure.test :refer [deftest testing is]]
+  (:require [matthiasn.systems-toolbox.test-spec]
+    #?(:clj
+            [clojure.test :refer [deftest testing is]]
        :cljs [cljs.test :refer-macros [deftest testing is]])
-    #?(:clj  [clojure.core.async :refer [go]])
-             [matthiasn.systems-toolbox.switchboard :as sb]
-             [matthiasn.systems-toolbox.test-promise :as tp]))
+    #?(:clj
+            [clojure.core.async :refer [go]])
+            [matthiasn.systems-toolbox.switchboard :as sb]
+            [matthiasn.systems-toolbox.test-promise :as tp]))
 
 
 (defn observed-cmp-map
   "Map for component that receives messages and changes the provided state by calculating sum of accumulated
   value in state and incoming messages. This allows for checking if all messages were received."
   [cmp-id state-atom]
-  {:cmp-id            cmp-id
-   :handler-map       {:test/sum (fn [{:keys [current-state msg-payload]}]
-                                   {:new-state (update-in current-state [:sum] + (:n msg-payload))})}
-   :state-fn          (fn [_put-fn] {:state state-atom})})
+  {:cmp-id      cmp-id
+   :handler-map {:test/sum (fn [{:keys [current-state msg-payload]}]
+                             {:new-state (update-in current-state [:sum] + (:n msg-payload))})}
+   :state-fn    (fn [_put-fn] {:state state-atom})})
 
 (defn observing-cmp-map
   "Map for component that observes the state of another component."
   [cmp-id observed-atom]
   {:cmp-id           cmp-id
-   :state-fn         (fn [_put-fn] {:state (atom {}) :observed observed-atom})
-   :all-msgs-handler (fn [{:keys [msg]}] {:emit-msg msg})})
+   :state-fn         (fn [_put-fn] {:state    (atom {})
+                                    :observed observed-atom})
+   :all-msgs-handler (fn [{:keys [msg]}]
+                       {:emit-msg msg})})
 
 
 ;; Tests for components observing the state of another component, as facilitated by :cmd/observe-state.
@@ -40,7 +44,8 @@
                          (observing-cmp-map :test/obs-cmp-1 observed-atom)}]
        [:cmd/observe-state {:from :test/recv-cmp-1 :to :test/obs-cmp-1}]])
     (doseq [n (range 1 101)]
-      (sb/send-cmd switchboard [:cmd/send {:to :test/recv-cmp-1 :msg [:test/sum {:n n}]}]))
+      (sb/send-cmd switchboard [:cmd/send {:to  :test/recv-cmp-1
+                                           :msg [:test/sum {:n n}]}]))
     (testing ":test/recv-cmp-1 in desired state"
       (let [test-pred #(= (:sum %) 5050)]
         (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))
@@ -66,9 +71,11 @@
                          (observing-cmp-map :test/obs-cmp-1 observed-atom-1)
                          (observing-cmp-map :test/obs-cmp-2 observed-atom-2)
                          (observing-cmp-map :test/obs-cmp-3 observed-atom-3)}]
-       [:cmd/observe-state {:from :test/recv-cmp-1 :to #{:test/obs-cmp-1 :test/obs-cmp-2 :test/obs-cmp-3}}]])
+       [:cmd/observe-state {:from :test/recv-cmp-1
+                            :to   #{:test/obs-cmp-1 :test/obs-cmp-2 :test/obs-cmp-3}}]])
     (doseq [n (range 1 101)]
-      (sb/send-cmd switchboard [:cmd/send {:to :test/recv-cmp-1 :msg [:test/sum {:n n}]}]))
+      (sb/send-cmd switchboard [:cmd/send {:to  :test/recv-cmp-1
+                                           :msg [:test/sum {:n n}]}]))
     (testing ":test/recv-cmp-1 in desired state"
       (let [test-pred #(= (:sum %) 5050)]
         (tp/w-timeout 1000 (go (while (not (test-pred @recv-state-1)))))

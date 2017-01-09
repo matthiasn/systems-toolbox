@@ -1,15 +1,16 @@
 (ns matthiasn.systems-toolbox.component.msg-handling
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
              [cljs.core :refer [exists?]]))
-  (:require [matthiasn.systems-toolbox.spec :as s]
-    #?(:clj  [clojure.tools.logging :as l]
+  (:require [matthiasn.systems-toolbox.spec :as spec]
+    #?(:clj [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-             [matthiasn.systems-toolbox.component.helpers :as h]
-    #?(:clj  [io.aviso.exception :as ex])
-    #?(:clj  [clojure.core.match :refer [match]]
+            [matthiasn.systems-toolbox.component.helpers :as h]
+    #?(:clj [io.aviso.exception :as ex])
+    #?(:clj [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj  [clojure.core.async :as a :refer [chan go-loop]]
-       :cljs [cljs.core.async :as a :refer [chan]])))
+    #?(:clj [clojure.core.async :as a :refer [chan go-loop]]
+       :cljs [cljs.core.async :as a :refer [chan]])
+            [clojure.set :as s]))
 
 (defn put-msg
   "On the JVM, always uses the blocking operation for putting messages on a
@@ -48,19 +49,21 @@
   [{:keys [observed msg-payload observed-xform]}]
   (let [new-state (if observed-xform (observed-xform msg-payload) msg-payload)]
     (when (not= @observed new-state)
-      (reset! observed new-state))))
+      (reset! observed new-state))
+    {}))
 
 (defn mk-handler-return-fn
   "Returns function for handling the return value of a handler function.
   This returned map can contain :new-state, :emit-msg and :send-to-self keys."
   [{:keys [state-reset-fn cfg put-fn cmp-id] :as cmp-map} in-chan msg-meta]
-  (fn [{:keys [new-state emit-msg emit-msgs send-to-self]}]
+  (fn [{:keys [new-state emit-msg emit-msgs send-to-self] :as handler-res}]
     (l/debug cmp-id "handler returned")
     (let [emit-msg-fn (fn [msg]
-                        (put-fn (with-meta msg (or (meta msg) msg-meta))))]
+                        (when (seq msg)
+                          (put-fn (with-meta msg (or (meta msg) msg-meta)))))]
       (when new-state (when-let [state-spec (:state-spec cmp-map)]
                         (when (:validate-state cfg)
-                          (assert (s/valid-or-no-spec? state-spec new-state))
+                          (assert (spec/valid-or-no-spec? state-spec new-state))
                           (l/debug cmp-id "returned state validated")))
                       (state-reset-fn new-state))
       (when send-to-self (if (vector? (first send-to-self))
@@ -69,6 +72,13 @@
       (when emit-msg (if (vector? (first emit-msg))
                        (doseq [msg-to-emit emit-msg] (emit-msg-fn msg-to-emit))
                        (emit-msg-fn emit-msg)))
+      (let [res-keys (set (keys handler-res))
+            known-keys #{:new-state :emit-msg :emit-msgs :send-to-self}]
+        (when-not (s/subset? res-keys known-keys)
+          (l/warn "Unknown keys in handler result. THIS IS PROBABLY NOT WHAT YOU WANT."
+                  (s/difference res-keys known-keys)
+                  cmp-id
+                  )))
       (when emit-msgs
         (l/warn "DEPRECATED: emit-msgs, use emit-msg with a msg vector instead")
         (doseq [msg-to-emit emit-msgs]
@@ -114,7 +124,7 @@
                 observed-state-handler (or state-pub-handler
                                            default-state-pub-handler)]
             (when (:validate-in cfg)
-              (assert (s/valid-or-no-spec? msg-type msg-payload)))
+              (assert (spec/valid-or-no-spec? msg-type msg-payload)))
             (l/debug cmp-id "msg validated")
             (when (= chan-key :sliding-in-chan)
               (handler-return-fn (observed-state-handler (msg-map-fn)))
@@ -180,7 +190,7 @@
     (try
       (l/debug cmp-id "put-fn called")
       (when (:validate-out cfg)
-        (assert (s/valid-or-no-spec? (first msg) (second msg)))
+        (assert (spec/valid-or-no-spec? (first msg) (second msg)))
         (l/debug cmp-id "put-fn msg validated"))
       (let [msg-meta (-> (merge (meta msg) {})
                          (add-to-msg-seq cmp-id :out)

@@ -19,7 +19,8 @@
   (let [new-state (update-in current-state [:n] inc)]
     (when (= (:n new-state) (:expected-cnt new-state))
       (put! (:all-recvd new-state) true))
-    {:new-state (update-in current-state [:n] inc)}))
+    {:new-state (update-in current-state [:n] inc)
+     :emit-msg  []}))
 
 (defn ping-cmp-map [cmp-id cmp-state]
   {:cmp-id      cmp-id
@@ -58,7 +59,8 @@
   [cmp-id types f]
   (let [handler (fn [{:keys [msg-payload]}]
                   (log/debug "Spy:" msg-payload)
-                  (f))
+                  (f)
+                  {})
         handler-map (->> types
                          (map #(vector %1 handler))
                          (into {}))]

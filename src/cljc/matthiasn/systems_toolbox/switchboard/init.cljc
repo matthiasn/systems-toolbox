@@ -68,8 +68,9 @@
                       (s/def :st.switchboard/cmp known-cmp-ids))
                     (put! in-chan [:cmd/publish-state])
                     new-state)
-                  acc))))]
-      {:new-state (reduce reducer-fn current-state cmp-maps-set)})))
+                  acc))))
+          new-state (reduce reducer-fn current-state cmp-maps-set)]
+      {:new-state new-state})))
 
 (defn shutdown-all
   "Call shutdown function on each component to prepare for reload."

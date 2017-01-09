@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.6.3] - 2017-01-09
+### Changed
+- fixed NPE when using empty vector in :emit-msg
+
 ## [0.6.2] - 2016-11-25
 ### Changed
 - Fix for issue #38

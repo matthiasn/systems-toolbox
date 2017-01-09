@@ -24,10 +24,12 @@
         cnt 1000
         msgs-to-send (vec (range cnt))
         all-recvd (promise-chan)
-        cmp (component/make-component {:all-msgs-handler (fn [{:keys [msg-payload]}]
+        cmp (component/make-component {:cmp-id :test/cmp
+                                       :all-msgs-handler (fn [{:keys [msg-payload]}]
                                                            (swap! msgs-recvd conj msg-payload)
                                                            (when (= cnt (count @msgs-recvd))
-                                                             (put! all-recvd true)))})]
+                                                             (put! all-recvd true))
+                                                           {})})]
 
     (component/send-msgs cmp (map (fn [m] [:some/type m]) msgs-to-send))
 

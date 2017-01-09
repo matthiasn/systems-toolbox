@@ -22,7 +22,8 @@
     (switchboard/send-mult-cmd
       echo-switchboard
       [[:cmd/init-comp (scheduler/cmp-map :test/scheduler-cmp)]
-       [:cmd/route {:from :test/scheduler-cmp :to :test/pong-cmp}]])
+       [:cmd/route {:from :test/scheduler-cmp :to :test/pong-cmp}]
+       ])
     ;; Scheduling
     (switchboard/send-cmd
       echo-switchboard

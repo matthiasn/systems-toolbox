@@ -13,7 +13,7 @@
 
 (deftest message-flow
   (let [all-recvd (promise-chan)
-        repetitions 100
+        repetitions 1
         ping-state (atom {:n 0 :expected-cnt repetitions :all-recvd all-recvd})
         pong-state (atom {:n 0})
         echo-switchboard (system/create ping-state pong-state)]

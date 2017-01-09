@@ -19,11 +19,12 @@
    subsystem has its own switchboard."
   [{:keys [cmp-state msg-payload cmp-id]}]
   (swap! cmp-state assoc-in [:components cmp-id] msg-payload)
-  (swap! cmp-state assoc-in [:switchboard-id] cmp-id))
+  (swap! cmp-state assoc-in [:switchboard-id] cmp-id)
+  {})
 
 (defn mk-state
   "Create initial state atom for switchboard component."
-  [put-fn]
+  [_put-fn]
   {:state (atom {:components {}
                  :subs #{}
                  :taps #{}
@@ -53,7 +54,8 @@
   [{:keys [cmp-state msg-payload]}]
   (let [{:keys [to msg]} msg-payload
         dest-comp (to (:components @cmp-state))]
-    (put! (:in-chan dest-comp) msg)))
+    (put! (:in-chan dest-comp) msg))
+  {})
 
 (defn wire-all-out-channels
   "Function for calling the system-ready-fn on each component, which will pipe
