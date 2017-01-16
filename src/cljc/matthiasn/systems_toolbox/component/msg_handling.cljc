@@ -77,8 +77,7 @@
         (when-not (s/subset? res-keys known-keys)
           (l/warn "Unknown keys in handler result. THIS IS PROBABLY NOT WHAT YOU WANT."
                   (s/difference res-keys known-keys)
-                  cmp-id
-                  )))
+                  cmp-id)))
       (when emit-msgs
         (l/warn "DEPRECATED: emit-msgs, use emit-msg with a msg vector instead")
         (doseq [msg-to-emit emit-msgs]
@@ -186,53 +185,58 @@
    out-chan. Thus, components should not try call more messages than fit in the
    buffer before the entire system is up."
   [{:keys [cmp-id put-chan cfg firehose-chan]}]
-  (fn [msg]
-    (try
-      (l/debug cmp-id "put-fn called")
-      (when (:validate-out cfg)
-        (assert (spec/valid-or-no-spec? (first msg) (second msg)))
-        (l/debug cmp-id "put-fn msg validated"))
-      (let [msg-meta (-> (merge (meta msg) {})
-                         (add-to-msg-seq cmp-id :out)
-                         (assoc-in [cmp-id :out-ts] (h/now)))
-            corr-id (h/make-uuid)
-            tag (or (:tag msg-meta) (h/make-uuid))
-            completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
-            msg-w-meta (with-meta msg completed-meta)
-            msg-type (first msg)
-            msg-from-firehose? (= "firehose" (namespace msg-type))]
-        (put-msg put-chan msg-w-meta)
-        (l/debug cmp-id "put-fn: msg sent")
-        ;; Not all components should emit firehose messages. For example, messages
-        ;; that process firehose messages should not do so again in order to avoid
-        ;; infinite messaging loops.
-        ;; This behavior can be configured when the component is fired up.
-        (when (:msgs-on-firehose cfg)
-          ;; Some components may emit firehose messages directly. One such example
-          ;; is the WebSockets component which can be used for relaying firehose
-          ;; messages, either from client to server or from server to client.
-          ;; In those cases, the emitted message should go on the firehose channel
-          ;; on the receiving end as such, not wrapped as other messages would
-          ;; (see the second case in the if-clause).
-          (if msg-from-firehose?
-            (put-msg firehose-chan msg-w-meta)
-            (put-msg firehose-chan
-                     [:firehose/cmp-put {:cmp-id      cmp-id
-                                         :firehose-id (h/make-uuid)
-                                         :msg         msg-w-meta
-                                         :msg-meta    completed-meta
-                                         :ts          (h/now)}]))
-          (l/debug cmp-id "put-fn: msg put on firehose")))
-      #?(:clj  (catch Exception e
-                 (l/error "Exception in" cmp-id "when sending message:"
-                          (ex/format-exception e) (h/pp-str msg)))
-         :cljs (catch js/Object e
-                 (l/error e
-                          (str "Exception in " cmp-id " when sending message:"
-                               (h/pp-str msg)))))
-      #?(:clj  (catch AssertionError e
-                 (l/error "AssertionError in" cmp-id "when sending message:"
-                          (ex/format-exception e) (h/pp-str msg)))))))
+  (let [put-one-msg
+        (fn [msg]
+          (try
+            (l/debug cmp-id "put-fn called")
+            (when (:validate-out cfg)
+              (assert (spec/valid-or-no-spec? (first msg) (second msg)))
+              (l/debug cmp-id "put-fn msg validated"))
+            (let [msg-meta (-> (merge (meta msg) {})
+                               (add-to-msg-seq cmp-id :out)
+                               (assoc-in [cmp-id :out-ts] (h/now)))
+                  corr-id (h/make-uuid)
+                  tag (or (:tag msg-meta) (h/make-uuid))
+                  completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
+                  msg-w-meta (with-meta msg completed-meta)
+                  msg-type (first msg)
+                  msg-from-firehose? (= "firehose" (namespace msg-type))]
+              (put-msg put-chan msg-w-meta)
+              (l/debug cmp-id "put-fn: msg sent")
+              ;; Not all components should emit firehose messages. For example, messages
+              ;; that process firehose messages should not do so again in order to avoid
+              ;; infinite messaging loops.
+              ;; This behavior can be configured when the component is fired up.
+              (when (:msgs-on-firehose cfg)
+                ;; Some components may emit firehose messages directly. One such example
+                ;; is the WebSockets component which can be used for relaying firehose
+                ;; messages, either from client to server or from server to client.
+                ;; In those cases, the emitted message should go on the firehose channel
+                ;; on the receiving end as such, not wrapped as other messages would
+                ;; (see the second case in the if-clause).
+                (if msg-from-firehose?
+                  (put-msg firehose-chan msg-w-meta)
+                  (put-msg firehose-chan
+                           [:firehose/cmp-put {:cmp-id      cmp-id
+                                               :firehose-id (h/make-uuid)
+                                               :msg         msg-w-meta
+                                               :msg-meta    completed-meta
+                                               :ts          (h/now)}]))
+                (l/debug cmp-id "put-fn: msg put on firehose")))
+            #?(:clj  (catch Exception e
+                       (l/error "Exception in" cmp-id "when sending message:"
+                                (ex/format-exception e) (h/pp-str msg)))
+               :cljs (catch js/Object e
+                       (l/error e
+                                (str "Exception in " cmp-id " when sending message:"
+                                     (h/pp-str msg)))))
+            #?(:clj (catch AssertionError e
+                      (l/error "AssertionError in" cmp-id "when sending message:"
+                               (ex/format-exception e) (h/pp-str msg))))))]
+    (fn [m]
+      (if (vector? (first m))
+        (doseq [msg m] (put-one-msg msg))
+        (put-one-msg m)))))
 
 (defn send-msg
   "Sends message to the specified component. By default, calls to this function

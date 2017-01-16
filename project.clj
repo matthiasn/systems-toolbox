@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.6.3"
+(defproject matthiasn/systems-toolbox "0.6.4"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -16,6 +16,8 @@
   :plugins [[lein-codox "0.10.2"]
             [test2junit "1.2.5"]
             [lein-doo "0.1.7"]
+            [lein-cloverage "1.0.9"]
+            [lein-ancient "0.6.10"]
             [com.jakemccrary/lein-test-refresh "0.18.1"]
             [lein-cljsbuild "1.1.5"]]
 

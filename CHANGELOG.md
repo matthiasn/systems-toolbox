@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.6.4] - 2017-01-16
+### Changed
+- put-fn also accepts a vector of messages
+
 ## [0.6.3] - 2017-01-09
 ### Changed
 - fixed NPE when using empty vector in :emit-msg
