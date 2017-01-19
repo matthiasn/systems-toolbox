@@ -2,6 +2,8 @@
 
 Applications are systems. Systems are fascinating entities, and one of their characteristics is that we can observe them. Read more about that **[here](doc/systems-thinking.md)**. Also make sure you read about the **[rationale](doc/rationale.md)** behind this library.
 
+[![Dependencies Status](https://jarkeeper.com/matthiasn/systems-toolbox/status.svg)](https://jarkeeper.com/matthiasn/systems-toolbox)
+
 
 ## What's in the box?
 
