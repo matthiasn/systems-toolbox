@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+
+## [0.6.5] - 2017-02-24
+### Changed
+- latest core.async & other deps
+
 ## [0.6.4] - 2017-01-16
 ### Changed
 - put-fn also accepts a vector of messages
