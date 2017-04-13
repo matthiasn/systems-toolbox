@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.7] - 2017-04-13
+### Changed
+- tests with latest ClojureScript
+
+## [0.6.6] - 2017-03-15
+### Changed
+- tests with Clojure 1.9.0-alpha15
+
 ## [0.6.5] - 2017-02-24
 ### Changed
 - latest core.async & other deps

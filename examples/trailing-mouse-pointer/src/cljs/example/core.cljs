@@ -13,13 +13,13 @@
 
 (defonce switchboard (sb/component :client/switchboard))
 
-(def sente-cfg {:relay-types      #{:mouse/pos
-                                    :mouse/get-hist
-                                    :firehose/cmp-put
-                                    :firehose/cmp-recv
-                                    :firehose/cmp-publish-state
-                                    :firehose/cmp-recv-state}
-                ;:msgs-on-firehose true
+(def sente-cfg {:relay-types #{:mouse/pos
+                               :mouse/get-hist
+                               :firehose/cmp-put
+                               :firehose/cmp-recv
+                               :firehose/cmp-publish-state
+                               :firehose/cmp-recv-state}
+                ;:sente-opts  {:type :ajax}
                 })
 
 ; TODO: maybe firehose messages should implicitly be relayed?
@@ -38,12 +38,8 @@
                           :client/ws-cmp}
                   :to   :client/store-cmp}]
 
-     ;[:cmd/attach-to-firehose :client/ws-cmp]
-
      [:cmd/observe-state {:from :client/store-cmp
-                          :to :client/ui-cmp}]])
-  (metrics/init! switchboard)
-  #_(observer/init! switchboard)
-  )
+                          :to   :client/ui-cmp}]])
+  (metrics/init! switchboard))
 
 (init!)
