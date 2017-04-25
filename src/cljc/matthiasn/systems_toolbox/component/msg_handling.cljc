@@ -55,7 +55,7 @@
 (defn mk-handler-return-fn
   "Returns function for handling the return value of a handler function.
   This returned map can contain :new-state, :emit-msg and :send-to-self keys."
-  [{:keys [state-reset-fn cfg put-fn cmp-id] :as cmp-map} in-chan msg-meta]
+  [{:keys [state-reset-fn cfg put-fn cmp-id] :as cmp-map} in-chan msg-type msg-meta]
   (fn [{:keys [new-state emit-msg emit-msgs send-to-self] :as handler-res}]
     (l/debug cmp-id "handler returned")
     (let [emit-msg-fn (fn [msg]
@@ -77,7 +77,8 @@
         (when-not (s/subset? res-keys known-keys)
           (l/warn "Unknown keys in handler result. THIS IS PROBABLY NOT WHAT YOU WANT."
                   (s/difference res-keys known-keys)
-                  cmp-id)))
+                  cmp-id
+                  msg-type)))
       (when emit-msgs
         (l/warn "DEPRECATED: emit-msgs, use emit-msg with a msg vector instead")
         (doseq [msg-to-emit emit-msgs]
@@ -119,7 +120,7 @@
                                   :msg-payload   msg-payload
                                   :onto-in-chan  onto-in-chan
                                   :current-state (state-snapshot-fn)}))
-                handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-meta)
+                handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-type msg-meta)
                 observed-state-handler (or state-pub-handler
                                            default-state-pub-handler)]
             (when (:validate-in cfg)
