@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.8] - 2017-04-25
+### Changed
+- Include message type in a log statement for invalid handler return. (from kamituel, PR #41)
+
 ## [0.6.7] - 2017-04-13
 ### Changed
 - tests with latest ClojureScript
