@@ -99,8 +99,7 @@
       [:a {:href "https://edwardtufte.github.io/tufte-css/" :target "_blank"}
        "Tufte CSS"]
       ". It allowed me to write this application with only around 30 lines of
-       CSS, most of which is related to the flexbox layout for histogram SVGs."]]]
-   ])
+       CSS, most of which is related to the flexbox layout for histogram SVGs."]]]])
 
 (defn state-fn
   "Renders main view component and wires the central re-frame app-db as the
@@ -120,5 +119,4 @@
 (defn cmp-map
   [cmp-id]
   {:cmp-id   cmp-id
-   ;:opts     {:throttle-ms 30}
    :state-fn state-fn})

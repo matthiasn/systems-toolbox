@@ -4,15 +4,15 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha15"]
-                 [org.clojure/clojurescript "1.9.518"]
+                 [org.clojure/clojurescript "1.9.521"]
                  [hiccup "1.0.5"]
+                 [re-frame "0.9.2"]
                  [clj-pid "0.1.2"]
                  [ch.qos.logback/logback-classic "1.2.3"]
                  [org.clojure/tools.logging "0.3.1"]
                  [matthiasn/systemd-watchdog "0.1.3"]
                  [matthiasn/systems-toolbox "0.6.7"]
-                 [matthiasn/systems-toolbox-sente "0.6.12"]
-                 [matthiasn/systems-toolbox-ui "0.6.2"]]
+                 [matthiasn/systems-toolbox-sente "0.6.14"]]
 
   :source-paths ["src/clj/"]
 

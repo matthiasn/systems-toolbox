@@ -12,7 +12,6 @@
                  [hiccup "1.0.5"]
                  [clj-pid "0.1.2"]
                  [matthiasn/systems-toolbox "0.6.7"]
-                 [matthiasn/systems-toolbox-ui "0.6.2"]
                  [matthiasn/systems-toolbox-sente "0.6.14"]
                  [matthiasn/systems-toolbox-metrics "0.6.2"]
                  [re-frame "0.9.2"]
