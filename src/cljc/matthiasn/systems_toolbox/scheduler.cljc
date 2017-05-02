@@ -45,15 +45,15 @@
       (when (:initial msg-payload) (put-fn msg-to-send))
       (go-loop []
         (<! (timeout timout-ms))
-        (let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
-          (put-fn msg-to-send)
-          (if active-timer
+        (if-let [active-timer (get-in @cmp-state [:active-timers scheduler-id])]
+          (do
+            (put-fn msg-to-send)
             (if (:repeat active-timer)
               (recur)
               (do
                 (swap! cmp-state update :active-timers dissoc scheduler-id)
-                (put-fn [:info/completed-timer scheduler-id])))
-            (put-fn [:info/deleted-timer scheduler-id])))))))
+                (put-fn [:info/completed-timer scheduler-id]))))
+          (put-fn [:info/deleted-timer scheduler-id]))))))
 
 (defn stop-loop
   "Stops a an loop that was previously scheduled."
