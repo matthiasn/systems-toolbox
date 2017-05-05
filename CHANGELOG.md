@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.5.25] - 2017-05-05
+### Changed
+- PR #42 from kamituel/scheduler-cancel
+
 ## [0.5.24] - 2016-11-25
 ### Changed
 - Fix for issue #38
