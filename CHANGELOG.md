@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.9] - 2017-05-30
+### Changed
+- Make switchboard's spec validation be configurable (from kamituel, PR #43)
+- latest deps
+- latest Clojure and ClojureScript after spec split
+- replace all occurrences of `clojure.spec` with `clojure.spec.alpha`
+- replace all occurrences of `cljs.spec` with `cljs.spec.alpha`
+
 ## [0.6.8] - 2017-04-25
 ### Changed
 - Include message type in a log statement for invalid handler return. (from kamituel, PR #41)

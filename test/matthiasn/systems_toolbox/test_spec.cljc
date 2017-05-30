@@ -1,7 +1,7 @@
 (ns matthiasn.systems-toolbox.test-spec
   (:require
-    #?(:clj  [clojure.spec :as s]
-       :cljs [cljs.spec :as s])
+    #?(:clj  [clojure.spec.alpha :as s]
+       :cljs [cljs.spec.alpha :as s])
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])))
 

@@ -8,18 +8,18 @@
 
   :dependencies [[org.clojure/core.match "0.3.0-alpha4"
                   :exclusions [org.clojure/tools.analyzer.jvm]]
-                 [org.clojure/core.async "0.3.442"]
+                 [org.clojure/core.async "0.3.443"]
                  [org.clojure/tools.logging "0.3.1"]
                  [io.aviso/pretty "0.1.33"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]]
 
   :plugins [[lein-codox "0.10.3"]
-            [test2junit "1.2.5"]
+            [test2junit "1.3.2"]
             [lein-doo "0.1.7"]
             [lein-cloverage "1.0.9"]
             [lein-ancient "0.6.10"]
-            [com.jakemccrary/lein-test-refresh "0.19.0"]
-            [lein-cljsbuild "1.1.5"]]
+            [com.jakemccrary/lein-test-refresh "0.20.0"]
+            [lein-cljsbuild "1.1.6"]]
 
   :test2junit-output-dir
   ~(or (System/getenv "CIRCLE_TEST_REPORTS") "target/test2junit")
@@ -30,8 +30,8 @@
   :test-paths ["test"]
   ;:test-paths ["dev-resources" "test" "perf"]
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha15"]
-                                  [org.clojure/clojurescript "1.9.521"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha17"]
+                                  [org.clojure/clojurescript "1.9.562"]
                                   [org.clojure/tools.logging "0.3.1"]
                                   [ch.qos.logback/logback-classic "1.2.3"]]
                    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}

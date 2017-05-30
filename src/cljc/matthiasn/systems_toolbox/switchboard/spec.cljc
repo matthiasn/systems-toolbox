@@ -1,7 +1,7 @@
 (ns matthiasn.systems-toolbox.switchboard.spec
   (:require  [matthiasn.systems-toolbox.spec :as sts]
-    #?(:clj  [clojure.spec :as s]
-       :cljs [cljs.spec :as s])))
+    #?(:clj  [clojure.spec.alpha :as s]
+       :cljs [cljs.spec.alpha :as s])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Spec for :cmd/init-comp

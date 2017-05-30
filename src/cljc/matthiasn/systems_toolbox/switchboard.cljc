@@ -10,8 +10,8 @@
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
     #?(:clj  [io.aviso.exception :as ex])
-    #?(:clj  [clojure.spec :as s]
-       :cljs [cljs.spec :as s])))
+    #?(:clj  [clojure.spec.alpha :as s]
+       :cljs [cljs.spec.alpha :as s])))
 
 (defn- self-register
   "Registers switchboard itself as another component that can be wired. Useful

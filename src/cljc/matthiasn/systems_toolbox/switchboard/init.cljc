@@ -5,8 +5,8 @@
        :cljs [cljs.core.async :refer [put! tap untap-all untap unsub-all close!]])
     #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj  [clojure.spec :as s]
-       :cljs [cljs.spec :as s])))
+    #?(:clj  [clojure.spec.alpha :as s]
+       :cljs [cljs.spec.alpha :as s])))
 
 (defn cmp-maps-set
   "Returns a set with component maps."
