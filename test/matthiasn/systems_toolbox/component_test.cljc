@@ -1,11 +1,11 @@
 (ns matthiasn.systems-toolbox.component-test
   "Interact with components by sending some messages directly, see them handled correctly."
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go]]))
-  (:require  [matthiasn.systems-toolbox.test-spec]
+  (:require [matthiasn.systems-toolbox.test-spec]
     #?(:clj  [clojure.test :refer [deftest testing is]]
        :cljs [cljs.test :refer-macros [deftest testing is]])
-    #?(:clj  [clojure.core.async :refer [<! chan put! go timeout promise-chan]]
-       :cljs [cljs.core.async :refer [<! chan put! timeout promise-chan]])
+    #?(:clj  [clojure.core.async :refer [<! chan put! go timeout promise-chan tap]]
+       :cljs [cljs.core.async :refer [<! chan put! timeout promise-chan tap]])
              [matthiasn.systems-toolbox.test-promise :as tp]
              [matthiasn.systems-toolbox.component :as component]
     #?(:clj  [clojure.tools.logging :as log]
@@ -23,20 +23,27 @@
         cnt 1000
         msgs-to-send (vec (range cnt))
         all-recvd (promise-chan)
-        cmp (component/make-component {:cmp-id           :test/cmp
-                                       :all-msgs-handler (fn [{:keys [msg-payload]}]
-                                                           (swap! msgs-recvd conj msg-payload)
-                                                           (when (= cnt (count @msgs-recvd))
-                                                             (put! all-recvd true))
-                                                           {})})]
+        cmp (component/make-component
+              {:cmp-id           :test/cmp
+               :all-msgs-handler (fn [{:keys [msg-payload put-fn]}]
+                                   (swap! msgs-recvd conj msg-payload)
+                                   (when (= cnt (count @msgs-recvd))
+                                     (put-fn [:test/done]))
+                                   {})})
+        ready-fn (:system-ready-fn cmp)]
+
+    (tap (:out-mult cmp) all-recvd)
+    (ready-fn)
 
     (component/send-msgs cmp (map (fn [m] [:some/type m]) msgs-to-send))
 
-    (tp/w-timeout 5000 (go
-                         (testing "all messages received"
-                           (is (true? (<! all-recvd))))
-                         (testing "sent messages equal received messages"
-                           (is (= msgs-to-send @msgs-recvd)))))))
+    (tp/w-timeout
+      5000
+      (go
+        (testing "all messages received"
+          (is (= [:test/done] (<! all-recvd))))
+        (testing "sent messages equal received messages"
+          (is (= msgs-to-send @msgs-recvd)))))))
 
 (defn cmp-all-msgs-handler-cmp-state-fn
   "Like cmp-all-msgs-handler test, except that the handler function here acts on the component state provided
@@ -60,25 +67,31 @@
         msgs-to-send (map (fn [m] [:some/type m]) vals-to-send)
         all-recvd (promise-chan)
         res (reduce + (range cnt))
-        cmp (component/make-component {:state-fn         (fn [_put-fn] {:state state})
-                                       :all-msgs-handler (fn [{:keys [msg-payload current-state]}]
-                                                           (let [new-state (+ current-state msg-payload)]
-                                                             (when (= res new-state)
-                                                               (put! all-recvd true))
-                                                             {:new-state new-state}))})
-        start-ts (component/now)]
+        cmp (component/make-component
+              {:state-fn         (fn [_put-fn] {:state state})
+               :all-msgs-handler (fn [{:keys [msg-payload current-state]}]
+                                   (let [new-state (+ current-state msg-payload)]
+                                     {:new-state new-state
+                                      :emit-msg  (when (= res new-state)
+                                                   [[:test/done]])}))})
+        start-ts (component/now)
+        ready-fn (:system-ready-fn cmp)]
+    (tap (:out-mult cmp) all-recvd)
+    (ready-fn)
 
     (component/send-msgs cmp msgs-to-send)
 
-    (tp/w-timeout 5000 (go
-                         (testing "all messages received"
-                           (is (true? (<! all-recvd))))
-                         (testing "processes more than 1K messages per second"
-                           (let [msgs-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                             (log/debug "Msgs/s:" msgs-per-sec)
-                             (is (> msgs-per-sec 1000))))
-                         (testing "sent messages equal received messages"
-                           (is (= res @state)))))))
+    (tp/w-timeout
+      5000
+      (go
+        (testing "all messages received"
+          (is (= [:test/done] (<! all-recvd))))
+        (testing "processes more than 1K messages per second"
+          (let [msgs-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
+            (log/debug "Msgs/s:" msgs-per-sec)
+            (is (> msgs-per-sec 1000))))
+        (testing "sent messages equal received messages"
+          (is (= res @state)))))))
 
 (deftest cmp-all-msgs-handler-cmp-state1 (cmp-all-msgs-handler-cmp-state-fn))
 
@@ -97,10 +110,10 @@
         div-by-10? #(zero? (mod % 10))
         div-by-100? #(zero? (mod % 100))
         all-recvd (promise-chan)
-        all-msgs-handler (fn [{:keys [msg-payload current-state]}]
+        all-msgs-handler (fn [{:keys [msg-payload current-state put-fn]}]
                            (let [new-state (update-in current-state [:all] conj msg-payload)]
                              (when (= cnt (count (:all new-state)))
-                               (put! all-recvd true))
+                               (put-fn [:test/done]))
                              {:new-state new-state}))
         msg-handler (fn [k] (fn [{:keys [msg-payload current-state]}]
                               {:new-state (update-in current-state [k] conj msg-payload)}))
@@ -108,7 +121,10 @@
                                        :handler-map       {:int/div-by-10  (msg-handler :div-by-10)
                                                            :int/div-by-100 (msg-handler :div-by-100)}
                                        :unhandled-handler (msg-handler :unhandled)
-                                       :all-msgs-handler  all-msgs-handler})]
+                                       :all-msgs-handler  all-msgs-handler})
+        ready-fn (:system-ready-fn cmp)]
+    (tap (:out-mult cmp) all-recvd)
+    (ready-fn)
 
     (component/send-msgs cmp (map (fn [m]
                                     (let [msg-type (cond (div-by-100? m) :int/div-by-100
@@ -116,16 +132,17 @@
                                                          :else :some/type)]
                                       [msg-type m]))
                                   msgs-to-send))
-
-    (tp/w-timeout 5000 (go
-                         (testing "all messages received"
-                           (is (true? (<! all-recvd))))
-                         (testing "sent messages equal received messages"
-                           (is (= msgs-to-send (:all @msgs-recvd))))
-                         (testing "specific handlers only received their respective messages"
-                           (is (every? div-by-10? (:div-by-10 @msgs-recvd)))
-                           (is (every? div-by-100? (:div-by-100 @msgs-recvd))))
-                         (testing "unhandled handler did not receive any messages for which specific handler exists"
-                           (let [unhandled-items (:unhandled @msgs-recvd)]
-                             (is (every? #(not (div-by-10? %)) unhandled-items))
-                             (is (every? #(not (div-by-100? %)) unhandled-items))))))))
+    (tp/w-timeout
+      5000
+      (go
+        (testing "all messages received"
+          (is (= [:test/done] (<! all-recvd))))
+        (testing "sent messages equal received messages"
+          (is (= msgs-to-send (:all @msgs-recvd))))
+        (testing "specific handlers only received their respective messages"
+          (is (every? div-by-10? (:div-by-10 @msgs-recvd)))
+          (is (every? div-by-100? (:div-by-100 @msgs-recvd))))
+        (testing "unhandled handler did not receive any messages for which specific handler exists"
+          (let [unhandled-items (:unhandled @msgs-recvd)]
+            (is (every? #(not (div-by-10? %)) unhandled-items))
+            (is (every? #(not (div-by-100? %)) unhandled-items))))))))
