@@ -23,7 +23,7 @@
             (-> current-state
                 (assoc-in [:from-server] (assoc msg-payload :rt-time rt-time))
                 (update-in [:count] inc)
-                (update-in [:rtt-times]  conj rt-time)
+                (update-in [:rtt-times] conj rt-time)
                 ;(update-in [:rtt-times] #(sort (conj % rt-time)))
                 (update-in [:network-times] conj network-time)))
           (-> current-state
@@ -44,12 +44,12 @@
 (defn state-fn
   "Return clean initial component state atom."
   [_put-fn]
-  {:state (atom {:count             0
-                 :rtt-times         []
-                 :network-times     []
-                 :local             {:x 0 :y 0}
-                 :show-all          {:local  false
-                                     :remote false}})})
+  {:state (atom {:count         0
+                 :rtt-times     []
+                 :network-times []
+                 :local         {:x 0 :y 0}
+                 :show-all      {:local  false
+                                 :remote false}})})
 
 (defn cmp-map
   "Configuration map that specifies how to instantiate component."
@@ -59,6 +59,4 @@
    :handler-map {:mouse/pos    mouse-pos-handler
                  :cmd/show-all show-all-handler
                  :mouse/hist   mouse-hist-handler}
-   :opts        {;:msgs-on-firehose      true
-                 ;:snapshots-on-firehose true
-                 }})
+   :opts        {:msgs-on-firehose true}})

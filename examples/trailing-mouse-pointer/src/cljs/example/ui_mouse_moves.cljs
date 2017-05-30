@@ -1,7 +1,5 @@
 (ns example.ui-mouse-moves
-  (:require [matthiasn.systems-toolbox-ui.reagent :as r]
-            [re-frame.core :refer [subscribe]]
-            [matthiasn.systems-toolbox-ui.helpers :refer [by-id]]
+  (:require [re-frame.core :refer [subscribe]]
             [reagent.core :as rc]))
 
 ;; some SVG defaults

@@ -1,7 +1,5 @@
 (ns example.ui-info
-  (:require [matthiasn.systems-toolbox-ui.reagent :as r]
-            [re-frame.core :refer [subscribe]]
-            [matthiasn.systems-toolbox-ui.helpers :refer [by-id]]))
+  (:require [re-frame.core :refer [subscribe]]))
 
 (defn info-view
   "Show some info about app state, plus toggle buttons for showing all mouse

@@ -8,7 +8,7 @@
    are validated using clojure.spec. This eliminates an entire class of possible
    bugs, where failing to comply with data structure expectations might now
    immediately become obvious."
-  (:require [cljs.spec :as s]))
+  (:require [cljs.spec.alpha :as s]))
 
 (defn inc-handler
   "Handler for incrementing specific counter"

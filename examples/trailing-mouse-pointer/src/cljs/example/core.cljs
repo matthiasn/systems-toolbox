@@ -4,7 +4,6 @@
             [example.ui-histograms :as hist]
             [example.ui-info :as info]
             [example.re-frame :as ui]
-            [example.metrics :as metrics]
             [example.observer :as observer]
             [matthiasn.systems-toolbox.switchboard :as sb]
             [matthiasn.systems-toolbox-sente.client :as sente]))
@@ -19,8 +18,7 @@
                                :firehose/cmp-recv
                                :firehose/cmp-publish-state
                                :firehose/cmp-recv-state}
-                ;:sente-opts  {:type :ajax}
-                })
+                :msgs-on-firehose true})
 
 ; TODO: maybe firehose messages should implicitly be relayed?
 (defn init! []
@@ -40,6 +38,6 @@
 
      [:cmd/observe-state {:from :client/store-cmp
                           :to   :client/ui-cmp}]])
-  (metrics/init! switchboard))
+  (observer/init! switchboard))
 
 (init!)

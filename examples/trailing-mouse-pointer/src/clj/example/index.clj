@@ -32,4 +32,4 @@
   "Configuration map for sente-cmp."
   {:index-page-fn index-page
    :port          8763
-   :relay-types   #{:mouse/pos :stats/jvm :mouse/hist}})
+   :relay-types   #{:mouse/pos :mouse/hist}})
