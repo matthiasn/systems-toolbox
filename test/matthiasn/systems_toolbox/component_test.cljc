@@ -1,16 +1,15 @@
 (ns matthiasn.systems-toolbox.component-test
-
   "Interact with components by sending some messages directly, see them handled correctly."
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go]]))
-  (:require [matthiasn.systems-toolbox.test-spec]
-   #?(:clj  [clojure.test :refer [deftest testing is]]
-      :cljs [cljs.test :refer-macros [deftest testing is]])
-   #?(:clj  [clojure.core.async :refer [<! chan put! go timeout promise-chan]]
-      :cljs [cljs.core.async :refer [<! chan put! timeout promise-chan]])
-            [matthiasn.systems-toolbox.test-promise :as tp]
-            [matthiasn.systems-toolbox.component :as component]
-   #?(:clj  [clojure.tools.logging :as log]
-      :cljs [matthiasn.systems-toolbox.log :as log])))
+  (:require  [matthiasn.systems-toolbox.test-spec]
+    #?(:clj  [clojure.test :refer [deftest testing is]]
+       :cljs [cljs.test :refer-macros [deftest testing is]])
+    #?(:clj  [clojure.core.async :refer [<! chan put! go timeout promise-chan]]
+       :cljs [cljs.core.async :refer [<! chan put! timeout promise-chan]])
+             [matthiasn.systems-toolbox.test-promise :as tp]
+             [matthiasn.systems-toolbox.component :as component]
+    #?(:clj  [clojure.tools.logging :as log]
+       :cljs [matthiasn.systems-toolbox.log :as log])))
 
 (deftest cmp-all-msgs-handler
   "Tests that a very simple component that only has a handler for all messages regardless of type receives all
@@ -24,7 +23,7 @@
         cnt 1000
         msgs-to-send (vec (range cnt))
         all-recvd (promise-chan)
-        cmp (component/make-component {:cmp-id :test/cmp
+        cmp (component/make-component {:cmp-id           :test/cmp
                                        :all-msgs-handler (fn [{:keys [msg-payload]}]
                                                            (swap! msgs-recvd conj msg-payload)
                                                            (when (= cnt (count @msgs-recvd))
@@ -71,23 +70,17 @@
 
     (component/send-msgs cmp msgs-to-send)
 
-    (tp/w-timeout cnt (go
-                        (testing "all messages received"
-                          (is (true? (<! all-recvd))))
-                        (testing "processes more than 1K messages per second"
-                          (let [msgs-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
-                            (log/debug "Msgs/s:" msgs-per-sec)
-                            (is (> msgs-per-sec 1000))))
-                        (testing "sent messages equal received messages"
-                          (is (= res @state)))))))
+    (tp/w-timeout 5000 (go
+                         (testing "all messages received"
+                           (is (true? (<! all-recvd))))
+                         (testing "processes more than 1K messages per second"
+                           (let [msgs-per-sec (int (* (/ 1000 (- (component/now) start-ts)) cnt))]
+                             (log/debug "Msgs/s:" msgs-per-sec)
+                             (is (> msgs-per-sec 1000))))
+                         (testing "sent messages equal received messages"
+                           (is (= res @state)))))))
 
 (deftest cmp-all-msgs-handler-cmp-state1 (cmp-all-msgs-handler-cmp-state-fn))
-#_#_#_#_#_
-(deftest cmp-all-msgs-handler-cmp-state2 (cmp-all-msgs-handler-cmp-state-fn))
-(deftest cmp-all-msgs-handler-cmp-state3 (cmp-all-msgs-handler-cmp-state-fn))
-(deftest cmp-all-msgs-handler-cmp-state4 (cmp-all-msgs-handler-cmp-state-fn))
-(deftest cmp-all-msgs-handler-cmp-state5 (cmp-all-msgs-handler-cmp-state-fn))
-(deftest cmp-all-msgs-handler-cmp-state6 (cmp-all-msgs-handler-cmp-state-fn))
 
 (deftest cmp-handlers-test
   "Tests that a) specific handlers receive only their respective messages, b) unhandled-handler receives only
