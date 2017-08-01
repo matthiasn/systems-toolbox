@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.10] - 2017-08-01
+### Changed
+- latest deps
+
 ## [0.6.9] - 2017-05-30
 ### Changed
 - Make switchboard's spec validation be configurable (from kamituel, PR #43)

@@ -42,6 +42,6 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="matthiasn.systems-toolbox.runtime-perf-test" level="ALL"/>
+    <logger name="matthiasn.systems-toolbox-kafka" level="ALL"/>
 
 </configuration>
