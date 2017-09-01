@@ -162,5 +162,6 @@
              (msg/msg-handler-loop cmp-map :in-chan)
              (msg/msg-handler-loop cmp-map :sliding-in-chan)))
     #?(:clj  (catch Exception e (l/error "Failed to init" (:cmp-id cmp-map)
-                                         (ex/format-exception e)))
+                                         (ex/format-exception e))
+                                (System/exit 1))
        :cljs (catch js/Object e (l/error "Failed to init" (:cmp-id cmp-map) e)))))
