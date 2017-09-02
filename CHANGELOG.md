@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.13] - 2017-09-03
+### Changed
+- cmp sequence in msg metadata 
+
 ## [0.6.12] - 2017-09-01
 ### Changed
 - shutdown when encountering any exception during component init

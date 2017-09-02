@@ -2,13 +2,17 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
              [cljs.core :refer [exists?]]))
   (:require [matthiasn.systems-toolbox.spec :as spec]
-    #?(:clj [clojure.tools.logging :as l]
+    #?(:clj
+            [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
             [matthiasn.systems-toolbox.component.helpers :as h]
-    #?(:clj [io.aviso.exception :as ex])
-    #?(:clj [clojure.core.match :refer [match]]
+    #?(:clj
+            [io.aviso.exception :as ex])
+    #?(:clj
+            [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj [clojure.core.async :as a :refer [chan go-loop]]
+    #?(:clj
+            [clojure.core.async :as a :refer [chan go-loop]]
        :cljs [cljs.core.async :as a :refer [chan]])
             [clojure.set :as s]))
 
@@ -38,7 +42,7 @@
    received by a component. This avoids recording component IDs multiple times."
   [msg-meta cmp-id in-out]
   (let [cmp-seq (vec (:cmp-seq msg-meta))]
-    (if (or (empty? cmp-seq) (= in-out :in))
+    (if (not= (last cmp-seq) cmp-id)
       (assoc-in msg-meta [:cmp-seq] (conj cmp-seq cmp-id))
       msg-meta)))
 
@@ -161,11 +165,11 @@
                               (ex/format-exception e) (h/pp-str msg)))
              :cljs (catch js/Object e
                      (l/error e
-                       (str "Exception in " cmp-id " when receiving message:"
-                            (h/pp-str msg)))))
-          #?(:clj  (catch AssertionError e
-                     (l/error "AssertionError in" cmp-id "when receiving message:"
-                              (ex/format-exception e) (h/pp-str msg)))))
+                              (str "Exception in " cmp-id " when receiving message:"
+                                   (h/pp-str msg)))))
+          #?(:clj (catch AssertionError e
+                    (l/error "AssertionError in" cmp-id "when receiving message:"
+                             (ex/format-exception e) (h/pp-str msg)))))
         (recur)))
     {chan-key in-chan}))
 
