@@ -116,11 +116,16 @@
                              (assoc-in [cmp-id :in-ts] (h/now)))
                 [msg-type msg-payload] msg
                 handler-fn (msg-type handler-map)
+                put-fn (fn [msg]
+                         (let [msg-meta (merge msg-meta (meta msg))
+                               wrapped-put-fn (:put-fn cmp-map)]
+                           (wrapped-put-fn (with-meta msg msg-meta))))
                 msg-map-fn
                 (fn []
                   (merge cmp-map {:msg           (with-meta msg msg-meta)
                                   :msg-type      msg-type
                                   :msg-meta      msg-meta
+                                  :put-fn        put-fn
                                   :msg-payload   msg-payload
                                   :onto-in-chan  onto-in-chan
                                   :current-state (state-snapshot-fn)}))
