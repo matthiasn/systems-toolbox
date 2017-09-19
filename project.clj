@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.6.15"
+(defproject matthiasn/systems-toolbox "0.6.16"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -30,7 +30,7 @@
   :test-paths ["test"]
   ;:test-paths ["dev-resources" "test" "perf"]
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha20"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-beta1"]
                                   [org.clojure/clojurescript "1.9.908"]
                                   [org.clojure/tools.logging "0.4.0"]
                                   [ch.qos.logback/logback-classic "1.2.3"]]

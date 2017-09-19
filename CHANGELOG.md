@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.16] - 2017-09-19
+### Changed
+- run test with Clojure 1.9.0-beta1
+
 ## [0.6.15] - 2017-09-15
 ### Changed
 - wrapped put-fn
