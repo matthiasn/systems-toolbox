@@ -111,7 +111,8 @@
       (let [msg (a/<! in-chan)]
         (l/debug cmp-id "msg received" msg)
         (try
-          (let [msg-meta (-> (merge (meta msg) {})
+          (let [recv-ts (h/now)
+                msg-meta (-> (merge (meta msg) {})
                              (add-to-msg-seq cmp-id :in)
                              (assoc-in [cmp-id :in-ts] (h/now)))
                 [msg-type msg-payload] msg
@@ -158,12 +159,14 @@
                 (l/debug cmp-id "all-msgs-handler function done"))
               (when (and (:msgs-on-firehose cfg)
                          (not= "firehose" (namespace msg-type)))
-                (put-msg firehose-chan [:firehose/cmp-recv
-                                        {:cmp-id      cmp-id
-                                         :firehose-id (h/make-uuid)
-                                         :msg         msg
-                                         :msg-meta    msg-meta
-                                         :ts          (h/now)}]))
+                (let [now (h/now)]
+                  (put-msg firehose-chan [:firehose/cmp-recv
+                                          {:cmp-id      cmp-id
+                                           :firehose-id (h/make-uuid)
+                                           :msg         msg
+                                           :msg-meta    msg-meta
+                                           :duration    (- now recv-ts)
+                                           :ts          now}])))
               (l/debug cmp-id "received message published on firehose")))
           #?(:clj  (catch Exception e
                      (l/error "Exception in" cmp-id "when receiving message:"
