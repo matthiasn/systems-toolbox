@@ -11,8 +11,9 @@
                  [matthiasn/systemd-watchdog "0.1.3"]
                  [hiccup "1.0.5"]
                  [clj-pid "0.1.2"]
-                 [matthiasn/systems-toolbox "0.6.12"]
-                 [matthiasn/systems-toolbox-sente "0.6.16"]
+                 [matthiasn/systems-toolbox "0.6.17"]
+                 [matthiasn/systems-toolbox-sente "0.6.17"]
+                 [matthiasn/systems-toolbox-kafka "0.6.13"]
                  [re-frame "0.10.1"]
                  [clj-time "0.14.0"]]
 
