@@ -1,5 +1,4 @@
 language: clojure
-lein: lein2
-script: lein2 doo phantom cljs-test once
+script: lein doo phantom cljs-test once
 jdk:
   - oraclejdk8
