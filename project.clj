@@ -1,4 +1,4 @@
-(defproject matthiasn/systems-toolbox "0.6.17"
+(defproject matthiasn/systems-toolbox "0.6.18"
   :description "Toolbox for building Systems in Clojure"
   :url "https://github.com/matthiasn/systems-toolbox"
   :license {:name "Eclipse Public License"
@@ -15,9 +15,9 @@
 
   :plugins [[lein-codox "0.10.3"]
             [test2junit "1.3.3"]
-            [lein-doo "0.1.7"]
+            [lein-doo "0.1.8"]
             [lein-cloverage "1.0.9"]
-            [lein-ancient "0.6.10"]
+            [lein-ancient "0.6.12"]
             [com.jakemccrary/lein-test-refresh "0.21.1"]
             [lein-cljsbuild "1.1.7"]]
 
@@ -27,10 +27,12 @@
   :test-refresh {:notify-on-success false
                  :changes-only      false}
 
+  :clean-targets ^{:protect false} ["target/" "out/"]
+
   :test-paths ["test"]
   ;:test-paths ["dev-resources" "test" "perf"]
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-beta1"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.9.0-alpha19"]
                                   [org.clojure/clojurescript "1.9.908"]
                                   [org.clojure/tools.logging "0.4.0"]
                                   [ch.qos.logback/logback-classic "1.2.3"]]

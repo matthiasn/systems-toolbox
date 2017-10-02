@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.18] - 2017-10-02
+### Changed
+- fixed cljs tests
+
 ## [0.6.17] - 2017-09-20
 ### Changed
 - record processing time
