@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.20] - 2017-10-04
+### Changed
+- pull request #47 from kamituel merged
+- see PR for details
+
+## [0.6.19] - 2017-10-04
+### Changed
+- latest Clojure and ClojureScript in tests
+
 ## [0.6.18] - 2017-10-02
 ### Changed
 - fixed cljs tests
