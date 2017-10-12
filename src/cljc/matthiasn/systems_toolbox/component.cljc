@@ -55,8 +55,8 @@
    the 'snapshot-publish-fn'."
   [{:keys [watch-state cmp-id snapshot-publish-fn]}]
   (try
-    (add-watch watch-state :watcher (fn [_ _ _ _new-state]
-                                      (snapshot-publish-fn)))
+    (add-watch watch-state cmp-id (fn [_ _ _ _new-state]
+                                    (snapshot-publish-fn)))
     #?(:clj  (catch Exception e
                (l/error "Failed watching atom" cmp-id
                         (ex/format-exception e)
