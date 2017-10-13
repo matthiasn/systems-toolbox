@@ -1,5 +1,5 @@
 (ns matthiasn.systems-toolbox.spec
-  (:require
+  (:require  [expound.alpha :as exp]
     #?(:clj  [clojure.spec.alpha :as s]
        :cljs [cljs.spec.alpha :as s])
     #?(:clj  [clojure.tools.logging :as l]
@@ -12,9 +12,13 @@
   (if (contains? (s/registry) spec)
     (if (s/valid? spec x)
       true
-      (do (l/error "VALIDATION FAILED for" spec "," (s/explain-str spec x)) false))
-    (if x  ; only check for spec when x is truthy
-      (do (l/warn (str "UNDEFINED SPEC " spec)) true)
+      (do
+        (l/error (exp/expound-str spec x))
+        false))
+    (if x ; only check for spec when x is truthy
+      (do
+        (l/warn (str "UNDEFINED SPEC " spec))
+        true)
       true)))
 
 (defn namespaced-keyword? [k] (and (keyword? k) (namespace k)))

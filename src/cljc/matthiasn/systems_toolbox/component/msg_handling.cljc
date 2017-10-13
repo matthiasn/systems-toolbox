@@ -202,9 +202,6 @@
         (fn [msg]
           (try
             (l/debug cmp-id "put-fn called")
-            (when (:validate-out cfg)
-              (assert (spec/valid-or-no-spec? (first msg) (second msg)))
-              (l/debug cmp-id "put-fn msg validated"))
             (let [msg-meta (-> (merge (meta msg) {})
                                (add-to-msg-seq cmp-id :out)
                                (assoc-in [cmp-id :out-ts] (h/now)))
@@ -213,7 +210,11 @@
                   completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
                   msg-w-meta (with-meta msg completed-meta)
                   msg-type (first msg)
+                  msg-payload (second msg)
                   msg-from-firehose? (= "firehose" (namespace msg-type))]
+              (when (:validate-out cfg)
+                (assert (spec/valid-or-no-spec? msg-type msg-payload))
+                (l/debug cmp-id "put-fn msg validated"))
               (put-msg put-chan msg-w-meta)
               (l/debug cmp-id "put-fn: msg sent")
               ;; Not all components should emit firehose messages. For example, messages
@@ -238,11 +239,11 @@
                 (l/debug cmp-id "put-fn: msg put on firehose")))
             #?(:clj  (catch Exception e
                        (l/error "Exception in" cmp-id "when sending message:"
-                                (ex/format-exception e) (h/pp-str msg)))
+                                (ex/format-exception e) "\n" (h/pp-str msg)))
                :cljs (catch js/Object e
-                       (l/error e
-                                (str "Exception in " cmp-id " when sending message:"
-                                     (h/pp-str msg)))))
+                       (l/error (str "Exception in " cmp-id
+                                     " when sending message:\n" (h/pp-str msg))
+                                e)))
             #?(:clj (catch AssertionError e
                       (l/error "AssertionError in" cmp-id "when sending message:"
                                (ex/format-exception e) (h/pp-str msg))))))]

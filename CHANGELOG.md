@@ -2,7 +2,11 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
-## [0.6.20] - 2017-10-04
+## [0.6.21] - 2017-10-13
+### Changed
+- expound for human friendly spec validation errors
+
+## [0.6.20] - 2017-10-12
 ### Changed
 - pull request #47 from kamituel merged
 - see PR for details
