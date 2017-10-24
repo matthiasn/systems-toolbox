@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.22] - 2017-10-24
+### Changed
+- expound messages on firehose
+
 ## [0.6.21] - 2017-10-13
 ### Changed
 - expound for human friendly spec validation errors

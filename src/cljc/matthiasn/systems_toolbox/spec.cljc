@@ -21,6 +21,24 @@
         true)
       true)))
 
+(defn valid-or-no-spec2?
+  "If spec exists, validate spec and warn if x is invalid, with detailed
+   explanation. Also puts that information on firehose."
+  [spec x firehose-put]
+  (if (contains? (s/registry) spec)
+    (if (s/valid? spec x)
+      true
+      (let [validation-error (exp/expound-str spec x) ]
+        (l/error validation-error)
+        (firehose-put {:spec-error validation-error})
+        false))
+    (if x ; only check for spec when x is truthy
+      (let [warning (str "UNDEFINED SPEC " spec)]
+        (l/warn warning)
+        (firehose-put {:spec-warning warning})
+        true)
+      true)))
+
 (defn namespaced-keyword? [k] (and (keyword? k) (namespace k)))
 
 

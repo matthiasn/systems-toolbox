@@ -213,8 +213,19 @@
                   msg-payload (second msg)
                   msg-from-firehose? (= "firehose" (namespace msg-type))]
               (when (:validate-out cfg)
-                (assert (spec/valid-or-no-spec? msg-type msg-payload))
+                (assert (spec/valid-or-no-spec2?
+                          msg-type
+                          msg-payload
+                          #(put-msg firehose-chan
+                                    [:firehose/cmp-put
+                                     (merge %
+                                       {:cmp-id      cmp-id
+                                        :firehose-id (h/make-uuid)
+                                        :msg         msg-w-meta
+                                        :msg-meta    completed-meta
+                                        :ts          (h/now)})])))
                 (l/debug cmp-id "put-fn msg validated"))
+
               (put-msg put-chan msg-w-meta)
               (l/debug cmp-id "put-fn: msg sent")
               ;; Not all components should emit firehose messages. For example, messages
