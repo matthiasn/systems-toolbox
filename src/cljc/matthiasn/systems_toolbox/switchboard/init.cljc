@@ -34,7 +34,7 @@
   [init?]
   (fn
     [{:keys [current-state msg-payload cmp-id]}]
-    (let [cmp-maps-set (cmp-maps-set msg-payload)
+    (let [cmp-maps-set (set (filter identity (cmp-maps-set msg-payload)))
           reducer-fn
           (fn [acc cmp]
             (let [cmp-id-to-wire (:cmp-id cmp)
