@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.23] - 2017-10-26
+### Changed
+- test with Clojure 1.9 beta 3
+
 ## [0.6.22] - 2017-10-24
 ### Changed
 - expound messages on firehose
