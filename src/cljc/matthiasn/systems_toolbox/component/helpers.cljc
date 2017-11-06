@@ -15,8 +15,8 @@
 (defn make-uuid
   "Get a random UUID."
   []
-  #?(:clj  (str (java.util.UUID/randomUUID))
-     :cljs (str (uuid/make-random-uuid))))
+  #?(:clj  (java.util.UUID/randomUUID)
+     :cljs (uuid/make-random-uuid)))
 
 #?(:cljs (def request-animation-frame
            (or (when (exists? js/window)
