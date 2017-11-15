@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.25] - 2017-11-15
+### Changed
+- Clojure 1.9 RC1; deps
+
 ## [0.6.24] - 2017-10-26
 ### Changed
 - filter identity on component maps set
