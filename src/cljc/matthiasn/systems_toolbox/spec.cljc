@@ -7,37 +7,20 @@
 
 (defn valid-or-no-spec?
   "If spec exists, validate spec and warn if x is invalid, with detailed
-   explanation. If spec does not exist, log warning."
-  [spec x]
-  (if (contains? (s/registry) spec)
-    (if (s/valid? spec x)
-      true
-      (do
-        (l/error (exp/expound-str spec x))
-        false))
-    (if x ; only check for spec when x is truthy
-      (do
-        (l/warn (str "UNDEFINED SPEC " spec))
-        true)
-      true)))
-
-(defn valid-or-no-spec2?
-  "If spec exists, validate spec and warn if x is invalid, with detailed
-   explanation. Also puts that information on firehose."
-  [spec x firehose-put]
-  (if (contains? (s/registry) spec)
-    (if (s/valid? spec x)
-      true
-      (let [validation-error (exp/expound-str spec x) ]
-        (l/error validation-error)
-        (firehose-put {:spec-error validation-error})
-        false))
-    (if x ; only check for spec when x is truthy
-      (let [warning (str "UNDEFINED SPEC " spec)]
-        (l/warn warning)
-        (firehose-put {:spec-warning warning})
-        true)
-      true)))
+   explanation. Also puts that information on firehose for use in inspect."
+  ([spec x] (valid-or-no-spec? spec x nil))
+  ([spec x firehose-put]
+   (if (contains? (s/registry) spec)
+     (if (s/valid? spec x)
+       true
+       (let [validation-error (exp/expound-str spec x)]
+         (l/error validation-error)
+         (when firehose-put (firehose-put {:spec-error validation-error}))
+         false))
+     (let [warning (str "UNDEFINED SPEC " spec)]
+       (l/warn warning)
+       (when firehose-put (firehose-put {:spec-warning warning}))
+       true))))
 
 (defn namespaced-keyword? [k] (and (keyword? k) (namespace k)))
 
@@ -105,3 +88,5 @@
 ;; App State Specs
 ;; TODO: define specific specs for a component in order to validate the :new-state returned by handler functions
 (s/def :app/state map?)
+
+(s/def :cmd/publish-state nil?)

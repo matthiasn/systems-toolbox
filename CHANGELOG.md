@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.27] - 2017-11-28
+### Changed
+- specs for messages without payload
+
 ## [0.6.26] - 2017-11-15
 ### Changed
 - Make UUID's pass uuid? predicate
@@ -405,71 +409,3 @@ All notable changes to this project will be documented in this file. This change
 ## [0.2.4] - 2015-06-19
 ### Changed
 - Enable handler maps inside UI components. This allows for UI components that are more independent and don't require an external store/state component. This feature can be useful for components that do not share any state with other components.
-
-
-[0.6.1-alpha4]: https://github.com/matthiasn/systems-toolbox/compare/v0.6.1-alpha3...v0.6.1-alpha4
-[0.6.1-alpha3]: https://github.com/matthiasn/systems-toolbox/compare/v0.6.1-alpha2...v0.6.1-alpha3
-[0.6.1-alpha2]: https://github.com/matthiasn/systems-toolbox/compare/v0.6.1-alpha1q...v0.6.1-alpha2
-[0.6.1-alpha1]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.22...v0.6.1-alpha1
-[0.5.22]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.20...v0.5.22
-[0.5.20]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.19...v0.5.20
-[0.5.19]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.18...v0.5.19
-[0.5.18]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.15...v0.5.18
-[0.5.15]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.14...v0.5.15
-[0.5.14]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.13...v0.5.14
-[0.5.13]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.12...v0.5.13
-[0.5.12]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.11...v0.5.12
-[0.5.11]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.10...v0.5.11
-[0.5.10]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.9...v0.5.10
-[0.5.9]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.8...v0.5.9
-[0.5.8]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.7...v0.5.8
-[0.5.7]: https://github.com/matthiasn/systems-toolbox/compare/v0.5.1...v0.5.7
-[0.5.1]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.10...v0.5.1
-[0.4.10]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.9...v0.4.10
-[0.4.9]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.8...v0.4.9
-[0.4.8]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.7...v0.4.8
-[0.4.7]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.6...v0.4.7
-[0.4.6]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.5...v0.4.6
-[0.4.5]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.2...v0.4.5
-[0.4.2]: https://github.com/matthiasn/systems-toolbox/compare/v0.4.1...v0.4.2
-[0.4.1]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.15...v0.4.1
-[0.3.15]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.14...v0.3.15
-[0.3.14]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.12...v0.3.14
-[0.3.12]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.11...v0.3.12
-[0.3.11]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.10...v0.3.11
-[0.3.10]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.9...v0.3.10
-[0.3.9]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.8...v0.3.9
-[0.3.8]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.7...v0.3.8
-[0.3.7]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.6...v0.3.7
-[0.3.6]: https://github.com/matthiasn/systems-toolbox/compare/v0.3.1...v0.3.6
-[0.3.1]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.33...v0.3.1
-[0.2.33]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.32...v0.2.33
-[0.2.32]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.31...v0.2.32
-[0.2.31]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.30...v0.2.31
-[0.2.30]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.29...v0.2.30
-[0.2.29]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.28...v0.2.29
-[0.2.28]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.27...v0.2.28
-[0.2.27]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.26...v0.2.27
-[0.2.26]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.25...v0.2.26
-[0.2.25]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.24...v0.2.25
-[0.2.24]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.23...v0.2.24
-[0.2.23]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.22...v0.2.23
-[0.2.22]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.21...v0.2.22
-[0.2.21]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.20...v0.2.21
-[0.2.20]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.19...v0.2.20
-[0.2.19]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.18...v0.2.19
-[0.2.18]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.17...v0.2.18
-[0.2.17]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.16...v0.2.17
-[0.2.16]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.15...v0.2.16
-[0.2.15]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.14...v0.2.15
-[0.2.14]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.13...v0.2.14
-[0.2.13]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.12...v0.2.13
-[0.2.12]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.11...v0.2.12
-[0.2.11]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.10...v0.2.11
-[0.2.10]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.9...v0.2.10
-[0.2.9]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.8...v0.2.9
-[0.2.8]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.7...v0.2.8
-[0.2.7]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.6...v0.2.7
-[0.2.6]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.5...v0.2.6
-[0.2.5]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.4...v0.2.5
-[0.2.4]: https://github.com/matthiasn/systems-toolbox/compare/v0.2.3...v0.2.4

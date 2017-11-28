@@ -213,7 +213,7 @@
                   msg-payload (second msg)
                   msg-from-firehose? (= "firehose" (namespace msg-type))]
               (when (:validate-out cfg)
-                (assert (spec/valid-or-no-spec2?
+                (assert (spec/valid-or-no-spec?
                           msg-type
                           msg-payload
                           #(put-msg firehose-chan
