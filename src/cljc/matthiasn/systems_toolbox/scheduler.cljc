@@ -34,9 +34,10 @@
 
 (defn start-loop
   "Starts a loop for sending messages at set intervals."
-  [{:keys [current-state cmp-state put-fn msg-payload]}]
+  [{:keys [current-state cmp-state put-fn msg-meta msg-payload]}]
   (let [timeout-ms (:timeout msg-payload)
-        msg-to-send (:message msg-payload)
+        msg-to-send (with-meta (:message msg-payload)
+                               (update-in msg-meta [:cmp-seq] #(vec (take-last 2 %))))
         scheduler-id (or (:id msg-payload) (first msg-to-send))]
     (if (get-in current-state [:active-timers scheduler-id])
       (l/debug (str "Timer " scheduler-id " already scheduled - ignoring."))
