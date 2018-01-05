@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.29] - 2018-01-05
+### Changed
+- record tag creation timestamp
+
 ## [0.6.28] - 2018-01-04
 ### Changed
 - only keep last two component ids in cmp-seq when dispatched from scheduler

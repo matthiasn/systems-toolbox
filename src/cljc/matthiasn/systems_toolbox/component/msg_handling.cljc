@@ -207,7 +207,10 @@
                                (assoc-in [cmp-id :out-ts] (h/now)))
                   corr-id (h/make-uuid)
                   tag (or (:tag msg-meta) (h/make-uuid))
-                  completed-meta (merge msg-meta {:corr-id corr-id :tag tag})
+                  tag-ts (or (:tag-ts msg-meta) (h/now))
+                  completed-meta (merge msg-meta {:corr-id corr-id
+                                                  :tag-ts  tag-ts
+                                                  :tag     tag})
                   msg-w-meta (with-meta msg completed-meta)
                   msg-type (first msg)
                   msg-payload (second msg)
@@ -219,11 +222,11 @@
                           #(put-msg firehose-chan
                                     [:firehose/cmp-put
                                      (merge %
-                                       {:cmp-id      cmp-id
-                                        :firehose-id (h/make-uuid)
-                                        :msg         msg-w-meta
-                                        :msg-meta    completed-meta
-                                        :ts          (h/now)})])))
+                                            {:cmp-id      cmp-id
+                                             :firehose-id (h/make-uuid)
+                                             :msg         msg-w-meta
+                                             :msg-meta    completed-meta
+                                             :ts          (h/now)})])))
                 (l/debug cmp-id "put-fn msg validated"))
 
               (put-msg put-chan msg-w-meta)
