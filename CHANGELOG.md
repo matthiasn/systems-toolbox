@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
-## [0.6.31] - 2018-01-24
+## [0.6.32] - 2018-01-24
 ### Changed
 - deps
 
