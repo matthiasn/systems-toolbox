@@ -1,16 +1,21 @@
 (ns matthiasn.systems-toolbox.switchboard
-  (:require  [matthiasn.systems-toolbox.component :as comp]
-             [matthiasn.systems-toolbox.switchboard.route :as rt]
-             [matthiasn.systems-toolbox.switchboard.observe :as obs]
-             [matthiasn.systems-toolbox.switchboard.init :as i]
-    #?(:clj  [clojure.core.async :refer [put! chan pipe sub tap]]
+  (:require [matthiasn.systems-toolbox.component :as comp]
+            [matthiasn.systems-toolbox.switchboard.route :as rt]
+            [matthiasn.systems-toolbox.switchboard.observe :as obs]
+            [matthiasn.systems-toolbox.switchboard.init :as i]
+    #?(:clj
+            [clojure.core.async :refer [put! chan pipe sub tap]]
        :cljs [cljs.core.async :refer [put! chan pipe sub tap]])
-    #?(:clj  [clojure.pprint :as pp]
+    #?(:clj
+            [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
-    #?(:clj  [clojure.tools.logging :as l]
+    #?(:clj
+            [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj  [io.aviso.exception :as ex])
-    #?(:clj  [clojure.spec.alpha :as s]
+    #?(:clj
+            [io.aviso.exception :as ex])
+    #?(:clj
+            [clojure.spec.alpha :as s]
        :cljs [cljs.spec.alpha :as s])))
 
 (defn- self-register
@@ -26,9 +31,9 @@
   "Create initial state atom for switchboard component."
   [_put-fn]
   {:state (atom {:components {}
-                 :subs #{}
-                 :taps #{}
-                 :fh-taps #{}})})
+                 :subs       #{}
+                 :taps       #{}
+                 :fh-taps    #{}})})
 
 (defn attach-to-firehose
   "Attaches a component to firehose channel. For example for observational
@@ -71,6 +76,7 @@
    :cmd/wire-comp          (i/wire-or-init-comp false)
    :cmd/init-comp          (i/wire-or-init-comp true)
    :cmd/shutdown-all       i/shutdown-all
+   :cmd/shutdown           i/shutdown-cmp
    :cmd/attach-to-firehose attach-to-firehose
    :cmd/self-register      self-register
    :cmd/observe-state      obs/observe-state
@@ -95,7 +101,7 @@
                         :state-fn          mk-state
                         :handler-map       handler-map
                         :state-spec        :st.switchboard/state-spec
-                        :opts              (merge {:msgs-on-firehose false
+                        :opts              (merge {:msgs-on-firehose      false
                                                    :snapshots-on-firehose true}
                                                   cmp-opts)
                         :snapshot-xform-fn xform-fn})

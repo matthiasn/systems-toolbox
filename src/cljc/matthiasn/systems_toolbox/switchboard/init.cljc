@@ -1,11 +1,14 @@
 (ns matthiasn.systems-toolbox.switchboard.init
-  (:require  [matthiasn.systems-toolbox.component :as comp]
-             [matthiasn.systems-toolbox.switchboard.spec]
-    #?(:clj  [clojure.core.async :refer [put! tap untap-all untap unsub-all close!]]
+  (:require [matthiasn.systems-toolbox.component :as comp]
+            [matthiasn.systems-toolbox.switchboard.spec]
+    #?(:clj
+            [clojure.core.async :refer [put! tap untap-all untap unsub-all close!]]
        :cljs [cljs.core.async :refer [put! tap untap-all untap unsub-all close!]])
-    #?(:clj  [clojure.tools.logging :as l]
+    #?(:clj
+            [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj  [clojure.spec.alpha :as s]
+    #?(:clj
+            [clojure.spec.alpha :as s]
        :cljs [cljs.spec.alpha :as s])))
 
 (defn cmp-maps-set
@@ -47,6 +50,7 @@
                        (:in-chan prev-cmp))
                 (unsub-all (:out-pub prev-cmp))
                 (unsub-all (:state-pub prev-cmp)))
+
               (when (and prev-cmp reload?)
                 (when-let [shutdown-fn (:shutdown-fn prev-cmp)]
                   (shutdown-fn)))
@@ -79,3 +83,14 @@
     (doseq [cmp (vals cmps)]
       (when-let [shutdown-fn (:shutdown-fn cmp)]
         (shutdown-fn)))))
+
+(defn shutdown-cmp
+  "Call shutdown function on specified component."
+  [{:keys [current-state msg-payload]}]
+  (let [cmp (-> current-state :components msg-payload)
+        new-state (update-in current-state [:components] dissoc msg-payload)]
+    (when-let [shutdown-fn (:shutdown-fn cmp)]
+      (shutdown-fn))
+    {:new-state new-state
+     :emit-msg  [:switchboard/status {:cmd    :shutdown
+                                      :status :success}]}))
