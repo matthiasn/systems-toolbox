@@ -1,24 +1,21 @@
 (ns matthiasn.systems-toolbox.switchboard
-  (:require [matthiasn.systems-toolbox.component :as comp]
-            [matthiasn.systems-toolbox.switchboard.route :as rt]
-            [matthiasn.systems-toolbox.switchboard.observe :as obs]
-            [matthiasn.systems-toolbox.switchboard.init :as i]
-    #?(:clj
-            [clojure.core.async :refer [put! chan pipe sub tap]]
+  (:require
+    [matthiasn.systems-toolbox.component :as comp]
+    [matthiasn.systems-toolbox.switchboard.route :as rt]
+    [matthiasn.systems-toolbox.switchboard.observe :as obs]
+    [matthiasn.systems-toolbox.switchboard.init :as i]
+    [matthiasn.systems-toolbox.component.helpers :as h]
+    #?(:clj  [clojure.core.async :refer [put! chan pipe sub tap]]
        :cljs [cljs.core.async :refer [put! chan pipe sub tap]])
-    #?(:clj
-            [clojure.pprint :as pp]
+    #?(:clj  [clojure.pprint :as pp]
        :cljs [cljs.pprint :as pp])
-    #?(:clj
-            [clojure.tools.logging :as l]
+    #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj
-            [io.aviso.exception :as ex])
-    #?(:clj
-            [clojure.spec.alpha :as s]
+    #?(:clj  [io.aviso.exception :as ex])
+    #?(:clj  [clojure.spec.alpha :as s]
        :cljs [cljs.spec.alpha :as s])))
 
-(defn- self-register
+(defn self-register
   "Registers switchboard itself as another component that can be wired. Useful
    for communication with the outside world / within hierarchies where a
    subsystem has its own switchboard."
@@ -27,9 +24,7 @@
   (swap! cmp-state assoc-in [:switchboard-id] cmp-id)
   {})
 
-(defn mk-state
-  "Create initial state atom for switchboard component."
-  [_put-fn]
+(defn mk-state [_put-fn]
   {:state (atom {:components {}
                  :subs       #{}
                  :taps       #{}
@@ -85,7 +80,7 @@
 
 (defn xform-fn
   "Transformer function for switchboard state snapshot. Allows serialization of
-   snaphot for sending over WebSockets."
+   snapshot for sending, e.g. over WebSockets or other transports."
   [m]
   (update-in m [:components] (fn [cmps]
                                (into {} (mapv (fn [[k v]] [k k]) cmps)))))
@@ -96,10 +91,15 @@
   ([switchboard-id]
    (component switchboard-id {}))
   ([switchboard-id cmp-opts]
-   (let [switchboard (comp/make-component
+   (let [system-info (merge {:system-id (str (h/make-uuid))
+                             :node-type (str (h/make-uuid))
+                             :node-id   (str (h/make-uuid))}
+                            (select-keys cmp-opts [:system-id :node-type :node-id]))
+         switchboard (comp/make-component
                        {:cmp-id            switchboard-id
                         :state-fn          mk-state
                         :handler-map       handler-map
+                        :system-info       system-info
                         :state-spec        :st.switchboard/state-spec
                         :opts              (merge {:msgs-on-firehose      false
                                                    :snapshots-on-firehose true}

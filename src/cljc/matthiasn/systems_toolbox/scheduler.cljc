@@ -1,11 +1,9 @@
 (ns matthiasn.systems-toolbox.scheduler
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go-loop]]))
   (:require [matthiasn.systems-toolbox.component :as comp]
-    #?(:clj
-            [clojure.tools.logging :as l]
+    #?(:clj [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj
-            [clojure.core.async :refer [<! go-loop timeout]])
+    #?(:clj [clojure.core.async :refer [<! go-loop timeout]])
     #?(:cljs [cljs.core.async :refer [<! timeout]])))
 
 ;;; Systems Toolbox - Scheduler Subsystem

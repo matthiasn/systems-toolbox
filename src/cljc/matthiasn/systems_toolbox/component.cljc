@@ -1,15 +1,15 @@
 (ns matthiasn.systems-toolbox.component
   (:require [matthiasn.systems-toolbox.spec :as s]
-    #?(:clj  [clojure.tools.logging :as l]
+    #?(:clj [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj  [io.aviso.exception :as ex])
-             [matthiasn.systems-toolbox.component.helpers :as h]
-             [matthiasn.systems-toolbox.component.msg-handling :as msg]
-    #?(:clj  [clojure.core.async :as a :refer [chan]]
+    #?(:clj [io.aviso.exception :as ex])
+            [matthiasn.systems-toolbox.component.helpers :as h]
+            [matthiasn.systems-toolbox.component.msg-handling :as msg]
+    #?(:clj [clojure.core.async :as a :refer [chan]]
        :cljs [cljs.core.async :as a :refer [chan]])))
 
-(def now h/now)
-(def make-uuid h/make-uuid)
+(defn now [] (h/now))
+(defn make-uuid [] (h/make-uuid))
 (def send-msg msg/send-msg)
 (def send-msgs msg/send-msgs)
 
@@ -135,7 +135,7 @@
                     (l/debug (:cmp-id cmp-map) "returned state validated")))
                 new-state)))
           state (:state state-map)
-          watch-state (if-let [watch (:watch opts)]  ; watchable atom
+          watch-state (if-let [watch (:watch opts)]         ; watchable atom
                         (watch state)
                         state)
           cmp-map (merge cmp-map {:watch-state watch-state})
@@ -156,8 +156,8 @@
                   :state-snapshot-fn (fn [] @watch-state)
                   :state-reset-fn    (fn [new-state]
                                        (reset! watch-state new-state))})]
-      (a/tap (:out-mult cmp-map) out-pub-chan) ; connect out-pub-chan to out-mult
-      (detect-changes cmp-map)     ; publish snapshots when changes are detected
+      (a/tap (:out-mult cmp-map) out-pub-chan)              ; connect out-pub-chan to out-mult
+      (detect-changes cmp-map)                              ; publish snapshots when changes are detected
       (merge cmp-map
              (msg/msg-handler-loop cmp-map :in-chan)
              (msg/msg-handler-loop cmp-map :sliding-in-chan)))

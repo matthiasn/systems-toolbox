@@ -2,19 +2,15 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :as cam :refer [go-loop]]
              [cljs.core :refer [exists?]]))
   (:require [matthiasn.systems-toolbox.spec :as spec]
-    #?(:clj
-            [clojure.tools.logging :as l]
+    #?(:clj  [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-            [matthiasn.systems-toolbox.component.helpers :as h]
-    #?(:clj
-            [io.aviso.exception :as ex])
-    #?(:clj
-            [clojure.core.match :refer [match]]
+             [matthiasn.systems-toolbox.component.helpers :as h]
+    #?(:clj  [io.aviso.exception :as ex])
+    #?(:clj  [clojure.core.match :refer [match]]
        :cljs [cljs.core.match :refer-macros [match]])
-    #?(:clj
-            [clojure.core.async :as a :refer [chan go-loop]]
+    #?(:clj  [clojure.core.async :as a :refer [chan go-loop]]
        :cljs [cljs.core.async :as a :refer [chan]])
-            [clojure.set :as s]))
+             [clojure.set :as s]))
 
 (defn put-msg
   "On the JVM, always uses the blocking operation for putting messages on a
@@ -103,7 +99,7 @@
   [cmp-map chan-key]
   (let [{:keys [handler-map all-msgs-handler state-pub-handler cfg cmp-id
                 firehose-chan snapshot-publish-fn unhandled-handler
-                state-snapshot-fn]
+                state-snapshot-fn system-info]
          :or   {handler-map {}}} cmp-map
         in-chan (make-chan-w-buf (chan-key cfg))
         onto-in-chan #(a/onto-chan in-chan % false)]
@@ -114,22 +110,24 @@
           (let [recv-ts (h/now)
                 msg-meta (-> (merge (meta msg) {})
                              (add-to-msg-seq cmp-id :in)
-                             (assoc-in [cmp-id :in-ts] (h/now)))
+                             (assoc-in [cmp-id :in-ts] (h/now))
+                             (assoc-in [:system-info] system-info))
                 [msg-type msg-payload] msg
                 handler-fn (msg-type handler-map)
                 put-fn (fn [msg]
                          (let [msg-meta (merge msg-meta (meta msg))
                                wrapped-put-fn (:put-fn cmp-map)]
                            (wrapped-put-fn (with-meta msg msg-meta))))
-                msg-map-fn
-                (fn []
-                  (merge cmp-map {:msg           (with-meta msg msg-meta)
-                                  :msg-type      msg-type
-                                  :msg-meta      msg-meta
-                                  :put-fn        put-fn
-                                  :msg-payload   msg-payload
-                                  :onto-in-chan  onto-in-chan
-                                  :current-state (state-snapshot-fn)}))
+                msg-map-fn (fn []
+                             (merge
+                               cmp-map
+                               {:msg           (with-meta msg msg-meta)
+                                :msg-type      msg-type
+                                :msg-meta      msg-meta
+                                :put-fn        put-fn
+                                :msg-payload   msg-payload
+                                :onto-in-chan  onto-in-chan
+                                :current-state (state-snapshot-fn)}))
                 handler-return-fn (mk-handler-return-fn cmp-map in-chan msg-type msg-meta)
                 observed-state-handler (or state-pub-handler
                                            default-state-pub-handler)]
@@ -163,6 +161,7 @@
                   (put-msg firehose-chan [:firehose/cmp-recv
                                           {:cmp-id      cmp-id
                                            :firehose-id (h/make-uuid)
+                                           :system-info system-info
                                            :msg         msg
                                            :msg-meta    msg-meta
                                            :duration    (- now recv-ts)
@@ -197,7 +196,7 @@
    'system-ready-fn' (below) is called, which pipes this channel into the actual
    out-chan. Thus, components should not try call more messages than fit in the
    buffer before the entire system is up."
-  [{:keys [cmp-id put-chan cfg firehose-chan]}]
+  [{:keys [cmp-id put-chan cfg firehose-chan system-info]}]
   (let [put-one-msg
         (fn [msg]
           (try
@@ -224,6 +223,7 @@
                                      (merge %
                                             {:cmp-id      cmp-id
                                              :firehose-id (h/make-uuid)
+                                             :system-info system-info
                                              :msg         msg-w-meta
                                              :msg-meta    completed-meta
                                              :ts          (h/now)})])))
@@ -247,6 +247,7 @@
                   (put-msg firehose-chan
                            [:firehose/cmp-put {:cmp-id      cmp-id
                                                :firehose-id (h/make-uuid)
+                                               :system-info system-info
                                                :msg         msg-w-meta
                                                :msg-meta    completed-meta
                                                :ts          (h/now)}]))

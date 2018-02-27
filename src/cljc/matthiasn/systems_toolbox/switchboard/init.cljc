@@ -1,14 +1,11 @@
 (ns matthiasn.systems-toolbox.switchboard.init
   (:require [matthiasn.systems-toolbox.component :as comp]
             [matthiasn.systems-toolbox.switchboard.spec]
-    #?(:clj
-            [clojure.core.async :refer [put! tap untap-all untap unsub-all close!]]
+    #?(:clj [clojure.core.async :refer [put! tap untap-all untap unsub-all close!]]
        :cljs [cljs.core.async :refer [put! tap untap-all untap unsub-all close!]])
-    #?(:clj
-            [clojure.tools.logging :as l]
+    #?(:clj [clojure.tools.logging :as l]
        :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj
-            [clojure.spec.alpha :as s]
+    #?(:clj [clojure.spec.alpha :as s]
        :cljs [cljs.spec.alpha :as s])))
 
 (defn cmp-maps-set
@@ -35,8 +32,7 @@
    Finally, the new component is tapped into the switchboard's firehose and the
    component is also asked to publish its state once (also useful for Figwheel)."
   [init?]
-  (fn
-    [{:keys [current-state msg-payload cmp-id]}]
+  (fn [{:keys [current-state msg-payload cmp-id system-info]}]
     (let [cmp-maps-set (set (filter identity (cmp-maps-set msg-payload)))
           reducer-fn
           (fn [acc cmp]
@@ -54,7 +50,8 @@
               (when (and prev-cmp reload?)
                 (when-let [shutdown-fn (:shutdown-fn prev-cmp)]
                   (shutdown-fn)))
-              (let [cmp (if (or (not prev-cmp) reload?)
+              (let [cmp (assoc-in cmp [:system-info] system-info)
+                    cmp (if (or (not prev-cmp) reload?)
                           (if init? (comp/make-component cmp) cmp)
                           prev-cmp)]
                 (if cmp

@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.34] - 2018-02-27
+### Changed
+- assign system-id, node-type, and node-id (useful for application clusters)
+
 ## [0.6.33] - 2018-02-05
 ### Changed
 - component shutdown function

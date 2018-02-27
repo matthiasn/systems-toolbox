@@ -14,6 +14,6 @@
 (s/def :int/div-by-100 #(and (number? %) (zero? (mod % 100))))
 
 (s/def :test/n number?)
+(s/def :test/done nil?)
 (s/def :test/sum (s/keys :req-un [:test/n]))
 (s/def :test/unhandled :test/sum)
-
