@@ -38,9 +38,9 @@ This library targets both **Clojure** and **Clojurescript** and is written entir
 
 On the JavaScript side, you have more options, for example:
 
-    $ lein doo firefox cljs-test once    
+    $ lein doo phantom cljs-test once
 
-Alternatively, you can replace `firefox` with `chrome`, `phantom` or `nashorn`. Instead of `once`, you can also use `auto` to run the tests automatically when changes are detected. For more information about the options, check out the documentation for **[doo](https://github.com/bensu/doo)**.
+Instead of `once`, you can also use `auto` to run the tests automatically when changes are detected. For more information about the options, check out the documentation for **[doo](https://github.com/bensu/doo)**.
 
 Both ways of testing run automatically on each new commit. On the **JVM**, we use **CircleCI**: [![CircleCI Build Status](https://circleci.com/gh/matthiasn/systems-toolbox.svg?&style=shield&circle-token=24e698236c3b69afa71b954d829fbb9f9fb7c34d)](https://circleci.com/gh/matthiasn/systems-toolbox)
 
