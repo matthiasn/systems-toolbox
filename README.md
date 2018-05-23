@@ -44,10 +44,9 @@ Instead of `once`, you can also use `auto` to run the tests automatically when c
 
 Both ways of testing run automatically on each new commit. On the **JVM**, we use **CircleCI**: [![CircleCI Build Status](https://circleci.com/gh/matthiasn/systems-toolbox.svg?&style=shield&circle-token=24e698236c3b69afa71b954d829fbb9f9fb7c34d)](https://circleci.com/gh/matthiasn/systems-toolbox)
 
-On **TravisCI**, the tests then run in a **JS** environment, on **[PhantomJS](http://phantomjs.org/)**: [![TravisCI Build Status](https://travis-ci.org/matthiasn/systems-toolbox.svg?branch=master)](https://travis-ci.org/matthiasn/systems-toolbox)
+On **TravisCI**, the tests then run in a **JS** environment, on **[Node.js](https://nodejs.org/)**: [![TravisCI Build Status](https://travis-ci.org/matthiasn/systems-toolbox.svg?branch=master)](https://travis-ci.org/matthiasn/systems-toolbox)
 
 Check out the `circle.yml` and `.travis.yml` files when you need an example for how to set up your projects with these providers.
-
 
 ## Examples
 
