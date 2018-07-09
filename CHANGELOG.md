@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 
+## [0.6.37] - 2018-07-08
+### Changed
+- dependencies
+- tests with Clojure 1.10.0-alpha6
+- adapted specs
+
 ## [0.6.36] - 2018-06-04
 ### Changed
 - dependencies
