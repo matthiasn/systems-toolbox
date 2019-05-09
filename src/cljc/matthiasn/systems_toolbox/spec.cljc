@@ -72,15 +72,18 @@
 (s/def :st.schedule/repeat boolean?)
 (s/def :st.schedule/initial boolean?)
 
-(s/def :cmd/schedule-new
+(s/def :schedule/new
   (s/keys :req-un [:st.schedule/timeout
                    :st.schedule/message]
           :opt-un [:st.schedule/id
                    :st.schedule/repeat
                    :st.schedule/initial]))
 
-(s/def :cmd/schedule-delete
+(s/def :schedule/delete
   (s/keys :req-un [:st.schedule/id]))
+
+(s/def :cmd/schedule-new :schedule/new)
+(s/def :cmd/schedule-delete :schedule/delete)
 
 (s/def :info/deleted-timer keyword?)
 

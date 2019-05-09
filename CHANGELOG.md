@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.6.40] - 2019-05-09
+### Changed
+- missing spec
+
 ## [0.6.39] - 2019-05-09
 ### Changed
 - `:schedule/new` and `:schedule/delete` message types
