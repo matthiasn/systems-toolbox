@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.6.39] - 2019-05-09
+### Changed
+- `:schedule/new` and `:schedule/delete` message types
+- dependencies
+
 ## [0.6.38] - 2018-12-19
 ### Changed
 - Clojure 1.10.0

@@ -1,10 +1,10 @@
 (ns matthiasn.systems-toolbox.scheduler
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go-loop]]))
   (:require [matthiasn.systems-toolbox.component :as comp]
-    #?(:clj [clojure.tools.logging :as l]
-       :cljs [matthiasn.systems-toolbox.log :as l])
-    #?(:clj [clojure.core.async :refer [<! go-loop timeout]])
-    #?(:cljs [cljs.core.async :refer [<! timeout]])))
+            #?(:clj  [clojure.tools.logging :as l]
+               :cljs [matthiasn.systems-toolbox.log :as l])
+            #?(:clj [clojure.core.async :refer [<! go-loop timeout]])
+            #?(:cljs [cljs.core.async :refer [<! timeout]])))
 
 ;;; Systems Toolbox - Scheduler Subsystem
 
@@ -77,7 +77,9 @@
   [cmp-id]
   {:cmp-id      cmp-id
    :state-fn    state-fn
-   :handler-map {:cmd/schedule-new    start-loop
+   :handler-map {:schedule/new        start-loop
+                 :schedule/delete     stop-loop
+                 :cmd/schedule-new    start-loop
                  :cmd/schedule-delete stop-loop}
    :opts        {:reload-cmp false}})
 

@@ -38,7 +38,7 @@ This library targets both **Clojure** and **Clojurescript** and is written entir
 
 On the JavaScript side, you have more options, for example:
 
-    $ lein doo phantom cljs-test once
+    $ lein doo node cljs-test once
 
 Instead of `once`, you can also use `auto` to run the tests automatically when changes are detected. For more information about the options, check out the documentation for **[doo](https://github.com/bensu/doo)**.
 
