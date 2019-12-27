@@ -29,6 +29,10 @@ With Leiningen, add the following dependency to your `project.clj`:
 
 [![Clojars Project](https://img.shields.io/clojars/v/matthiasn/systems-toolbox.svg)](https://clojars.org/matthiasn/systems-toolbox)
 
+In addition, you also need to add the dependency for [core.async](https://mvnrepository.com/artifact/org.clojure/core.async), e.g. with Leiningen:
+
+    [org.clojure/core.async "0.6.532"]
+
 
 ## Testing
 
