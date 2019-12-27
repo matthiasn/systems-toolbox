@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.6.41] - 2019-05-09
+### Changed
+- dependencies
+- core.async as dev dependency, needs to be specifically depended on
+
 ## [0.6.40] - 2019-05-09
 ### Changed
 - missing spec
